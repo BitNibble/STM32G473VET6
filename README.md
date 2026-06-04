@@ -1,0 +1,2 @@
+# STM32G473VET6
+code
