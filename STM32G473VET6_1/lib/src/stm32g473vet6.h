@@ -234,9 +234,9 @@ typedef struct {
 	MEMORY_Block* const memory;
 	EVENT_Block* const event;
 	CLOCK_Block* const clock;
-} STM32G473_DEVICE;
+} STM32_DEVICE;
 
-const STM32G473_DEVICE* dev(void);
+const STM32_DEVICE* dev(void);
 
 /************************** CLOCK QUERY ****************************/
 uint32_t get_pll_source(void);
@@ -254,6 +254,9 @@ uint32_t get_pclk1(void);
 uint32_t get_pclk2(void);
 uint32_t get_timclk1(void);
 uint32_t get_timclk2(void);
+
+/************************* Generic UTILS ***************************/
+U_word writeHLbyte(uint16_t v);
 
 /************************** GPIO UTILS *****************************/
 void GPIO_clock( GPIO_TypeDef* GPIO, uint8_t enable );

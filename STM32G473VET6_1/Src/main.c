@@ -16,6 +16,7 @@
  ******************************************************************************
  */
 #include "stm32gxxxrcc.h"
+#include "armsystick.h"
 #include "timer_irq.h"
 
 //#if !defined(__SOFT_FP__) && defined(__ARM_FP)
@@ -37,7 +38,7 @@ void tim1_blink_setup(void)
     dev()->timer->tim1->CNT = 0;
 
     /* Force update so registers load */
-    //dev()->timer->tim1->EGR = TIM_EGR_UG;
+    dev()->timer->tim1->EGR = TIM_EGR_UG;
 
     /*-----------------------------
      * 3. INTERRUPT ENABLE (TIM1 update)
@@ -58,18 +59,24 @@ void tim1_u_callback(void)
 {
     dev()->gpio->f->ODR ^= (1 << 2);
 }
+
 int main(void)
 {
 	rcc()->inic();
 	fpu_enable();
+	systick_inic();
 
 	GPIO_clock( dev()->gpio->f, 1 );
 	GPIO_moder( dev()->gpio->f, 2, 1 );
 
-	tim1_blink_setup();
+	//tim1_blink_setup();
 
-	//set_pin( dev()->gpio->f, 2 );
-
-	while(1);
+	while(1)
+	{
+		set_pin( dev()->gpio->f, 2 );
+		_delay_ms(3000);
+		clear_pin( dev()->gpio->f, 2 );
+		_delay_ms(3000);
+	}
 }
 

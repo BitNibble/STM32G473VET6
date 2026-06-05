@@ -171,7 +171,7 @@ static CLOCK_Block clock = {
 /******************************************************************
  * DEVICE INSTANCE
  ******************************************************************/
-static const STM32G473_DEVICE device = {
+static const STM32_DEVICE device = {
     .core = &core,
 	.system = &system,
 	.gpio = &gpio,
@@ -189,7 +189,7 @@ static const STM32G473_DEVICE device = {
 /******************************************************************
  * ACCESS
  ******************************************************************/
-const STM32G473_DEVICE* dev(void)
+const STM32_DEVICE* dev(void)
 {
     return &device;
 }
@@ -200,9 +200,7 @@ const STM32G473_DEVICE* dev(void)
 =========================================================*/
 inline uint32_t get_pll_source(void)
 {
-    uint32_t src = get_reg_field_value(dev()->system->rcc->PLLCFGR,
-                                   RCC_PLLCFGR_PLLSRC_Msk,
-                                   RCC_PLLCFGR_PLLSRC_Pos);
+    uint32_t src = get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
 
     return (src) ? HSE_VALUE : HSI_VALUE;
 }
@@ -369,6 +367,15 @@ inline uint32_t get_timclk2(void)
     uint32_t apb_div = (ppre2 < 4U) ? 1U : 2U;
 
     return pclk2 * apb_div;
+}
+
+/************************* Generic UTILS ***************************/
+U_word writeHLbyte(uint16_t v)
+{
+    U_word w;
+    w.par.h = v >> 8;
+    w.par.l = v & 0xFF;
+    return w;
 }
 
 /************************** GPIO UTILS *****************************/

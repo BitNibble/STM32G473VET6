@@ -3,14 +3,10 @@
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
 Hardware: STM32-XXX
-Date:     05106026
+Date:     05062026
 Comment:
 	
 *******************************************************************************/
-/***************************************************
-    STM32G473 TIMER IRQ SOURCE (FIXED CMSIS)
-***************************************************/
-
 #include "timer_irq.h"
 #include "stm32g4xx.h"
 

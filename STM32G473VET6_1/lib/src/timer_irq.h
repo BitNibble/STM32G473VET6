@@ -7,11 +7,8 @@ Date:     05062026
 Comment:
 	
 *******************************************************************************/
-/***************************************************
-    STM32G473 TIMER IRQ INTERFACE (FULL FEATURE)
-***************************************************/
 #ifndef TIMER_IRQ_H
-#define TIMER_IRQ_H
+	#define TIMER_IRQ_H
 
 #include <stdint.h>
 
