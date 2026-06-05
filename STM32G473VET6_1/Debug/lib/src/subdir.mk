@@ -11,6 +11,7 @@ C_SRCS += \
 ../lib/src/armsystick.c \
 ../lib/src/buffer.c \
 ../lib/src/explode.c \
+../lib/src/st7789.c \
 ../lib/src/st7789_fonts.c \
 ../lib/src/stm32g473vet6.c \
 ../lib/src/stm32gxxxrcc.c \
@@ -25,6 +26,7 @@ OBJS += \
 ./lib/src/armsystick.o \
 ./lib/src/buffer.o \
 ./lib/src/explode.o \
+./lib/src/st7789.o \
 ./lib/src/st7789_fonts.o \
 ./lib/src/stm32g473vet6.o \
 ./lib/src/stm32gxxxrcc.o \
@@ -39,6 +41,7 @@ C_DEPS += \
 ./lib/src/armsystick.d \
 ./lib/src/buffer.d \
 ./lib/src/explode.d \
+./lib/src/st7789.d \
 ./lib/src/st7789_fonts.d \
 ./lib/src/stm32g473vet6.d \
 ./lib/src/stm32gxxxrcc.d \
@@ -54,7 +57,7 @@ lib/src/%.o lib/src/%.su lib/src/%.cyclo: ../lib/src/%.c lib/src/subdir.mk
 clean: clean-lib-2f-src
 
 clean-lib-2f-src:
-	-$(RM) ./lib/src/74hc595.cyclo ./lib/src/74hc595.d ./lib/src/74hc595.o ./lib/src/74hc595.su ./lib/src/BT_Commands.cyclo ./lib/src/BT_Commands.d ./lib/src/BT_Commands.o ./lib/src/BT_Commands.su ./lib/src/armfunction.cyclo ./lib/src/armfunction.d ./lib/src/armfunction.o ./lib/src/armfunction.su ./lib/src/armsystick.cyclo ./lib/src/armsystick.d ./lib/src/armsystick.o ./lib/src/armsystick.su ./lib/src/buffer.cyclo ./lib/src/buffer.d ./lib/src/buffer.o ./lib/src/buffer.su ./lib/src/explode.cyclo ./lib/src/explode.d ./lib/src/explode.o ./lib/src/explode.su ./lib/src/st7789_fonts.cyclo ./lib/src/st7789_fonts.d ./lib/src/st7789_fonts.o ./lib/src/st7789_fonts.su ./lib/src/stm32g473vet6.cyclo ./lib/src/stm32g473vet6.d ./lib/src/stm32g473vet6.o ./lib/src/stm32g473vet6.su ./lib/src/stm32gxxxrcc.cyclo ./lib/src/stm32gxxxrcc.d ./lib/src/stm32gxxxrcc.o ./lib/src/stm32gxxxrcc.su ./lib/src/stm32xtool.cyclo ./lib/src/stm32xtool.d ./lib/src/stm32xtool.o ./lib/src/stm32xtool.su ./lib/src/timer_irq.cyclo ./lib/src/timer_irq.d ./lib/src/timer_irq.o ./lib/src/timer_irq.su ./lib/src/znpid.cyclo ./lib/src/znpid.d ./lib/src/znpid.o ./lib/src/znpid.su
+	-$(RM) ./lib/src/74hc595.cyclo ./lib/src/74hc595.d ./lib/src/74hc595.o ./lib/src/74hc595.su ./lib/src/BT_Commands.cyclo ./lib/src/BT_Commands.d ./lib/src/BT_Commands.o ./lib/src/BT_Commands.su ./lib/src/armfunction.cyclo ./lib/src/armfunction.d ./lib/src/armfunction.o ./lib/src/armfunction.su ./lib/src/armsystick.cyclo ./lib/src/armsystick.d ./lib/src/armsystick.o ./lib/src/armsystick.su ./lib/src/buffer.cyclo ./lib/src/buffer.d ./lib/src/buffer.o ./lib/src/buffer.su ./lib/src/explode.cyclo ./lib/src/explode.d ./lib/src/explode.o ./lib/src/explode.su ./lib/src/st7789.cyclo ./lib/src/st7789.d ./lib/src/st7789.o ./lib/src/st7789.su ./lib/src/st7789_fonts.cyclo ./lib/src/st7789_fonts.d ./lib/src/st7789_fonts.o ./lib/src/st7789_fonts.su ./lib/src/stm32g473vet6.cyclo ./lib/src/stm32g473vet6.d ./lib/src/stm32g473vet6.o ./lib/src/stm32g473vet6.su ./lib/src/stm32gxxxrcc.cyclo ./lib/src/stm32gxxxrcc.d ./lib/src/stm32gxxxrcc.o ./lib/src/stm32gxxxrcc.su ./lib/src/stm32xtool.cyclo ./lib/src/stm32xtool.d ./lib/src/stm32xtool.o ./lib/src/stm32xtool.su ./lib/src/timer_irq.cyclo ./lib/src/timer_irq.d ./lib/src/timer_irq.o ./lib/src/timer_irq.su ./lib/src/znpid.cyclo ./lib/src/znpid.d ./lib/src/znpid.o ./lib/src/znpid.su
 
 .PHONY: clean-lib-2f-src
 

@@ -94,6 +94,7 @@
 "./lib/src/armsystick.o"
 "./lib/src/buffer.o"
 "./lib/src/explode.o"
+"./lib/src/st7789.o"
 "./lib/src/st7789_fonts.o"
 "./lib/src/stm32g473vet6.o"
 "./lib/src/stm32gxxxrcc.o"
