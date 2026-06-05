@@ -16,20 +16,60 @@
  ******************************************************************************
  */
 #include "stm32gxxxrcc.h"
+#include "timer_irq.h"
 
 //#if !defined(__SOFT_FP__) && defined(__ARM_FP)
 //  #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 //#endif
+void tim1_blink_setup(void)
+{
+    /*-----------------------------
+     * 1. CLOCK ENABLE (TIM1)
+     *----------------------------*/
+    dev()->system->rcc->APB2ENR |= RCC_APB2ENR_TIM1EN;
 
+    /*-----------------------------
+     * 2. TIMER CONFIG (1 Hz example)
+     *    assuming 170 MHz TIM clock
+     *----------------------------*/
+    dev()->timer->tim1->PSC = 119;   // 170MHz → 10kHz
+    dev()->timer->tim1->ARR = 1999999;    // 10kHz → 1Hz
+    dev()->timer->tim1->CNT = 0;
+
+    /* Force update so registers load */
+    //dev()->timer->tim1->EGR = TIM_EGR_UG;
+
+    /*-----------------------------
+     * 3. INTERRUPT ENABLE (TIM1 update)
+     *----------------------------*/
+    dev()->timer->tim1->DIER |= TIM_DIER_UIE;
+
+    /*-----------------------------
+     * 4. NVIC ENABLE (TIM1 UP IRQ)
+     *----------------------------*/
+    NVIC_EnableIRQ(TIM1_UP_TIM16_IRQn);
+
+    /*-----------------------------
+     * 5. START TIMER
+     *----------------------------*/
+    dev()->timer->tim1->CR1 |= TIM_CR1_CEN;
+}
+void tim1_u_callback(void)
+{
+    dev()->gpio->f->ODR ^= (1 << 2);
+}
 int main(void)
 {
 	rcc()->inic();
 	fpu_enable();
 
-	GPIO_clock( dev()->gpiof, 1 );
-	GPIO_moder( dev()->gpiof, 2, 1 );
+	GPIO_clock( dev()->gpio->f, 1 );
+	GPIO_moder( dev()->gpio->f, 2, 1 );
 
-	set_pin( dev()->gpiof, 2 );
+	tim1_blink_setup();
+
+	//set_pin( dev()->gpio->f, 2 );
 
 	while(1);
 }
+

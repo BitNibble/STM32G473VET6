@@ -58,40 +58,64 @@ typedef struct {
     NVIC_Type* const nvic;
     SCB_Type* const scb;
     SysTick_Type* const systick;
-    ITM_Type* const itm;
     DWT_Type* const dwt;
+    ITM_Type* const itm;
     TPI_Type* const tpi;
     MPU_Type* const mpu;
     CoreDebug_Type* const coredebug;
-} STM32G473_CORE;
+} CORE_Block;
 
-/******************************************************************
- * DEVICE
- ******************************************************************/
-typedef const struct {
-
-    STM32G473_CORE* core;
-
-    /* SYSTEM */
+typedef struct {
     RCC_TypeDef* const rcc;
     FLASH_TypeDef* const flash;
     PWR_TypeDef* const pwr;
     SYSCFG_TypeDef* const syscfg;
     CRS_TypeDef* const crs;
+} SYSTEM_Block;
 
-    /* GPIO */
-    GPIO_TypeDef* const gpioa;
-    GPIO_TypeDef* const gpiob;
-    GPIO_TypeDef* const gpioc;
-    GPIO_TypeDef* const gpiod;
-    GPIO_TypeDef* const gpioe;
-    GPIO_TypeDef* const gpiof;
-    GPIO_TypeDef* const gpiog;
+typedef struct {
+    GPIO_TypeDef* const a;
+    GPIO_TypeDef* const b;
+    GPIO_TypeDef* const c;
+    GPIO_TypeDef* const d;
+    GPIO_TypeDef* const e;
+    GPIO_TypeDef* const f;
+    GPIO_TypeDef* const g;
+    GPIO_TypeDef* const h;
+} GPIO_Block;
 
-    /* DMA + DMAMUX (CRITICAL DIFFERENCE vs F4) */
+typedef struct {
+	/* Advanced */
+	TIM_TypeDef* const tim1;
+	TIM_TypeDef* const tim8;
+	TIM_TypeDef* const tim20;
+
+	/* General purpose */
+	TIM_TypeDef* const tim2;
+	TIM_TypeDef* const tim3;
+	TIM_TypeDef* const tim4;
+	TIM_TypeDef* const tim5;
+
+	/* Basic */
+	TIM_TypeDef* const tim6;
+	TIM_TypeDef* const tim7;
+
+	/* Lite */
+	TIM_TypeDef* const tim15;
+	TIM_TypeDef* const tim16;
+	TIM_TypeDef* const tim17;
+
+    TIM_TypeDef* const tim9;
+    TIM_TypeDef* const tim10;
+    TIM_TypeDef* const tim11;
+
+    TIM_TypeDef* const tim12;
+    TIM_TypeDef* const tim13;
+    TIM_TypeDef* const tim14;
+} TIM_Block;
+
+typedef struct {
     DMA_TypeDef* const dma1;
-    DMA_TypeDef* const dma2;
-
     DMA_Channel_TypeDef* const dma1_ch1;
     DMA_Channel_TypeDef* const dma1_ch2;
     DMA_Channel_TypeDef* const dma1_ch3;
@@ -100,6 +124,7 @@ typedef const struct {
     DMA_Channel_TypeDef* const dma1_ch6;
     DMA_Channel_TypeDef* const dma1_ch7;
 
+    DMA_TypeDef* const dma2;
     DMA_Channel_TypeDef* const dma2_ch1;
     DMA_Channel_TypeDef* const dma2_ch2;
     DMA_Channel_TypeDef* const dma2_ch3;
@@ -108,6 +133,7 @@ typedef const struct {
     DMA_Channel_TypeDef* const dma2_ch6;
     DMA_Channel_TypeDef* const dma2_ch7;
 
+    DMAMUX_Channel_TypeDef* const dmamux1;
     DMAMUX_Channel_TypeDef* const dmamux1_ch1;
     DMAMUX_Channel_TypeDef* const dmamux1_ch2;
     DMAMUX_Channel_TypeDef* const dmamux1_ch3;
@@ -115,21 +141,9 @@ typedef const struct {
     DMAMUX_Channel_TypeDef* const dmamux1_ch5;
     DMAMUX_Channel_TypeDef* const dmamux1_ch6;
     DMAMUX_Channel_TypeDef* const dmamux1_ch7;
+} DMA_Block;
 
-    /* TIMERS */
-    TIM_TypeDef* const tim1;
-    TIM_TypeDef* const tim2;
-    TIM_TypeDef* const tim3;
-    TIM_TypeDef* const tim4;
-    TIM_TypeDef* const tim5;
-    TIM_TypeDef* const tim6;
-    TIM_TypeDef* const tim7;
-    TIM_TypeDef* const tim8;
-    TIM_TypeDef* const tim15;
-    TIM_TypeDef* const tim16;
-    TIM_TypeDef* const tim17;
-
-    /* ANALOG */
+typedef struct {
     ADC_TypeDef* const adc1;
     ADC_TypeDef* const adc2;
     ADC_TypeDef* const adc3;
@@ -138,11 +152,11 @@ typedef const struct {
     ADC_Common_TypeDef* const adc345_common;
 
     DAC_TypeDef* const dac1;
-
     COMP_TypeDef* const comp;
     OPAMP_TypeDef* const opamp;
+} ANALOG_Block;
 
-    /* COMMUNICATION */
+typedef struct {
     USART_TypeDef* const usart1;
     USART_TypeDef* const usart2;
     USART_TypeDef* const usart3;
@@ -158,13 +172,68 @@ typedef const struct {
     I2C_TypeDef* const i2c2;
     I2C_TypeDef* const i2c3;
 
-    /* WATCHDOG */
+    FDCAN_GlobalTypeDef* const fdcan1;
+    FDCAN_GlobalTypeDef* const fdcan2;
+
+    SAI_TypeDef* const sai1;
+    SAI_TypeDef* const sai2;
+
+    QUADSPI_TypeDef* const qspi;
+
+    //SDMMC_TypeDef* const sdmmc1;
+    //SDMMC_TypeDef* const sdmmc2;
+} COMM_Block;
+
+typedef struct {
+    USB_TypeDef* const usb_fs;
+    USB_TypeDef* const usb_hs;
+
+    RNG_TypeDef* const rng;
+    //ETH_TypeDef *eth;
+    //CAN_TypeDef *can1;
+    //FDCAN_TypeDef *fdcan1;
+} EXT_Block;
+
+typedef struct {
     IWDG_TypeDef* const iwdg;
     WWDG_TypeDef* const wwdg;
+} WD_Block;
 
-    /* USB FS DEVICE (G4 correct model) */
-    USB_TypeDef* const usb_fs;
+typedef struct {
+    CRC_TypeDef* const crc;
+    FMC_Bank1_TypeDef* const fmc;
+    //OCTOSPI_TypeDef* const ospi1;
+    //OCTOSPI_TypeDef* const ospi2;
+} MEMORY_Block;
 
+typedef struct {
+    EXTI_TypeDef* const exti;
+    DMAMUX_Channel_TypeDef* const dmamux1;
+    DMAMUX_RequestGen_TypeDef* const dmamux_rg;
+} EVENT_Block;
+
+typedef struct {
+    RCC_TypeDef* const rcc;
+    FLASH_TypeDef* const flash;
+    PWR_TypeDef* const pwr;
+} CLOCK_Block;
+
+/******************************************************************
+ * DEVICE
+ ******************************************************************/
+typedef struct {
+	CORE_Block* const core;
+	SYSTEM_Block* const system;
+	GPIO_Block* const gpio;
+	TIM_Block* const timer;
+	DMA_Block* const dma;
+	ANALOG_Block* const analog;
+	COMM_Block* const comm;
+	EXT_Block* const ext;
+	WD_Block* const wd;
+	MEMORY_Block* const memory;
+	EVENT_Block* const event;
+	CLOCK_Block* const clock;
 } STM32G473_DEVICE;
 
 const STM32G473_DEVICE* dev(void);

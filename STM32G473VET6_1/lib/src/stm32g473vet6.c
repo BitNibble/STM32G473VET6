@@ -10,83 +10,93 @@ Date:     04062026
 /******************************************************************
  * CORE
  ******************************************************************/
-static STM32G473_CORE core = {
+static CORE_Block core = {
     .nvic = NVIC,
     .scb = SCB,
     .systick = SysTick,
-    .itm = ITM,
     .dwt = DWT,
-    .tpi = TPI,
-    .mpu = MPU,
-    .coredebug = CoreDebug
+    .itm = ITM,
+	.tpi = TPI,
+	.mpu = MPU,
+	.coredebug = CoreDebug
 };
 
-/******************************************************************
- * DEVICE INSTANCE
- ******************************************************************/
-static STM32G473_DEVICE device = {
-
-    .core = &core,
-
-    /* SYSTEM */
+static SYSTEM_Block system = {
     .rcc = RCC,
     .flash = FLASH,
     .pwr = PWR,
     .syscfg = SYSCFG,
-    .crs = CRS,
+	.crs = CRS
+};
 
-    /* GPIO */
-    .gpioa = GPIOA,
-    .gpiob = GPIOB,
-    .gpioc = GPIOC,
-    .gpiod = GPIOD,
-    .gpioe = GPIOE,
-    .gpiof = GPIOF,
-    .gpiog = GPIOG,
+static GPIO_Block gpio = {
+    .a = GPIOA,
+    .b = GPIOB,
+    .c = GPIOC,
+    .d = GPIOD,
+    .e = GPIOE,
+    .f = GPIOF,
+    .g = GPIOG,
+    .h = NULL
+};
 
-    /* DMA */
-    .dma1 = DMA1,
-    .dma2 = DMA2,
-
-    .dma1_ch1 = DMA1_Channel1,
-    .dma1_ch2 = DMA1_Channel2,
-    .dma1_ch3 = DMA1_Channel3,
-    .dma1_ch4 = DMA1_Channel4,
-    .dma1_ch5 = DMA1_Channel5,
-    .dma1_ch6 = DMA1_Channel6,
-    .dma1_ch7 = DMA1_Channel7,
-
-    .dma2_ch1 = DMA2_Channel1,
-    .dma2_ch2 = DMA2_Channel2,
-    .dma2_ch3 = DMA2_Channel3,
-    .dma2_ch4 = DMA2_Channel4,
-    .dma2_ch5 = DMA2_Channel5,
-    .dma2_ch6 = DMA2_Channel6,
-    .dma2_ch7 = DMA2_Channel7,
-
-    /* DMAMUX */
-    .dmamux1_ch1 = DMAMUX1_Channel0,
-    .dmamux1_ch2 = DMAMUX1_Channel1,
-    .dmamux1_ch3 = DMAMUX1_Channel2,
-    .dmamux1_ch4 = DMAMUX1_Channel3,
-    .dmamux1_ch5 = DMAMUX1_Channel4,
-    .dmamux1_ch6 = DMAMUX1_Channel5,
-    .dmamux1_ch7 = DMAMUX1_Channel6,
-
-    /* TIMERS */
+static TIM_Block tim = {
     .tim1 = TIM1,
+    .tim8 = TIM8,
+
     .tim2 = TIM2,
     .tim3 = TIM3,
     .tim4 = TIM4,
-	.tim5 = TIM5,
+    .tim5 = TIM5,
+
     .tim6 = TIM6,
     .tim7 = TIM7,
-    .tim8 = TIM8,
+
+    .tim9 = NULL,
+    .tim10 = NULL,
+    .tim11 = NULL,
+
+    .tim12 = NULL,
+    .tim13 = NULL,
+    .tim14 = NULL,
+
     .tim15 = TIM15,
     .tim16 = TIM16,
     .tim17 = TIM17,
 
-    /* ANALOG */
+    .tim20 = NULL   // G4/H7 high-end
+};
+
+static DMA_Block dma = {
+	.dma1 = DMA1,
+	.dma1_ch1 = DMA1_Channel1,
+	.dma1_ch2 = DMA1_Channel2,
+	.dma1_ch3 = DMA1_Channel3,
+	.dma1_ch4 = DMA1_Channel4,
+	.dma1_ch5 = DMA1_Channel5,
+	.dma1_ch6 = DMA1_Channel6,
+	.dma1_ch7 = DMA1_Channel7,
+
+	.dma2 = DMA2,
+	.dma2_ch1 = DMA2_Channel1,
+	.dma2_ch2 = DMA2_Channel2,
+	.dma2_ch3 = DMA2_Channel3,
+	.dma2_ch4 = DMA2_Channel4,
+	.dma2_ch5 = DMA2_Channel5,
+	.dma2_ch6 = DMA2_Channel6,
+	.dma2_ch7 = DMA2_Channel7,
+
+	.dmamux1 = DMAMUX1,
+	.dmamux1_ch1 = DMAMUX1_Channel0,
+	.dmamux1_ch2 = DMAMUX1_Channel1,
+	.dmamux1_ch3 = DMAMUX1_Channel2,
+	.dmamux1_ch4 = DMAMUX1_Channel3,
+	.dmamux1_ch5 = DMAMUX1_Channel4,
+	.dmamux1_ch6 = DMAMUX1_Channel5,
+	.dmamux1_ch7 = DMAMUX1_Channel6
+};
+
+static ANALOG_Block analog = {
     .adc1 = ADC1,
     .adc2 = ADC2,
     .adc3 = ADC3,
@@ -95,15 +105,14 @@ static STM32G473_DEVICE device = {
     .adc345_common = ADC345_COMMON,
 
     .dac1 = DAC1,
+    .comp = COMP1,
+    .opamp = OPAMP
+};
 
-    .comp = COMP1,   /* CMSIS groups COMP base */
-    .opamp = OPAMP1, /* OPAMP base */
-
-    /* COMMUNICATION */
+static COMM_Block comm = {
     .usart1 = USART1,
     .usart2 = USART2,
     .usart3 = USART3,
-
     .uart4 = UART4,
     .uart5 = UART5,
     .lpuart1 = LPUART1,
@@ -116,12 +125,65 @@ static STM32G473_DEVICE device = {
     .i2c2 = I2C2,
     .i2c3 = I2C3,
 
-    /* WATCHDOG */
-    .iwdg = IWDG,
-    .wwdg = WWDG,
+    .fdcan1 = FDCAN2,
+    .fdcan2 = FDCAN2,
 
-    /* USB FS */
-    .usb_fs = USB
+    .sai1 = SAI1,
+    .sai2 = NULL,
+
+    .qspi = NULL
+};
+
+static EXT_Block ext = {
+    .usb_fs = USB,
+    //.usb_hs = USB_HS,
+
+    .rng = RNG
+    //.eth = ETH,
+    //.can1 = CAN1,
+    //.fdcan1 = FDCAN1
+};
+
+static WD_Block wd = {
+    .iwdg = IWDG,
+    .wwdg = WWDG
+};
+
+static MEMORY_Block memory = {
+    .crc = CRC
+    //.fmc = FMC
+    //.ospi1 = OSPI1,
+    //.ospi2 = OSPI2
+};
+
+static EVENT_Block event = {
+    .exti = EXTI,
+    .dmamux1 = DMAMUX1
+    //.dmamux_rg = DMAMUX_RG
+};
+
+static CLOCK_Block clock = {
+    .rcc = RCC,
+    .flash = FLASH,
+    .pwr = PWR,
+};
+
+/******************************************************************
+ * DEVICE INSTANCE
+ ******************************************************************/
+static const STM32G473_DEVICE device = {
+    .core = &core,
+	.system = &system,
+	.gpio = &gpio,
+	.timer = &tim,
+	.dma = &dma,
+	.analog = &analog,
+	.comm = &comm,
+	.ext = &ext,
+	.wd = &wd,
+	.memory = &memory,
+	.event = &event,
+	.clock =&clock,
 };
 
 /******************************************************************
@@ -138,7 +200,7 @@ const STM32G473_DEVICE* dev(void)
 =========================================================*/
 inline uint32_t get_pll_source(void)
 {
-    uint32_t src = get_reg_field_value(dev()->rcc->PLLCFGR,
+    uint32_t src = get_reg_field_value(dev()->system->rcc->PLLCFGR,
                                    RCC_PLLCFGR_PLLSRC_Msk,
                                    RCC_PLLCFGR_PLLSRC_Pos);
 
@@ -152,21 +214,21 @@ inline uint32_t get_pll_source(void)
 inline uint8_t get_pllm(void)
 {
     /* PLLM is encoded as (M - 1) */
-    uint32_t m = (dev()->rcc->PLLCFGR & RCC_PLLCFGR_PLLM) >> RCC_PLLCFGR_PLLM_Pos;
+    uint32_t m = (dev()->system->rcc->PLLCFGR & RCC_PLLCFGR_PLLM) >> RCC_PLLCFGR_PLLM_Pos;
     return (uint8_t)(m + 1U);
 }
 
 inline uint16_t get_plln(void)
 {
     return (uint16_t)(
-        (dev()->rcc->PLLCFGR & RCC_PLLCFGR_PLLN) >> RCC_PLLCFGR_PLLN_Pos
+        (dev()->system->rcc->PLLCFGR & RCC_PLLCFGR_PLLN) >> RCC_PLLCFGR_PLLN_Pos
     );
 }
 
 /* PLLP: fixed mapping /2 /4 /6 /8 */
 inline uint8_t get_pllp(void)
 {
-    uint32_t p = (dev()->rcc->PLLCFGR & RCC_PLLCFGR_PLLP) >> RCC_PLLCFGR_PLLP_Pos;
+    uint32_t p = (dev()->system->rcc->PLLCFGR & RCC_PLLCFGR_PLLP) >> RCC_PLLCFGR_PLLP_Pos;
 
     switch (p)
     {
@@ -181,14 +243,14 @@ inline uint8_t get_pllp(void)
 inline uint8_t get_pllq(void)
 {
     /* PLLQ is encoded as (Q - 1) */
-    uint32_t q = (dev()->rcc->PLLCFGR & RCC_PLLCFGR_PLLQ) >> RCC_PLLCFGR_PLLQ_Pos;
+    uint32_t q = (dev()->system->rcc->PLLCFGR & RCC_PLLCFGR_PLLQ) >> RCC_PLLCFGR_PLLQ_Pos;
     return (uint8_t)(q + 1U);
 }
 
 inline uint8_t get_pllr(void)
 {
     /* PLLR is NOT linear encoded on STM32G4 */
-    uint32_t r = (dev()->rcc->PLLCFGR & RCC_PLLCFGR_PLLR) >> RCC_PLLCFGR_PLLR_Pos;
+    uint32_t r = (dev()->system->rcc->PLLCFGR & RCC_PLLCFGR_PLLR) >> RCC_PLLCFGR_PLLR_Pos;
 
     switch (r)
     {
@@ -230,7 +292,7 @@ inline uint32_t get_pllclk(void)
 
 inline uint32_t get_sysclk(void)
 {
-    uint32_t sws = (dev()->rcc->CFGR & RCC_CFGR_SWS) >> RCC_CFGR_SWS_Pos;
+    uint32_t sws = (dev()->system->rcc->CFGR & RCC_CFGR_SWS) >> RCC_CFGR_SWS_Pos;
 
     switch (sws)
     {
@@ -256,7 +318,7 @@ inline uint32_t get_hclk(void)
         64, 128, 256, 512
     };
 
-    uint32_t hpre = (dev()->rcc->CFGR & RCC_CFGR_HPRE) >> RCC_CFGR_HPRE_Pos;
+    uint32_t hpre = (dev()->system->rcc->CFGR & RCC_CFGR_HPRE) >> RCC_CFGR_HPRE_Pos;
 
     return get_sysclk() / ahb_presc_table[hpre];
 }
@@ -270,7 +332,7 @@ inline uint32_t get_pclk1(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
 
-    uint32_t ppre1 = (dev()->rcc->CFGR & RCC_CFGR_PPRE1) >> RCC_CFGR_PPRE1_Pos;
+    uint32_t ppre1 = (dev()->system->rcc->CFGR & RCC_CFGR_PPRE1) >> RCC_CFGR_PPRE1_Pos;
 
     return get_hclk() / apb_presc[ppre1];
 }
@@ -279,7 +341,7 @@ inline uint32_t get_pclk2(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
 
-    uint32_t ppre2 = (dev()->rcc->CFGR & RCC_CFGR_PPRE2) >> RCC_CFGR_PPRE2_Pos;
+    uint32_t ppre2 = (dev()->system->rcc->CFGR & RCC_CFGR_PPRE2) >> RCC_CFGR_PPRE2_Pos;
 
     return get_hclk() / apb_presc[ppre2];
 }
@@ -291,7 +353,7 @@ inline uint32_t get_pclk2(void)
 
 inline uint32_t get_timclk1(void)
 {
-    uint32_t ppre1 = (dev()->rcc->CFGR & RCC_CFGR_PPRE1) >> RCC_CFGR_PPRE1_Pos;
+    uint32_t ppre1 = (dev()->system->rcc->CFGR & RCC_CFGR_PPRE1) >> RCC_CFGR_PPRE1_Pos;
     uint32_t pclk1 = get_pclk1();
 
     uint32_t apb_div = (ppre1 < 4U) ? 1U : 2U;
@@ -301,7 +363,7 @@ inline uint32_t get_timclk1(void)
 
 inline uint32_t get_timclk2(void)
 {
-    uint32_t ppre2 = (dev()->rcc->CFGR & RCC_CFGR_PPRE2) >> RCC_CFGR_PPRE2_Pos;
+    uint32_t ppre2 = (dev()->system->rcc->CFGR & RCC_CFGR_PPRE2) >> RCC_CFGR_PPRE2_Pos;
     uint32_t pclk2 = get_pclk2();
 
     uint32_t apb_div = (ppre2 < 4U) ? 1U : 2U;
@@ -327,9 +389,9 @@ void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable)
     else return;
 
     if (enable)
-        dev()->rcc->AHB2ENR |= mask;
+        dev()->system->rcc->AHB2ENR |= mask;
     else
-    	dev()->rcc->AHB2ENR &= ~mask;
+    	dev()->system->rcc->AHB2ENR &= ~mask;
 }
 void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode )
 {

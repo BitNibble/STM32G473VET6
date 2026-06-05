@@ -7,17 +7,20 @@
 C_SRCS += \
 ../lib/src/stm32g473vet6.c \
 ../lib/src/stm32gxxxrcc.c \
-../lib/src/stm32xtool.c 
+../lib/src/stm32xtool.c \
+../lib/src/timer_irq.c 
 
 OBJS += \
 ./lib/src/stm32g473vet6.o \
 ./lib/src/stm32gxxxrcc.o \
-./lib/src/stm32xtool.o 
+./lib/src/stm32xtool.o \
+./lib/src/timer_irq.o 
 
 C_DEPS += \
 ./lib/src/stm32g473vet6.d \
 ./lib/src/stm32gxxxrcc.d \
-./lib/src/stm32xtool.d 
+./lib/src/stm32xtool.d \
+./lib/src/timer_irq.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -27,7 +30,7 @@ lib/src/%.o lib/src/%.su lib/src/%.cyclo: ../lib/src/%.c lib/src/subdir.mk
 clean: clean-lib-2f-src
 
 clean-lib-2f-src:
-	-$(RM) ./lib/src/stm32g473vet6.cyclo ./lib/src/stm32g473vet6.d ./lib/src/stm32g473vet6.o ./lib/src/stm32g473vet6.su ./lib/src/stm32gxxxrcc.cyclo ./lib/src/stm32gxxxrcc.d ./lib/src/stm32gxxxrcc.o ./lib/src/stm32gxxxrcc.su ./lib/src/stm32xtool.cyclo ./lib/src/stm32xtool.d ./lib/src/stm32xtool.o ./lib/src/stm32xtool.su
+	-$(RM) ./lib/src/stm32g473vet6.cyclo ./lib/src/stm32g473vet6.d ./lib/src/stm32g473vet6.o ./lib/src/stm32g473vet6.su ./lib/src/stm32gxxxrcc.cyclo ./lib/src/stm32gxxxrcc.d ./lib/src/stm32gxxxrcc.o ./lib/src/stm32gxxxrcc.su ./lib/src/stm32xtool.cyclo ./lib/src/stm32xtool.d ./lib/src/stm32xtool.o ./lib/src/stm32xtool.su ./lib/src/timer_irq.cyclo ./lib/src/timer_irq.d ./lib/src/timer_irq.o ./lib/src/timer_irq.su
 
 .PHONY: clean-lib-2f-src
 
