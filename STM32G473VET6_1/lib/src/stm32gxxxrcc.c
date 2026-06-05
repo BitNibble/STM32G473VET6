@@ -121,7 +121,7 @@ void STM32GXXX_Rcc_PLL_CLK_Enable(void)
     set_reg_field_encoded(&dev()->rcc->CR, RCC_CR_PLLON_Msk, RCC_CR_PLLON);
 
     /* Wait for PLL ready */
-    while (!get_reg_field(dev()->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos))
+    while (!get_reg_field_value(dev()->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos))
     {
         if (--timeout == 0)
         {
@@ -238,14 +238,14 @@ void STM32GXXX_Rcc_HSelect(uint8_t hclock)
 				verify = 1;
 				break;
 		}
-	if(verify) { while((get_reg_Msk(dev()->rcc->CFGR, RCC_CFGR_SWS) != choice) && timeout){timeout--;} }
+	if(verify) { while((get_reg_field_value(dev()->rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos) != choice) && timeout){timeout--;} }
 }
 uint8_t STM32GXXX_Rcc_PLL_Select(uint8_t hclock)
 {
     /* Disable PLL before configuration */
     set_reg_field_encoded(&dev()->rcc->CR, RCC_CR_PLLON_Msk, 0U);
 
-    while (get_reg_field(dev()->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos));
+    while (get_reg_field_value(dev()->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos));
 
     switch (hclock)
     {
@@ -262,7 +262,7 @@ uint8_t STM32GXXX_Rcc_PLL_Select(uint8_t hclock)
             break;
     }
 
-    return (uint8_t)get_reg_field(dev()->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
+    return (uint8_t)get_reg_field_value(dev()->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
 }
 void STM32GXXX_Rcc_LEnable(uint8_t lclock)
 {
@@ -528,7 +528,7 @@ void STM32GXXX_PLL_Division(uint8_t pllm, uint16_t plln, uint8_t pllr, uint8_t p
     set_reg_field_encoded(&dev()->rcc->CR, RCC_CR_PLLON_Msk, 0U);
 
     /* Wait until PLL stops */
-    while (get_reg_field(dev()->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos));
+    while (get_reg_field_value(dev()->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos));
 
     /* PLLM */
     set_reg_field_encoded(&dev()->rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, (uint32_t)pllm << RCC_PLLCFGR_PLLM_Pos);

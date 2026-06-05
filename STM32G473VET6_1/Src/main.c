@@ -24,7 +24,8 @@
 int main(void)
 {
 	rcc()->inic();
-	//fpu_enable();
+	fpu_enable();
+
 	GPIO_clock( dev()->gpiof, 1 );
 	GPIO_moder( dev()->gpiof, 2, 1 );
 

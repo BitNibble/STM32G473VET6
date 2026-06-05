@@ -138,7 +138,7 @@ const STM32G473_DEVICE* dev(void)
 =========================================================*/
 inline uint32_t get_pll_source(void)
 {
-    uint32_t src = get_reg_field(dev()->rcc->PLLCFGR,
+    uint32_t src = get_reg_field_value(dev()->rcc->PLLCFGR,
                                    RCC_PLLCFGR_PLLSRC_Msk,
                                    RCC_PLLCFGR_PLLSRC_Pos);
 

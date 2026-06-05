@@ -22,29 +22,23 @@ Update:   15/11/2025
 #define QWORD_BITS 64
 
 /*******************************************************************/
-/****************************** Tools ******************************/
+/***************************** ToolSet *****************************/
 /*******************************************************************/
 uint32_t _block_pos(uint32_t size_block, uint32_t block_n);
 void set_reg(volatile uint32_t* reg, uint32_t hbits);
 void clear_reg(volatile uint32_t* reg, uint32_t hbits);
 
-uint32_t get_reg_field(uint32_t reg, uint32_t Msk, uint32_t Pos);
-void set_reg_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedValue);
+uint32_t get_reg_field_value(uint32_t reg, uint32_t Msk, uint32_t Pos);
+void set_reg_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData);
+void write_reg_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
+void set_reg_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
 
-void write_reg_field(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
-void set_reg_field(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
+uint32_t get_reg_block_value(uint32_t reg, uint8_t size_block, uint8_t Pos);
+void write_reg_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
+void set_reg_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 
-uint32_t get_reg_Msk(uint32_t reg, uint32_t Msk);
-void write_reg_Msk(volatile uint32_t* reg, uint32_t Msk, uint32_t data);
-void set_reg_Msk(volatile uint32_t* reg, uint32_t Msk, uint32_t data);
-uint32_t get_reg_block(uint32_t reg, uint8_t size_block, uint8_t Pos);
-void write_reg_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
-void set_reg_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
-uint32_t get_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos);
-void set_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
-// --- Generic helpers ---
-uint32_t reg_get(uint32_t reg, uint32_t mask);
-void reg_set(volatile uint32_t *reg, uint32_t mask, uint32_t data);
+uint32_t get_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos);
+void set_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 /****************************************/
 /*** NULL Check ***/
 int isPtrNull(void* ptr);
