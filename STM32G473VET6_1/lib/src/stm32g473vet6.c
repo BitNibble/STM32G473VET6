@@ -319,12 +319,8 @@ void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable)
     else if (GPIO == GPIOC) mask = RCC_AHB2ENR_GPIOCEN;
     else if (GPIO == GPIOD) mask = RCC_AHB2ENR_GPIODEN;
     else if (GPIO == GPIOE) mask = RCC_AHB2ENR_GPIOEEN;
-#ifdef GPIOF
     else if (GPIO == GPIOF) mask = RCC_AHB2ENR_GPIOFEN;
-#endif
-#ifdef GPIOG
     else if (GPIO == GPIOG) mask = RCC_AHB2ENR_GPIOGEN;
-#endif
 #ifdef GPIOH
     else if (GPIO == GPIOH) mask = RCC_AHB2ENR_GPIOHEN;
 #endif
