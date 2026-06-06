@@ -820,26 +820,26 @@ void st7789_setup_gpio(ST7789_par* par)
         GPIO_moder(par->scl_gpio, par->cs_pin, MODE_OUTPUT);
         GPIO_moder(par->scl_gpio, par->dc_pin, MODE_OUTPUT);
         GPIO_moder(par->scl_gpio, par->rst_pin, MODE_OUTPUT);
-        GPIO_moder(par->scl_gpio, par->miso, MODE_INPUT);
+        //GPIO_moder(par->scl_gpio, par->miso, MODE_INPUT);
 
         GPIO_otype(par->scl_gpio, par->cs_pin, 0);
         GPIO_otype(par->scl_gpio, par->dc_pin, 0);
         GPIO_otype(par->scl_gpio, par->rst_pin, 0);
-        GPIO_otype(par->scl_gpio, par->miso, 1);
+        //GPIO_otype(par->scl_gpio, par->miso, 1);
 
         GPIO_pupd(par->scl_gpio, par->cs_pin, 0);
         GPIO_pupd(par->scl_gpio, par->dc_pin, 0);
         GPIO_pupd(par->scl_gpio, par->rst_pin, 0);
-        GPIO_pupd(par->scl_gpio, par->miso, 1);
+        //GPIO_pupd(par->scl_gpio, par->miso, 1);
     }
 
-    // SPI pins -> Alternate Function
+    // SPI1 and SPI2 pins -> Alternate Function
     if(par->sda_gpio) {
         GPIO_moder(par->sda_gpio, par->sda_pin, MODE_AF);
         GPIO_otype(par->sda_gpio, par->sda_pin, 0);
         GPIO_ospeed(par->sda_gpio, par->sda_pin, 3);
         GPIO_pupd(par->sda_gpio, par->sda_pin, 0);
-        GPIO_af(par->sda_gpio, par->sda_pin, 5); // AF5 = SPI
+        GPIO_af(par->sda_gpio, par->sda_pin, par->af);
     }
 
     if(par->scl_gpio) {
@@ -847,7 +847,7 @@ void st7789_setup_gpio(ST7789_par* par)
         GPIO_otype(par->scl_gpio, par->scl_pin, 0);
         GPIO_ospeed(par->scl_gpio, par->scl_pin, 3);
         GPIO_pupd(par->scl_gpio, par->scl_pin, 0);
-        GPIO_af(par->scl_gpio, par->scl_pin, 5); // AF5 = SPI
+        GPIO_af(par->scl_gpio, par->scl_pin, par->af);
     }
 
     // Initial pin states
@@ -977,25 +977,25 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
     // -------------------------
     // Auto-detect GPIOs/pins
     // -------------------------
-    if (spi == SPI1) {
+    if (spi == SPI1) { // AF5
 		st.par.sda_gpio = GPIOA;  // MOSI
 		st.par.scl_gpio = GPIOA;  // SCK
 		st.par.sda_pin  = 7;      // PA7 = SPI1_MOSI
-		st.par.miso  = 6;
+		st.par.af  = 5;
 		st.par.scl_pin  = 5;      // PA5 = SPI1_SCK
 	}
-	else if (spi == SPI2) {
+	else if (spi == SPI2) { // AF5
 		st.par.sda_gpio = GPIOB;
 		st.par.scl_gpio = GPIOB;
 		st.par.sda_pin  = 15;     // PB15 = SPI2_MOSI
-		st.par.miso  = 14;
+		st.par.af  = 5;
 		st.par.scl_pin  = 13;     // PB13 = SPI2_SCK
 	}
-	else if (spi == SPI3) {
+	else if (spi == SPI3) { // AF6
 		st.par.sda_gpio = GPIOC;
 		st.par.scl_gpio = GPIOC;
 		st.par.sda_pin  = 12;     // PC12 = SPI3_MOSI
-		st.par.miso  = 11;
+		st.par.af  = 6;
 		st.par.scl_pin  = 10;     // PC10 = SPI3_SCK
 	}
 	else {

@@ -26,7 +26,7 @@ typedef struct
 	uint8_t dc_pin;
 	uint8_t rst_pin;
 	uint8_t sda_pin;
-	uint8_t miso;
+	uint8_t af;
 	uint8_t scl_pin;
 	uint16_t width;
 	uint16_t height;
