@@ -222,7 +222,7 @@ void st7789_set_raset(ST7789_par* par, uint16_t y0, uint16_t y1)
 }
 
 // Initialization sequence
-/**
+/**/
 void st7789_init_seq(ST7789_par* par) {
 	st7789_cs_low(par);
 	//st7789_start(par);
@@ -230,14 +230,16 @@ void st7789_init_seq(ST7789_par* par) {
 	st7789_spi_flush(par);
 	st7789_cs_high(par);
 	
-	_delay_ms(150);
+	//_delay_ms(150);
+	st7789_delay_ms(150);
 	
 	st7789_cs_low(par);
 	st7789_cmd(par, ST77XX_SLPOUT); // SLPOUT
 	st7789_spi_flush(par);
 	st7789_cs_high(par);
 	
-	_delay_ms(120);
+	//_delay_ms(120);
+	st7789_delay_ms(120);
 	
 	st7789_cs_low(par);
 	st7789_cmd(par, ST77XX_COLMOD); // COLMOD
@@ -266,67 +268,25 @@ void st7789_init_seq(ST7789_par* par) {
 	st7789_spi_flush(par);
 	//st7789_stop(par);
 
-	_delay_ms(10);
+	//_delay_ms(10);
+	st7789_delay_ms(10);
 
 	//st7789_start(par);
 	st7789_cmd(par, ST77XX_NORON); // NORON
 	st7789_spi_flush(par);
 	//st7789_stop(par);
 	
-	_delay_ms(10);
+	//_delay_ms(10);
+	st7789_delay_ms(10);
 	
 	//st7789_start(par);
 	st7789_cmd(par, ST77XX_DISPON); // DISPON
 	st7789_spi_flush(par);
 	//st7789_stop(par);
 	
-	_delay_ms(20);
+	//_delay_ms(20);
+	st7789_delay_ms(20);
 	st7789_cs_high(par);
-}
-**/
-
-void st7789_init_seq(ST7789_par* par)
-{
-    st7789_cs_high(par);
-    st7789_reset(par);
-
-    st7789_cs_low(par);
-
-    st7789_cmd(par, ST77XX_SWRESET);
-    st7789_spi_flush(par);
-    st7789_delay_ms(150);
-
-    st7789_cmd(par, ST77XX_SLPOUT);
-    st7789_spi_flush(par);
-    st7789_delay_ms(120);
-
-    st7789_cmd(par, ST77XX_COLMOD);
-    st7789_data(par, 0x55);
-    st7789_spi_flush(par);
-
-    st7789_cmd(par, ST77XX_MADCTL);
-    st7789_data(par, 0x00);
-    st7789_spi_flush(par);
-
-    st7789_set_caset(par, 0x0000, 0x00EF);
-    st7789_set_raset(par, 0x0000, 0x00EF);
-
-    st7789_cmd(par, ST77XX_INVON);
-    st7789_spi_flush(par);
-
-    st7789_delay_ms(10);
-
-    st7789_cmd(par, ST77XX_NORON);
-    st7789_spi_flush(par);
-
-    st7789_delay_ms(10);
-
-    st7789_cmd(par, ST77XX_DISPON);
-    st7789_spi_flush(par);
-
-    st7789_delay_ms(20);
-
-    st7789_cs_high(par);
 }
 
 void st7789_set_window(ST7789_par* par, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
@@ -833,7 +793,7 @@ void st7789_setup_gpio(ST7789_par* par)
         //GPIO_pupd(par->scl_gpio, par->miso, 1);
     }
 
-    // SPI1 and SPI2 pins -> Alternate Function
+    // SPI pins -> Alternate Function
     if(par->sda_gpio) {
         GPIO_moder(par->sda_gpio, par->sda_pin, MODE_AF);
         GPIO_otype(par->sda_gpio, par->sda_pin, 0);
@@ -978,25 +938,25 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
     // Auto-detect GPIOs/pins
     // -------------------------
     if (spi == SPI1) { // AF5
-		st.par.sda_gpio = GPIOA;  // MOSI
-		st.par.scl_gpio = GPIOA;  // SCK
-		st.par.sda_pin  = 7;      // PA7 = SPI1_MOSI
+		st.par.sda_gpio = GPIOA; // MOSI
+		st.par.scl_gpio = GPIOA; // SCK
+		st.par.sda_pin  = 7;     // PA7 = SPI1_MOSI
 		st.par.af  = 5;
-		st.par.scl_pin  = 5;      // PA5 = SPI1_SCK
+		st.par.scl_pin  = 5;     // PA5 = SPI1_SCK
 	}
 	else if (spi == SPI2) { // AF5
-		st.par.sda_gpio = GPIOB;
-		st.par.scl_gpio = GPIOB;
-		st.par.sda_pin  = 15;     // PB15 = SPI2_MOSI
+		st.par.sda_gpio = GPIOB; // MOSI
+		st.par.scl_gpio = GPIOB; // SCK
+		st.par.sda_pin  = 15;    // PB15 = SPI2_MOSI
 		st.par.af  = 5;
 		st.par.scl_pin  = 13;     // PB13 = SPI2_SCK
 	}
 	else if (spi == SPI3) { // AF6
-		st.par.sda_gpio = GPIOC;
-		st.par.scl_gpio = GPIOC;
-		st.par.sda_pin  = 12;     // PC12 = SPI3_MOSI
+		st.par.sda_gpio = GPIOC; // MOSI
+		st.par.scl_gpio = GPIOC; // SCK
+		st.par.sda_pin  = 12;    // PC12 = SPI3_MOSI
 		st.par.af  = 6;
-		st.par.scl_pin  = 10;     // PC10 = SPI3_SCK
+		st.par.scl_pin  = 10;    // PC10 = SPI3_SCK
 	}
 	else {
 		st.par.sda_gpio = NULL;
@@ -1049,7 +1009,7 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
 
     boot_screen(&st.par);
 
-    //welcome_screen(&st.par);
+    welcome_screen(&st.par);
 
     return st;
 }

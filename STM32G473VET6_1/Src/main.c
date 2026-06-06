@@ -18,6 +18,7 @@
 #include "stm32gxxxrcc.h"
 #include "armsystick.h"
 #include "timer_irq.h"
+#include "st7789.h"
 
 //#if !defined(__SOFT_FP__) && defined(__ARM_FP)
 //  #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
@@ -69,6 +70,8 @@ int main(void)
 	GPIO_clock( dev()->gpio->f, 1 );
 	GPIO_moder( dev()->gpio->f, 2, 1 );
 
+	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
+	(void) lcd1;
 	//tim1_blink_setup();
 
 	while(1)
