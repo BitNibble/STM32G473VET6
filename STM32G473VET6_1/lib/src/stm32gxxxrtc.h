@@ -66,8 +66,10 @@ typedef const struct
 	uint32_t (*bkp_read)(uint8_t registerIndex);
 	uint16_t (*get_ss)(void);
 	/*** Clock and Nvic ***/
-	void (*pwr_clock)(uint8_t state);
-	void (*clock)(uint8_t state);
+	void (*pwr_clock_enable)(void);
+	void (*pwr_clock_disable)(void);
+	void (*clock_enable)(void);
+	void (*clock_disable)(void);
 	void (*inic)(void);
 	void (*nvic)(uint8_t config);
 	void (*irq_enable)(uint8_t type);
@@ -76,7 +78,7 @@ typedef const struct
 } STM32G473_RTC_Handler;
 
 /*** Global Accessor ***/
-STM32G473_RTC_Handler* rtc(void);
+const STM32G473_RTC_Handler* rtc(void);
 
 const char* WeekDay_String(uint8_t weekday_n);
 

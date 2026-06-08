@@ -148,10 +148,6 @@ static const FUNC_Handler func_setup = {
 
 const FUNC_Handler* func(void){ return &func_setup; }
 
-void FUNC_var(void)
-{
-	mem[0] = 0; nen[0] = 0;
-}
 // Function to calculate power of a base number
 unsigned int function_power(unsigned int base, unsigned int power) {
     unsigned int result = 1;
