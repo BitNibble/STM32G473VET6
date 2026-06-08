@@ -87,8 +87,7 @@ typedef struct
 	uint32_t (*value)(void);
 }FUNC_Handler;
 
-FUNC_Handler FUNC_enable(void);
-FUNC_Handler* func(void);
+const FUNC_Handler* func(void);
 
 #endif
 

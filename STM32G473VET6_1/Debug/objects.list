@@ -98,6 +98,7 @@
 "./lib/src/st7789_fonts.o"
 "./lib/src/stm32g473vet6.o"
 "./lib/src/stm32gxxxrcc.o"
+"./lib/src/stm32gxxxrtc.o"
 "./lib/src/stm32xtool.o"
 "./lib/src/timer_irq.o"
 "./lib/src/znpid.o"

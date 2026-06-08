@@ -25,9 +25,11 @@ Comment:
 #define ERROR_INVALID_BUFFER 3
 
 /*** File Variable ***/
-static FUNC_Handler func_setup;
+//static const FUNC_Handler func_setup;
 
 static char FUNCstr[FUNCSTRSIZE + 1] = {0};
+//static __attribute__((aligned(8))) char FUNCstr[FUNCSTRSIZE + 1] = {0};
+
 static uint32_t mem[4];
 static uint32_t nen[4];
 static char* function_token_default = ":";
@@ -93,68 +95,58 @@ int32_t string_to_int(const char* str);
 uint32_t string_to_uint(const char* str);
 // Function to convert an integer to a hexadecimal string
 void int_to_hex_string(unsigned int value, char* buffer, size_t buffer_size);
-/*** COMMON ***/
-void FUNC_var(void);
 
-/*** FUNC Procedure & Function Definition ***/
-FUNC_Handler FUNC_enable( void )
-{
-	FUNC_var();
-	/*** TOP ***/
-	//static FUNC_Handler func_setup = {
-	func_setup.power = function_power;
-	func_setup.divide = function_divide;
-	func_setup.realnumber = function_realnumber;
-	func_setup.stringlength = function_StringLength;
-	func_setup.reverse = function_Reverse;
-	func_setup.swap = function_swap;
+static const FUNC_Handler func_setup = {
+	.power = function_power,
+	.divide = function_divide,
+	.realnumber = function_realnumber,
+	.stringlength = function_StringLength,
+	.reverse = function_Reverse,
+	.swap = function_swap,
 	/***********/
 	// 1
-	func_setup.SwapByte = function_SwapByte;
+	.SwapByte = function_SwapByte,
 	// 2
-	func_setup.copy = function_copy;
-	func_setup.squeeze = function_squeeze;
-	func_setup.shellsort = function_shellsort;
-	func_setup.resizestr = function_resizestr;
-	func_setup.trim = function_trim;
+	.copy = function_copy,
+	.squeeze = function_squeeze,
+	.shellsort = function_shellsort,
+	.resizestr = function_resizestr,
+	.trim = function_trim,
 	// 3
-	func_setup.bcd2dec = function_bcd2dec;
-	func_setup.dec2bcd = function_dec2bcd;
-	func_setup.dectohex = function_dectohex;
-	func_setup.bcd2bin = function_bcd2bin;
-	func_setup.twocomptoint8bit = function_twocomptoint8bit;
-	func_setup.twocomptoint10bit = function_twocomptoint10bit;
-	func_setup.twocomptointnbit = function_twocomptointnbit;
+	.bcd2dec = function_bcd2dec,
+	.dec2bcd = function_dec2bcd,
+	.dectohex = function_dectohex,
+	.bcd2bin = function_bcd2bin,
+	.twocomptoint8bit = function_twocomptoint8bit,
+	.twocomptoint10bit = function_twocomptoint10bit,
+	.twocomptointnbit = function_twocomptointnbit,
 	// 4
-	func_setup.format_string = function_format_string;
-	func_setup.print_binary = function_print_binary;
+	.format_string = function_format_string,
+	.print_binary = function_print_binary,
 	// 5
-	func_setup.i16toa = function_i16toa;
-	func_setup.ui16toa = function_ui16toa;
-	func_setup.i32toa = function_i32toa;
-	func_setup.ui32toa = function_ui32toa;
-	func_setup.ftoa = function_ftoa;
+	.i16toa = function_i16toa,
+	.ui16toa = function_ui16toa,
+	.i32toa = function_i32toa,
+	.ui32toa = function_ui32toa,
+	.ftoa = function_ftoa,
 	// 6
-	func_setup.trimmer = function_trimmer;
-	func_setup.pmax = function_pmax;
-	func_setup.gcd_v1 = function_gcd_v1;
-	func_setup.gcd_v2 = function_gcd_v2;
-	func_setup.trim_whitespace = function_trim_whitespace;
+	.trimmer = function_trimmer,
+	.pmax = function_pmax,
+	.gcd_v1 = function_gcd_v1,
+	.gcd_v2 = function_gcd_v2,
+	.trim_whitespace = function_trim_whitespace,
 	// 8
-	func_setup.strToInt = function_StrToInt;
+	.strToInt = function_StrToInt,
 	// 9
-	func_setup.tokenize_string = function_tokenize_string;
-	func_setup.nullify_last_n_chars = function_nullify_last_n_chars;
+	.tokenize_string = function_tokenize_string,
+	.nullify_last_n_chars = function_nullify_last_n_chars,
 	// 10
-	func_setup.triggerA = function_triggerA;
-	func_setup.triggerB = function_triggerB;
-	func_setup.value = function_read_value;
-	//};
+	.triggerA = function_triggerA,
+	.triggerB = function_triggerB,
+	.value = function_read_value,
+	};
 
-	return func_setup;
-}
-
-FUNC_Handler* func(void){ return &func_setup; }
+const FUNC_Handler* func(void){ return &func_setup; }
 
 void FUNC_var(void)
 {

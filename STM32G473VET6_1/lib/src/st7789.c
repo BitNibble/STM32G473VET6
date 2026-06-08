@@ -818,7 +818,6 @@ void st7789_setup_gpio(ST7789_par* par)
 }
 
 /*** SPI Setup ***/
-/**
 void st7789_setup_spi(ST7789_par* par)
 {
     if(!par->spi) return;
@@ -826,43 +825,12 @@ void st7789_setup_spi(ST7789_par* par)
     const STM32_DEVICE* device = dev();
     SPI_TypeDef* spi = par->spi;
 
-    // Enable SPI clock
-    if(spi == SPI1) device->system->rcc->APB2ENR |= RCC_APB2ENR_SPI1EN_Msk;
-    else if(spi == SPI2) device->system->rcc->APB1ENR |= RCC_APB1ENR_SPI2EN_Msk;
-    else if(spi == SPI3) device->system->rcc->APB1ENR |= RCC_APB1ENR_SPI3EN_Msk;
-
-    // Disable SPI before configuring
-    spi->CR1 &= ~SPI_CR1_SPE_Msk;
-
-    // Master mode, software slave management, internal slave select
-    spi->CR1 = SPI_CR1_MSTR_Msk | SPI_CR1_SSM_Msk | SPI_CR1_SSI_Msk;
-
-    // Fast
-    spi->CR1 &= ~SPI_CR1_BR_Msk;
-
-    // Clock polarity & phase = 0, baudrate = fPCLK/2
-    spi->CR1 &= ~(SPI_CR1_CPOL_Msk | SPI_CR1_CPHA_Msk | SPI_CR1_BR_Msk);
-
-    // Full duplex, 8-bit, MSB first
-    spi->CR1 &= ~(SPI_CR1_BIDIMODE_Msk | SPI_CR1_DFF_Msk | SPI_CR1_LSBFIRST_Msk);
-
-    // Enable SPI
-    spi->CR1 |= SPI_CR1_SPE_Msk;
-}
-**/
-
-void st7789_setup_spi(ST7789_par* par)
-{
-    if(!par->spi) return;
-
-    const STM32_DEVICE* device = dev();
-    SPI_TypeDef* spi = par->spi;
-
-    // Enable clock
+    // F - Enable clock
     //if(spi == SPI1) device->system->rcc->APB2ENR |= RCC_APB2ENR_SPI1EN_Msk;
     //else if(spi == SPI2) device->system->rcc->APB1ENR |= RCC_APB1ENR_SPI2EN_Msk;
     //else if(spi == SPI3) device->system->rcc->APB1ENR |= RCC_APB1ENR_SPI3EN_Msk;
 
+    // G
     if(spi == SPI1)
     	device->system->rcc->APB2ENR |= RCC_APB2ENR_SPI1EN_Msk;
     else if(spi == SPI2)
@@ -874,7 +842,7 @@ void st7789_setup_spi(ST7789_par* par)
 
     spi->CR1 &= ~SPI_CR1_SPE_Msk;
 
-    // FULL RESET of CR1 (important on G4 to avoid inherited state)
+    // G - FULL RESET of CR1 (important on G4 to avoid inherited state)
     spi->CR1 = 0;
 
     spi->CR1 =
@@ -885,9 +853,10 @@ void st7789_setup_spi(ST7789_par* par)
     // fastest safe default (adjust later if needed)
     spi->CR1 &= ~SPI_CR1_BR_Msk;  // fPCLK / 2
 
-    // 8-bit, MSB first, 2-line full duplex
+    // F - 8-bit, MSB first, 2-line full duplex
     //spi->CR1 &= ~(SPI_CR1_DFF_Msk | SPI_CR1_LSBFIRST_Msk | SPI_CR1_BIDIMODE_Msk);
 
+    // G
     spi->CR1 &= ~(SPI_CR1_LSBFIRST_Msk | SPI_CR1_BIDIMODE_Msk);
     spi->CR2 &= ~SPI_CR2_DS_Msk;
     spi->CR2 |= (7U << SPI_CR2_DS_Pos);
@@ -1009,7 +978,7 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
 
     boot_screen(&st.par);
 
-    welcome_screen(&st.par);
+    //welcome_screen(&st.par);
 
     return st;
 }

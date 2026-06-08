@@ -85,7 +85,7 @@ void rcc_start(void)
 
     /* Set prescalers AFTER SYSCLK is stable (cleaner model) */
     STM32GXXX_Prescaler(1, 1, 1);
-    STM32GXXX_RTC_ClockSelect(1);
+    //STM32GXXX_RTC_ClockSelect(1);
 }
 
 void rcc_start_test(void)
@@ -99,10 +99,16 @@ static void RCC_Flash_SetLatency(uint32_t sysclk)
 {
     uint32_t ws;
 
-    if (sysclk <= 30000000)      ws = FLASH_ACR_LATENCY_0WS;
-    else if (sysclk <= 60000000) ws = FLASH_ACR_LATENCY_1WS;
-    else if (sysclk <= 90000000) ws = FLASH_ACR_LATENCY_2WS;
-    else                          ws = FLASH_ACR_LATENCY_3WS;
+    //if (sysclk <= 30000000)      ws = FLASH_ACR_LATENCY_0WS;
+    //else if (sysclk <= 60000000) ws = FLASH_ACR_LATENCY_1WS;
+    //else if (sysclk <= 90000000) ws = FLASH_ACR_LATENCY_2WS;
+    //else                          ws = FLASH_ACR_LATENCY_3WS;
+
+    if (sysclk <= 34000000UL)       ws = FLASH_ACR_LATENCY_0WS;
+    else if (sysclk <= 68000000UL)  ws = FLASH_ACR_LATENCY_1WS;
+    else if (sysclk <= 102000000UL) ws = FLASH_ACR_LATENCY_2WS;
+    else if (sysclk <= 136000000UL) ws = FLASH_ACR_LATENCY_3WS;
+    else                            ws = FLASH_ACR_LATENCY_4WS;
 
     set_reg_field_encoded(&dev()->system->flash->ACR, FLASH_ACR_LATENCY_Msk, ws);
 

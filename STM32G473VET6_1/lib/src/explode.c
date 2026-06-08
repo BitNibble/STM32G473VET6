@@ -10,11 +10,11 @@ Comment:
 ********************************************************************/
 #include "explode.h"
 
-void EXPLODE_update(explode_par* par, IO_var x);
-IO_var EXPLODEhh(explode_par* par);
-IO_var EXPLODEll(explode_par* par);
-IO_var EXPLODElh(explode_par* par);
-IO_var EXPLODEhl(explode_par* par);
+IO_var EXPLODE_update(explode_par* par, IO_var x);
+IO_var EXPLODE_hh(explode_par* par);
+IO_var EXPLODE_ll(explode_par* par);
+IO_var EXPLODE_lh(explode_par* par);
+IO_var EXPLODE_hl(explode_par* par);
 
 /*** EXPLODE Procedure & Function Definition ***/
 EXPLODE_Handler EXPLODE_enable( void )
@@ -23,6 +23,7 @@ EXPLODE_Handler EXPLODE_enable( void )
 		.par = {
 				.XI = 0,
 				.XF = 0,
+				.DIFF =0,
 				.HH = 0,
 				.LL = 0,
 				.LH = 0,
@@ -33,34 +34,36 @@ EXPLODE_Handler EXPLODE_enable( void )
 	return setup;
 }
 // boot
-void EXPLODE_update(explode_par* par, IO_var x)
+IO_var EXPLODE_update(explode_par* par, IO_var x)
 {
 	par->XI = par->XF;
 	par->XF = x;
-	par->HH = EXPLODEhh(par);
-	par->LL = EXPLODEll(par);
-	par->LH = EXPLODElh(par);
-	par->HL = EXPLODEhl(par);
+	par->DIFF = (par->XF ^ par->XI);
+	par->HH = EXPLODE_hh(par);
+	par->LL = EXPLODE_ll(par);
+	par->LH = EXPLODE_lh(par);
+	par->HL = EXPLODE_hl(par);
+	return par->DIFF;
 }
 // hh
-IO_var EXPLODEhh(explode_par* par)
+IO_var EXPLODE_hh(explode_par* par)
 {
 	return (par->XI & par->XF);
 }
 // ll
-IO_var EXPLODEll(explode_par* par)
+IO_var EXPLODE_ll(explode_par* par)
 {
 	return ~(par->XI | par->XF);
 }
 // lh
-IO_var EXPLODElh(explode_par* par)
+IO_var EXPLODE_lh(explode_par* par)
 {
-	return ((par->XI ^ par->XF) & par->XF);
+	return (par->DIFF & par->XF);
 }
 // hl
-IO_var EXPLODEhl(explode_par* par)
+IO_var EXPLODE_hl(explode_par* par)
 {
-	return ((par->XF ^ par->XI) & par->XI);
+	return (par->DIFF & par->XI);
 }
 
 /***EOF***/

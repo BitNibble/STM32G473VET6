@@ -24,6 +24,7 @@ Comment:
 typedef struct {
 	IO_var XI;
 	IO_var XF;
+	IO_var DIFF;
 	IO_var HH;
 	IO_var LL;
 	IO_var LH;
@@ -32,7 +33,7 @@ typedef struct {
 
 typedef struct {
 	explode_par par;
-	void (*update)(explode_par* par, IO_var x);
+	IO_var (*update)(explode_par* par, IO_var x);
 }EXPLODE_Handler;
 
 EXPLODE_Handler EXPLODE_enable(void);
