@@ -71,6 +71,7 @@ int main(void)
 	lcd1.start(&lcd1.par);
 	lcd1.draw_circle(&lcd1.par,200,80,15,ST77XX_BLACK);
 	lcd1.draw_star5(&lcd1.par,200,80,15,5,ST77XX_GOLD);
+
 	lcd1.stop(&lcd1.par);
 
 	//tim1_blink_setup();
@@ -87,8 +88,8 @@ int main(void)
 		clear_pin( dev()->gpio->f, 2 );
 		lcd1.start(&lcd1.par);
 		lcd1.drawstring16x24_size(&lcd1.par,"LED OFF",10,20,ST77XX_MAGENTA,ST77XX_GREEN, 8);
+		lcd1.drawfont32x32( &lcd1.par, 'A', 10, 80, ST77XX_MAGENTA, ST77XX_GREEN );
 		lcd1.stop(&lcd1.par);
-
 		_delay_ms(3000);
 
 		lcd1.start(&lcd1.par);
@@ -96,7 +97,7 @@ int main(void)
 		//ptr = function_ui16toa(60);
 		//ptr = func()->ui16toa(60);
 		ptr = func()->ui16toa(rtc()->get_second());
-		lcd1.drawstring16x24(&lcd1.par,ptr,10,200,ST77XX_RED,ST77XX_GREEN);
+		lcd1.drawstring16x24_size(&lcd1.par,ptr,10,200,ST77XX_RED,ST77XX_GREEN,2);
 		//lcd1.drawstring16x24(&lcd1.par,"hello",10,200,ST77XX_RED,ST77XX_GREEN);
 		lcd1.stop(&lcd1.par);
 	}

@@ -486,6 +486,71 @@ void st7789_drawstring16x24_size( ST7789_par* par, const char* str, uint16_t x, 
 	}
 }
 
+void st7789_drawfont32x32( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+	const uint8_t first = 32;
+	const uint8_t glyph_w = 32;
+	const uint8_t glyph_h = 32;
+
+	if(c < first || c > 126) return;
+
+	// FIX 1: Change to uint32_t to prevent 16-bit multiplication memory truncation
+	uint32_t base = (uint32_t)(c - first) * glyph_h * 4;
+
+	uint16_t w = glyph_w;
+	uint16_t h = glyph_h;
+	if(x + w > par->width)  w = par->width - x;
+	if(y + h > par->height) h = par->height - y;
+
+	st7789_set_window(par, x, y, x + w - 1, y + h - 1);
+
+	// FIX 2: Ensure row loop uses proper 32-bit math offsets
+	for(uint32_t row = 0; row < h; row++) {
+		uint8_t byte4 = pgm_read_byte(&font32x32[base + (row * 4) + 0]);
+		uint8_t byte3 = pgm_read_byte(&font32x32[base + (row * 4) + 1]);
+		uint8_t byte2 = pgm_read_byte(&font32x32[base + (row * 4) + 2]);
+		uint8_t byte1 = pgm_read_byte(&font32x32[base + (row * 4) + 3]);
+
+		st7789_draw_bits_fast( par, byte4, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte3, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte2, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte1, 8, fg, bg );
+	}
+	st7789_spi_flush(par);
+}
+
+// font_array - Pass the specific font array (e.g., font16x16)
+// size - Pass the size dimension (8, 16, 24, 32, etc.)
+void st7789_drawfont_universal( ST7789_par* par, const uint8_t* font_array, uint8_t size, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+    const uint8_t first = 32;
+    if(c < first || c > 126) return;
+
+    // 1. Calculate bytes per row (e.g., 32/8 = 4 bytes)
+    uint8_t bytes_per_row = size / 8;
+
+    // 2. PERFECT MATH: base offset using glyph_h * bytes_per_row
+    uint32_t base = (uint32_t)(c - first) * size * bytes_per_row;
+
+    // Handle screen boundaries and clipping
+    uint16_t w = size;
+    uint16_t h = size;
+    if(x + w > par->width)  w = par->width - x;
+    if(y + h > par->height) h = par->height - y;
+
+    st7789_set_window(par, x, y, x + w - 1, y + h - 1);
+
+    // 3. Loop through rows and stream the correct amount of bytes
+    for(uint32_t row = 0; row < h; row++) {
+        for(uint8_t b = 0; b < bytes_per_row; b++) {
+            // Target the precise byte inside the row
+            uint32_t memory_address = base + (row * bytes_per_row) + b;
+            uint8_t data_byte = pgm_read_byte(&font_array[memory_address]);
+
+            st7789_draw_bits_fast(par, data_byte, 8, fg, bg);
+        }
+    }
+    st7789_spi_flush(par);
+}
+
 void st7789_draw_line(ST7789_par* par, int x0, int y0, int x1, int y1, uint16_t color)
 {
 	int dx = abs(x1 - x0);
@@ -954,6 +1019,7 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
     st.drawfont16x24   = st7789_drawfont16x24;
     st.drawstring16x24 = st7789_drawstring16x24;
     st.drawstring16x24_size = st7789_drawstring16x24_size;
+    st.drawfont32x32   = st7789_drawfont32x32;
     st.draw_line       = st7789_draw_line;
     st.draw_line_eq    = st7789_draw_line_eq;
     st.draw_circle     = st7789_draw_circle;
