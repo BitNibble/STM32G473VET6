@@ -315,11 +315,15 @@ void st7789_draw_pixel(ST7789_par* par, uint16_t x, uint16_t y, uint16_t color) 
 }
 
 void st7789_fill_screen(ST7789_par* par, uint16_t color) {
+	st7789_cs_low(par);
+	st7789_set_window(par, 0, 0, (par->width - 1), (par->height - 1));
 	for (uint16_t y = 0; y < par->height; y++) {
 		for (uint16_t x = 0; x < par->width; x++) {
-			st7789_draw_pixel(par, x, y, color);
+			st7789_shift_pixel(par, color);
 		}
 	}
+	st7789_spi_flush(par);
+	st7789_cs_high(par);
 }
 
 static inline void st7789_draw_bits_fast(ST7789_par* par, uint8_t byte, uint8_t n_bits, uint16_t fg, uint16_t bg) {
@@ -1048,20 +1052,20 @@ void st7789_setup_gpio(ST7789_par* par)
     if(par->sda_gpio) GPIO_clock(par->sda_gpio, 1);  // SDA port
 
     // CS, DC, RST -> Output
-    if(par->scl_gpio) {
-        GPIO_moder(par->scl_gpio, par->cs_pin, MODE_OUTPUT);
-        GPIO_moder(par->scl_gpio, par->dc_pin, MODE_OUTPUT);
-        GPIO_moder(par->scl_gpio, par->rst_pin, MODE_OUTPUT);
+    if(par->cmd_gpio) {
+        GPIO_moder(par->cmd_gpio, par->cs_pin, MODE_OUTPUT);
+        GPIO_moder(par->cmd_gpio, par->dc_pin, MODE_OUTPUT);
+        GPIO_moder(par->cmd_gpio, par->rst_pin, MODE_OUTPUT);
         //GPIO_moder(par->scl_gpio, par->miso, MODE_INPUT);
 
-        GPIO_otype(par->scl_gpio, par->cs_pin, 0);
-        GPIO_otype(par->scl_gpio, par->dc_pin, 0);
-        GPIO_otype(par->scl_gpio, par->rst_pin, 0);
+        GPIO_otype(par->cmd_gpio, par->cs_pin, 0);
+        GPIO_otype(par->cmd_gpio, par->dc_pin, 0);
+        GPIO_otype(par->cmd_gpio, par->rst_pin, 0);
         //GPIO_otype(par->scl_gpio, par->miso, 1);
 
-        GPIO_pupd(par->scl_gpio, par->cs_pin, 0);
-        GPIO_pupd(par->scl_gpio, par->dc_pin, 0);
-        GPIO_pupd(par->scl_gpio, par->rst_pin, 0);
+        GPIO_pupd(par->cmd_gpio, par->cs_pin, 0);
+        GPIO_pupd(par->cmd_gpio, par->dc_pin, 0);
+        GPIO_pupd(par->cmd_gpio, par->rst_pin, 0);
         //GPIO_pupd(par->scl_gpio, par->miso, 1);
     }
 
@@ -1083,9 +1087,9 @@ void st7789_setup_gpio(ST7789_par* par)
     }
 
     // Initial pin states
-    if(par->scl_gpio) {
-        set_hpins(par->scl_gpio, (1 << par->cs_pin) | (1 << par->rst_pin)); // CS & RST high
-        clear_hpins(par->scl_gpio, (1 << par->dc_pin));                     // DC low
+    if(par->cmd_gpio) {
+        set_hpins(par->cmd_gpio, (1 << par->cs_pin) | (1 << par->rst_pin)); // CS & RST high
+        clear_hpins(par->cmd_gpio, (1 << par->dc_pin));                     // DC low
     }
 }
 
@@ -1181,6 +1185,7 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
     if (spi == SPI1) { // AF5
 		st.par.sda_gpio = GPIOA; // MOSI
 		st.par.scl_gpio = GPIOA; // SCK
+		st.par.cmd_gpio = GPIOA; // cs,dc,rst
 		st.par.sda_pin  = 7;     // PA7 = SPI1_MOSI
 		st.par.af  = 5;
 		st.par.scl_pin  = 5;     // PA5 = SPI1_SCK
@@ -1188,6 +1193,7 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
 	else if (spi == SPI2) { // AF5
 		st.par.sda_gpio = GPIOB; // MOSI
 		st.par.scl_gpio = GPIOB; // SCK
+		st.par.cmd_gpio = GPIOB; // cs,dc,rst
 		st.par.sda_pin  = 15;    // PB15 = SPI2_MOSI
 		st.par.af  = 5;
 		st.par.scl_pin  = 13;     // PB13 = SPI2_SCK
@@ -1195,6 +1201,7 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
 	else if (spi == SPI3) { // AF6
 		st.par.sda_gpio = GPIOC; // MOSI
 		st.par.scl_gpio = GPIOC; // SCK
+		st.par.cmd_gpio = GPIOC; // cs,dc,rst
 		st.par.sda_pin  = 12;    // PC12 = SPI3_MOSI
 		st.par.af  = 6;
 		st.par.scl_pin  = 10;    // PC10 = SPI3_SCK
@@ -1202,6 +1209,7 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
 	else {
 		st.par.sda_gpio = NULL;
 		st.par.scl_gpio = NULL;
+		st.par.cmd_gpio = NULL;
 		st.par.sda_pin  = 0;
 		st.par.scl_pin  = 0;
 	}
@@ -1249,7 +1257,6 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
     st.dump_buffer     = st7789_dump_buffer;
     st.dump_image      = st7789_dump_image;
     st.test_pin        = st7789_test_pin;
-
 
     if (st.setup.gpio) st.setup.gpio(&st.par);
     if (st.setup.spi)  st.setup.spi(&st.par);

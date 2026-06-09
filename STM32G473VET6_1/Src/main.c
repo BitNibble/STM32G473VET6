@@ -62,6 +62,10 @@ int main(void)
 	systick_inic();
 	rtc()->inic();
 
+	char str[32];
+	char vecD[8]; // for calendar date
+	char vecT[8]; // for calendar time
+
 	GPIO_clock( dev()->gpio->f, 1 );
 	GPIO_moder( dev()->gpio->f, 2, 1 );
 
@@ -100,6 +104,23 @@ int main(void)
 		lcd1.drawstring16x24_size(&lcd1.par,ptr,10,200,ST77XX_RED,ST77XX_GREEN,2);
 		//lcd1.drawstring16x24(&lcd1.par,"hello",10,200,ST77XX_RED,ST77XX_GREEN);
 		lcd1.stop(&lcd1.par);
+
+		/***
+		rtc()->dr2vec(vecD);
+		rtc()->tr2vec(vecT);
+
+		lcd1.start(&lcd1.par);
+		func()->format_string(str,32,"%d%d-%d%d-20%d%d",vecD[5], vecD[6], vecD[3], vecD[4], vecD[0], vecD[1]);
+		lcd1.drawstring16x24(&lcd1.par,str,10,150,ST77XX_BLACK,ST77XX_GREEN);
+
+		lcd1.drawstring12x16_size(&lcd1.par,(char*)WeekDay_String(vecD[2]),10,200,ST77XX_BLACK,ST77XX_GREEN,7);
+
+		func()->format_string(str,32,"%d%d:%d%d:%d%d",vecT[0], vecT[1], vecT[2], vecT[3], vecT[4], vecT[5]);
+		lcd1.drawstring24x48_size(&lcd1.par,str,15,70,ST77XX_RED,ST77XX_GREEN,8);
+		lcd1.stop(&lcd1.par);
+		***/
+
+
 	}
 }
 

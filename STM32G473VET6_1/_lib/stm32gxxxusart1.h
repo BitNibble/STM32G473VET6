@@ -1,12 +1,12 @@
 /******************************************************************************
-	STM32GXXXUSART1.H
+    STM32GXXXUSART1.H
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
-Hardware: STM32-XXX
-Date:     08062026
+Hardware: STM32G473
+Date:     08/06/2026
 *******************************************************************************/
 #ifndef STM32GXXXUSART1_H
-	#define STM32GXXXUSART1_H
+#define STM32GXXXUSART1_H
 
 #include "stm32g473vet6.h"
 
@@ -14,63 +14,32 @@ Date:     08062026
 #define USART1_TX_SIZE 256
 
 /* =========================================================
-   LOW LEVEL DMA CONTEXT
+   HIGH LEVEL HANDLE (Singleton V-table Interface)
    ========================================================= */
-
 typedef struct {
-
-    USART_TypeDef *uart;
-
-    DMA_Channel_TypeDef *rx_dma;
-    DMA_Channel_TypeDef *tx_dma;
-
-    /* DMAMUX request IDs (critical on G4) */
-    uint32_t dmamux_rx;
-    uint32_t dmamux_tx;
-
-    /* Buffers */
-    uint8_t *rx_buf;
-    uint16_t rx_size;
-
-    uint8_t *tx_buf;
-    uint16_t tx_size;
-
-    /* Ring buffer state */
-    volatile uint16_t rx_read;
-    volatile uint16_t rx_write;
-
-    /* TX state */
-    volatile uint8_t tx_busy;
-
-} USARTG4_DMA;
-
-/* =========================================================
-   HIGH LEVEL HANDLE (your V-table style)
-   ========================================================= */
-
-typedef struct {
-
-    USARTG4_DMA *d;
-
-    /* lifecycle */
-    void (*init)(USARTG4_DMA *d);
-    void (*start_rx)(USARTG4_DMA *d);
+    /* Lifecycle */
+    void (*init)(uint32_t baud);
+    void (*start_rx)(void);
 
     /* RX API */
-    uint16_t (*available)(USARTG4_DMA *d);
-    uint16_t (*read)(USARTG4_DMA *d, uint8_t *out);
+    uint16_t (*available)(void);
+    uint16_t (*read)(uint8_t *out);
 
     /* TX API */
-    void (*send)(USARTG4_DMA *d, uint8_t *data, uint16_t len);
-    uint8_t (*tx_ready)(USARTG4_DMA *d);
+    void (*send)(const uint8_t *data, uint16_t len);
+    uint8_t (*tx_ready)(void);
 
-    /* interrupts */
-    void (*idle_irq)(USARTG4_DMA *d);
-    void (*dma_tx_irq)(USARTG4_DMA *d);
+    /* Memory Inspection Helpers */
+    const uint8_t* (*get_rx_buffer_ptr)(void);
+    uint16_t (*get_rx_read_index)(void);
+    uint16_t (*get_rx_write_index)(void);
 
+    /* Hardware Interrupt Entry hooks */
+    void (*idle_irq)(void);
+    void (*dma_tx_irq)(void);
 } USARTG4_Handle;
 
-/* factory */
-USARTG4_Handle usart_g4_dma_enable(USARTG4_DMA *d);
+/* Public Factory Singleton Accessor */
+const USARTG4_Handle* usart1(void);
 
-#endif
+#endif /* STM32GXXXUSART1_H */

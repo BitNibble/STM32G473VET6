@@ -94,7 +94,8 @@ static void impl_init(uint32_t baud) {
     // 6. Set USART registers using your dynamic system clock reading helper
     clear_reg(&(dev()->comm->usart1->CR1), USART_CR1_UE);
 
-    uint32_t brr_calculated_val = get_sysclk() / baud;
+    //uint32_t brr_calculated_val = get_sysclk() / baud;
+    uint32_t brr_calculated_val = get_pclk2() / baud;
     write_reg_field_value(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
 
     set_reg(&(dev()->comm->usart1->CR1), USART_CR1_TE | USART_CR1_RE | USART_CR1_IDLEIE);
@@ -183,6 +184,13 @@ static uint16_t impl_get_rx_write_index(void) {
    ============================================================================ */
 
 static void impl_idle_irq(void) {
+	uint32_t isr = dev()->comm->usart1->ISR;
+
+	if (isr & USART_ISR_ORE)
+	{
+	    dev()->comm->usart1->ICR = USART_ICR_ORECF;
+	}
+
     if (dev()->comm->usart1->ISR & USART_ISR_IDLE) {
         dev()->comm->usart1->ICR = USART_ICR_IDLECF;
         u1_singleton.rx_write = USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;

@@ -21,6 +21,7 @@ typedef struct
 {
 	GPIO_TypeDef*  sda_gpio;
 	GPIO_TypeDef*  scl_gpio;
+	GPIO_TypeDef*  cmd_gpio;
 	SPI_TypeDef* spi;
 	uint8_t cs_pin;
 	uint8_t dc_pin;
