@@ -518,6 +518,213 @@ void st7789_drawfont32x32( ST7789_par* par, char c, uint16_t x, uint16_t y, uint
 	st7789_spi_flush(par);
 }
 
+void st7789_drawstring32x32_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
+{
+	uint16_t cursorX = x;  char c;
+	while(size){
+		if(*str){ c = *str++; }else{ c = ' '; } size--;
+		st7789_drawfont32x32(par, c, cursorX, y, fg, bg);
+		cursorX += 32;
+		if(cursorX + 32 > par->width) break;
+	}
+}
+
+void st7789_drawfont48x48( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+	const uint8_t first = 32;
+	const uint8_t glyph_w = 48;
+	const uint8_t glyph_h = 48;
+
+	if(c < first || c > 126) return;
+
+	// FIX 1: Change to uint32_t to prevent 16-bit multiplication memory truncation
+	uint32_t base = (uint32_t)(c - first) * glyph_h * 6;
+
+	uint16_t w = glyph_w;
+	uint16_t h = glyph_h;
+	if(x + w > par->width)  w = par->width - x;
+	if(y + h > par->height) h = par->height - y;
+
+	st7789_set_window(par, x, y, x + w - 1, y + h - 1);
+
+	// FIX 2: Ensure row loop uses proper 32-bit math offsets
+	for(uint32_t row = 0; row < h; row++) {
+		uint8_t byte6 = pgm_read_byte(&font48x48[base + (row * 6) + 0]);
+		uint8_t byte5 = pgm_read_byte(&font48x48[base + (row * 6) + 1]);
+		uint8_t byte4 = pgm_read_byte(&font48x48[base + (row * 6) + 2]);
+		uint8_t byte3 = pgm_read_byte(&font48x48[base + (row * 6) + 3]);
+		uint8_t byte2 = pgm_read_byte(&font48x48[base + (row * 6) + 4]);
+		uint8_t byte1 = pgm_read_byte(&font48x48[base + (row * 6) + 5]);
+
+		st7789_draw_bits_fast( par, byte6, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte5, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte4, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte3, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte2, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte1, 8, fg, bg );
+	}
+	st7789_spi_flush(par);
+}
+
+void st7789_drawstring48x48_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
+{
+	uint16_t cursorX = x;  char c;
+	while(size){
+		if(*str){ c = *str++; }else{ c = ' '; } size--;
+		st7789_drawfont48x48(par, c, cursorX, y, fg, bg);
+		cursorX += 48;
+		if(cursorX + 48 > par->width) break;
+	}
+}
+
+void st7789_drawfont24x48( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+	const uint8_t first = 32;
+	const uint8_t glyph_w = 24;
+	const uint8_t glyph_h = 48;
+
+	if(c < first || c > 126) return;
+
+	// FIX 1: Change to uint32_t to prevent 16-bit multiplication memory truncation
+	uint32_t base = (uint32_t)(c - first) * glyph_h * 6;
+
+	uint16_t w = glyph_w;
+	uint16_t h = glyph_h;
+	if(x + w > par->width)  w = par->width - x;
+	if(y + h > par->height) h = par->height - y;
+
+	st7789_set_window(par, x, y, x + w - 1, y + h - 1);
+
+	// FIX 2: Ensure row loop uses proper 32-bit math offsets
+	for(uint32_t row = 0; row < h; row++) {
+		uint8_t byte6 = pgm_read_byte(&font48x48[base + (row * 6) + 0]);
+		uint8_t byte5 = pgm_read_byte(&font48x48[base + (row * 6) + 1]);
+		uint8_t byte4 = pgm_read_byte(&font48x48[base + (row * 6) + 2]);
+		uint8_t byte3 = pgm_read_byte(&font48x48[base + (row * 6) + 3]);
+		uint8_t byte2 = pgm_read_byte(&font48x48[base + (row * 6) + 4]);
+		uint8_t byte1 = pgm_read_byte(&font48x48[base + (row * 6) + 5]);
+		(void) byte3;
+		(void) byte2;
+		(void) byte1;
+
+		st7789_draw_bits_fast( par, byte6, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte5, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte4, 8, fg, bg );
+		//st7789_draw_bits_fast( par, byte3, 8, fg, bg );
+		//st7789_draw_bits_fast( par, byte2, 8, fg, bg );
+		//st7789_draw_bits_fast( par, byte1, 8, fg, bg );
+	}
+	st7789_spi_flush(par);
+}
+
+void st7789_drawstring24x48_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
+{
+	uint16_t cursorX = x;  char c;
+	while(size){
+		if(*str){ c = *str++; }else{ c = ' '; } size--;
+		st7789_drawfont24x48(par, c, cursorX, y, fg, bg);
+		cursorX += 24;
+		if(cursorX + 24 > par->width) break;
+	}
+}
+
+void st7789_drawfont64x64( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+	const uint8_t first = 32;
+	const uint8_t glyph_w = 64;
+	const uint8_t glyph_h = 64;
+
+	if(c < first || c > 126) return;
+
+	// FIX 1: Change to uint32_t to prevent 16-bit multiplication memory truncation
+	uint32_t base = (uint32_t)(c - first) * glyph_h * 8;
+
+	uint16_t w = glyph_w;
+	uint16_t h = glyph_h;
+	if(x + w > par->width)  w = par->width - x;
+	if(y + h > par->height) h = par->height - y;
+
+	st7789_set_window(par, x, y, x + w - 1, y + h - 1);
+
+	// FIX 2: Ensure row loop uses proper 32-bit math offsets
+	for(uint32_t row = 0; row < h; row++) {
+		uint8_t byte8 = pgm_read_byte(&font64x64[base + (row * 8) + 0]);
+		uint8_t byte7 = pgm_read_byte(&font64x64[base + (row * 8) + 1]);
+		uint8_t byte6 = pgm_read_byte(&font64x64[base + (row * 8) + 2]);
+		uint8_t byte5 = pgm_read_byte(&font64x64[base + (row * 8) + 3]);
+		uint8_t byte4 = pgm_read_byte(&font64x64[base + (row * 8) + 4]);
+		uint8_t byte3 = pgm_read_byte(&font64x64[base + (row * 8) + 5]);
+		uint8_t byte2 = pgm_read_byte(&font64x64[base + (row * 8) + 6]);
+		uint8_t byte1 = pgm_read_byte(&font64x64[base + (row * 8) + 7]);
+
+
+		st7789_draw_bits_fast( par, byte8, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte7, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte6, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte5, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte4, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte3, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte2, 8, fg, bg );
+		st7789_draw_bits_fast( par, byte1, 8, fg, bg );
+	}
+	st7789_spi_flush(par);
+}
+
+void st7789_drawstring64x64_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
+{
+	uint16_t cursorX = x;  char c;
+	while(size){
+		if(*str){ c = *str++; }else{ c = ' '; } size--;
+		st7789_drawfont64x64(par, c, cursorX, y, fg, bg);
+		cursorX += 64;
+		if(cursorX + 64 > par->width) break;
+	}
+}
+
+void st7789_drawfont18x32( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+	const uint8_t first = 32;
+	const uint8_t glyph_w = 18; // True window visual width
+	const uint8_t glyph_h = 32; // True window height
+
+	if(c < first || c > 126) return;
+
+	// Keep multiplying by 4 because font32x32 allocates 4 bytes per row block
+	uint32_t base = (uint32_t)(c - first) * glyph_h * 4;
+
+	uint16_t w = glyph_w;
+	uint16_t h = glyph_h;
+	if(x + w > par->width)  w = par->width - x;
+	if(y + h > par->height) h = par->height - y;
+
+	st7789_set_window(par, x, y, x + w - 1, y + h - 1);
+
+	for(uint32_t row = 0; row < h; row++) {
+		uint8_t byte4 = pgm_read_byte(&font32x32[base + (row * 4) + 0]); // Bits 31-24 (Pixels 1-8)
+		uint8_t byte3 = pgm_read_byte(&font32x32[base + (row * 4) + 1]); // Bits 23-16 (Pixels 9-16)
+		uint8_t byte2 = pgm_read_byte(&font32x32[base + (row * 4) + 2]); // Bits 15-8  (Pixels 17-24)
+		uint8_t byte1 = pgm_read_byte(&font32x32[base + (row * 4) + 3]); // Bits 15-8  (Pixels 17-24)
+		(void) byte1;
+		// byte1 contains bits 7-0 (Pixels 25-32), which are purely blank padding space
+
+		// EXACTLY 18 BITS TOTAL SENT:
+		st7789_draw_bits_fast( par, byte4, 8, fg, bg ); // Pushes the first 8 pixels
+		st7789_draw_bits_fast( par, byte3, 8, fg, bg ); // Pushes the next 8 pixels (16 total)
+		st7789_draw_bits_fast( par, byte2, 2, fg, bg ); // Pushes the final 2 pixels (18 total)
+
+		// The remaining 6 bits of byte2 and all 8 bits of byte1 are completely ignored.
+		// This matches your 18-pixel hardware window bounding boundary perfectly.
+	}
+	st7789_spi_flush(par);
+}
+
+void st7789_drawstring18x32_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
+{
+	uint16_t cursorX = x;  char c;
+	while(size){
+		if(*str){ c = *str++; }else{ c = ' '; } size--;
+		st7789_drawfont18x32(par, c, cursorX, y, fg, bg);
+		cursorX += 18;
+		if(cursorX + 18 > par->width) break;
+	}
+}
+
 // font_array - Pass the specific font array (e.g., font16x16)
 // size - Pass the size dimension (8, 16, 24, 32, etc.)
 void st7789_drawfont_universal( ST7789_par* par, const uint8_t* font_array, uint8_t size, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
@@ -1020,6 +1227,15 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
     st.drawstring16x24 = st7789_drawstring16x24;
     st.drawstring16x24_size = st7789_drawstring16x24_size;
     st.drawfont32x32   = st7789_drawfont32x32;
+    st.drawstring32x32_size = st7789_drawstring32x32_size;
+    st.drawfont18x32   = st7789_drawfont18x32;
+    st.drawstring18x32_size = st7789_drawstring18x32_size;
+    st.drawfont48x48   = st7789_drawfont48x48;
+    st.drawstring48x48_size = st7789_drawstring48x48_size;
+    st.drawfont24x48   = st7789_drawfont24x48;
+    st.drawstring24x48_size = st7789_drawstring24x48_size;
+    st.drawfont64x64   = st7789_drawfont64x64;
+    st.drawstring64x64_size = st7789_drawstring64x64_size;
     st.draw_line       = st7789_draw_line;
     st.draw_line_eq    = st7789_draw_line_eq;
     st.draw_circle     = st7789_draw_circle;

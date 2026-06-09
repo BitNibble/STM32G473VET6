@@ -81,14 +81,14 @@ int main(void)
 	{
 		set_pin( dev()->gpio->f, 2 );
 		lcd1.start(&lcd1.par);
-		lcd1.drawstring16x24_size(&lcd1.par,"LED ON",10,20,ST77XX_MAGENTA,ST77XX_GREEN, 8);
+		lcd1.drawstring16x24_size(&lcd1.par,"LeD ON",10,20,ST77XX_MAGENTA,ST77XX_GREEN, 8);
 		lcd1.stop(&lcd1.par);
 
 		_delay_ms(3000);
 		clear_pin( dev()->gpio->f, 2 );
 		lcd1.start(&lcd1.par);
 		lcd1.drawstring16x24_size(&lcd1.par,"LED OFF",10,20,ST77XX_MAGENTA,ST77XX_GREEN, 8);
-		lcd1.drawfont32x32( &lcd1.par, 'A', 10, 80, ST77XX_MAGENTA, ST77XX_GREEN );
+		lcd1.drawstring24x48_size( &lcd1.par, "HHbra", 10, 80, ST77XX_MAGENTA, ST77XX_GREEN, 5 );
 		lcd1.stop(&lcd1.par);
 		_delay_ms(3000);
 

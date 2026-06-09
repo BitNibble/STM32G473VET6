@@ -62,6 +62,15 @@ typedef struct ST7789
 	void (*drawstring16x24)(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg);
 	void (*drawstring16x24_size)(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size);
 	void (*drawfont32x32)( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg );
+	void (*drawstring32x32_size)(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size);
+	void (*drawfont18x32)( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg );
+	void (*drawstring18x32_size)(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size);
+	void (*drawfont48x48)( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg );
+	void (*drawstring48x48_size)(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size);
+	void (*drawfont24x48)( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg );
+	void (*drawstring24x48_size)(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size);
+	void (*drawfont64x64)( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg );
+	void (*drawstring64x64_size)(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size);
 	void (*draw_line)(ST7789_par* par, int x0, int y0, int x1, int y1, uint16_t color);
 	void (*draw_line_eq)(ST7789_par* par, float m, float b, int x_start, int x_end, uint16_t color);
 	void (*draw_circle)( ST7789_par* par, int x0, int y0, int r, uint16_t color);
