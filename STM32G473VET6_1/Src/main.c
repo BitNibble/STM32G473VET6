@@ -9,10 +9,14 @@ License:  GNU General Public License
 #include "st7789.h"
 #include "armfunction.h"
 #include "stm32gxxxrtc.h"
+#include "stm32gxxxusart1.h"
 
 //#if !defined(__SOFT_FP__) && defined(__ARM_FP)
 //  #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 //#endif
+
+// Retrieve global reference to layout instance
+static const USARTG4_Handle* Serial1;
 
 //char str[32];
 char* ptr;
@@ -62,15 +66,22 @@ int main(void)
 	systick_inic();
 	rtc()->inic();
 
-	char str[32];
-	char vecD[8]; // for calendar date
-	char vecT[8]; // for calendar time
+	//char str[32];
+	//char vecD[8]; // for calendar date
+	//char vecT[8]; // for calendar time
 
 	GPIO_clock( dev()->gpio->f, 1 );
 	GPIO_moder( dev()->gpio->f, 2, 1 );
 
 	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
 	(void) lcd1;
+
+	Serial1 = usart1();
+
+	Serial1->init(9600);
+	Serial1->start_rx();
+
+	Serial1->send((uint8_t *) "Received: X\n", 12);
 
 	lcd1.start(&lcd1.par);
 	lcd1.draw_circle(&lcd1.par,200,80,15,ST77XX_BLACK);
@@ -79,7 +90,6 @@ int main(void)
 	lcd1.stop(&lcd1.par);
 
 	//tim1_blink_setup();
-
 
 	while(1)
 	{

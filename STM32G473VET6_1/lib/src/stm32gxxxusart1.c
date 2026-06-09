@@ -205,3 +205,24 @@ static void impl_dma_tx_irq(void) {
     }
 }
 
+#include "STM32GXXXUSART1.h"
+
+/**
+  * @brief This function handles USART1 global interrupt.
+  */
+void USART1_IRQHandler(void)
+{
+    /* Route the hardware interrupt event straight into your library */
+    usart1()->idle_irq();
+}
+
+/**
+  * @brief This function handles DMA1 Channel 2 global interrupt (Your TX Channel).
+  *        Note: Ensure this matches the exact channel you configured for TX!
+  */
+void DMA1_Channel2_IRQHandler(void)
+{
+    /* Route the DMA Transfer Complete event into your library */
+    usart1()->dma_tx_irq();
+}
+
