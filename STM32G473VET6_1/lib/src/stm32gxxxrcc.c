@@ -2,11 +2,39 @@
 	STM32 GXXX RCC
 Author: <sergio.salazar.santos@gmail.com>
 License: GNU General Public License
-Hardware: STM32-GXXX
+Hardware: STM32-G473VET6
 Date: 04062026
 *******************************************************************************/
 /*** File Library ***/
 #include "stm32gxxxrcc.h"
+
+typedef enum
+{
+    RCC_CLK_HSI = 1,
+    RCC_CLK_HSE = 2,
+    RCC_CLK_HSEBYP = 3
+} rcc_clk_t;
+
+typedef enum
+{
+    RCC_HCLK_HSI = 1,
+    RCC_HCLK_HSE = 2,
+    RCC_HCLK_PLL = 3
+} rcc_hclk_t;
+
+typedef enum
+{
+    RCC_CLK_LSI = 1,
+    RCC_CLK_LSE = 2,
+	RCC_CLK_LSEBYP = 3
+} rtc_clk_t;
+
+typedef enum
+{
+    RTC_CLK_LSI = 1,
+    RTC_CLK_LSE = 2,
+	RTC_CLK_HSE = 3
+} rtc_lclk_t;
 
 /*** File Procedure & Function Header ***/
 static void RCC_Flash_SetLatency(uint32_t sysclk);
@@ -45,47 +73,44 @@ void rcc_start(void)
 {
     /* Enable primary clock source */
     STM32GXXX_Rcc_HEnable(H_Clock_Source);
-    //STM32GXXX_Rcc_HEnable(3);
 
-    /* Select PLL source */
+    /* Select PLL source clock type */
     STM32GXXX_Rcc_PLL_Select(H_Clock_Source);
-    //STM32GXXX_Rcc_PLL_Select(1);
 
-    /* Derive PLL parameters */
+    /* Derive PLL parameters based on input */
     uint32_t input = get_pll_source();
-    uint32_t pllm = input / 1000000UL;
+    uint32_t pllm = input / 1000000UL; /* Target a clean 1MHz input frequency to the VCO */
 
-    if (pllm < 2)  pllm = 2;
-    if (pllm > 63) pllm = 63;
+    if (pllm < 1)  pllm = 1;
+    if (pllm > 16) pllm = 16; /* STM32G4 legal range is 1 to 16 */
 
-    /* Configure PLL (must be disabled internally) */
-    STM32GXXX_PLL_Division(pllm, 240, 2, 4);
+    /* Configure PLL (M, N, P, Q, R) -> Target 150MHz/170MHz variants safely */
+    /* Configuration: VCO In = 1MHz. N = 340 -> VCO Out = 340MHz. R = 2 -> SYSCLK = 170MHz */
+    STM32GXXX_PLL_Division((uint8_t)pllm, 340, 2, 2);
 
     if (PLL_ON_OFF)
     {
-        /* Compute expected SYSCLK (PLLR = 2 assumed) */
-        uint32_t vco = (input / pllm) * 240;
+        /* Compute expected SYSCLK from standard formulas */
+        uint32_t vco = (input / pllm) * 340;
         uint32_t sysclk = vco / 2;
 
-        /* Flash latency MUST match final SYSCLK */
+        /* Flash latency MUST match final target SYSCLK frequency BEFORE switching */
         RCC_Flash_SetLatency(sysclk);
 
-        /* Enable PLL */
+        /* Enable PLL circuit and wait for physical lock */
         STM32GXXX_Rcc_PLL_CLK_Enable();
 
-        /* Switch SYSCLK to PLL (PLLR path) */
+        /* Switch main SYSCLK engine to target output PLL (Mapped to SW value 3) */
         STM32GXXX_Rcc_HSelect(3);
     }
     else
     {
-        /* Direct switch to oscillator */
+        /* Direct switch back to raw un-multiplied oscillator asset */
         STM32GXXX_Rcc_HSelect(H_Clock_Source);
-        //STM32GXXX_Rcc_HSelect(1);
     }
 
-    /* Set prescalers AFTER SYSCLK is stable (cleaner model) */
+    /* Set core internal prescalers AFTER system clock stabilization (AHB=1, APB1=1, APB2=1) */
     STM32GXXX_Prescaler(1, 1, 1);
-    //STM32GXXX_RTC_ClockSelect(1);
 }
 
 void rcc_start_test(void)
@@ -121,7 +146,7 @@ static void RCC_Flash_SetLatency(uint32_t sysclk)
 }
 void STM32GXXX_Rcc_PLL_CLK_Enable(void)
 {
-    volatile uint32_t timeout = 0xFFFFFF;
+    volatile uint32_t timeout = 0x3FFFFF;
 
     /* Enable PLL */
     set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_PLLON_Msk, RCC_CR_PLLON);
@@ -140,7 +165,6 @@ void STM32GXXX_Rcc_Pwr_Clock_Enable(void)
 {
     set_reg_field_encoded(&dev()->system->rcc->APB1ENR1, RCC_APB1ENR1_PWREN_Msk, RCC_APB1ENR1_PWREN);
 }
-
 void STM32GXXX_Rcc_Pwr_Clock_Disable(void)
 {
     set_reg_field_encoded(&dev()->system->rcc->APB1ENR1, RCC_APB1ENR1_PWREN_Msk, 0U);
@@ -156,15 +180,15 @@ void STM32GXXX_Rcc_Write_Disable(void)
     set_reg_field_encoded(&dev()->system->pwr->CR1, PWR_CR1_DBP_Msk, 0U);
 }
 // RCC
-void STM32GXXX_Rcc_HEnable(uint8_t hclock)
+void STM32GXXX_Rcc_HEnable(uint8_t clock)
 {
     uint8_t set = 1;
     uint8_t rdy = 1;
     uint32_t timeout;
-    uint8_t choice = hclock;
+    uint8_t choice = clock;
 
     // Enable CSSON
-    if(hclock == 2 || hclock == 3) {
+    if(choice == 2 || choice == 3) {
         set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_CSSON_Msk, RCC_CR_CSSON); // Clock security system enable
     }
 
@@ -172,10 +196,10 @@ void STM32GXXX_Rcc_HEnable(uint8_t hclock)
     {
         switch(choice)
         {
-            case 1: // HSION: Internal high-speed clock enable
+            case RCC_CLK_HSI: // HSION: Internal high-speed clock enable
                 if(set) {
                 	set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_HSION_Msk, RCC_CR_HSION); // Enable HSI
-                    timeout = 0xFFFFF;
+                    timeout = 0x1FFFFF;
                     set = 0;
                 }
                 else if(dev()->system->rcc->CR & RCC_CR_HSIRDY) { // Wait for HSIRDY
@@ -184,16 +208,35 @@ void STM32GXXX_Rcc_HEnable(uint8_t hclock)
                 else {
                 	timeout--;
                 	if(!timeout){
-                		//choice = 1; set = 1;
+                		//choice = RCC_CLK_HSI; set = 1;
                 		rdy = 0;
                 	}
                 }
-                break;
+            break;
 
-            case 2: // HSEON: External high-speed clock enable
+/**
+            case RCC_CLK_CSI: // CSION: Internal high-speed clock enable
+				if(set) {
+					set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_CSION, RCC_CR_CSION); // Enable CSI
+					timeout = 0x1FFFFF;
+					set = 0;
+				}
+				else if(dev()->system->rcc->CR & RCC_CR_CSIRDY) { // Wait for CSIRDY
+					rdy = 0;
+				}
+				else {
+					timeout--;
+					if(!timeout){
+						choice = RCC_CLK_HSI; set = 1;
+					}
+				}
+				break;
+**/
+
+            case RCC_CLK_HSE: // HSEON: External high-speed clock enable
                 if(set) {
                 	set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_HSEON_Msk, RCC_CR_HSEON); // Enable HSE
-                    timeout = 0xFFFFF;
+                    timeout = 0x1FFFFF;
                     set = 0;
                 }
                 else if(dev()->system->rcc->CR & RCC_CR_HSERDY) { // Wait for HSERDY
@@ -202,49 +245,46 @@ void STM32GXXX_Rcc_HEnable(uint8_t hclock)
                 else {
                 	timeout--;
                 	if(!timeout){
-                		choice = 1; set = 1;
+                		choice = RCC_CLK_HSI; set = 1;
                 	}
                 }
-                break;
+            break;
 
-            case 3: // HSEBYP: HSE clock bypass
+            case RCC_CLK_HSEBYP: // HSEBYP: HSE clock bypass
                 set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_HSEBYP_Msk, RCC_CR_HSEBYP); // Enable HSE bypass
                 choice = 2; // Switch to enabling HSE
                 break;
 
             default: // Invalid value, default to HSI
-                choice = 1;
-                break;
+                choice = RCC_CLK_HSI;
+            break;
         }
     }
 }
 void STM32GXXX_Rcc_HSelect(uint8_t hclock)
 {
-	uint8_t choice = hclock;
-	uint8_t verify = 0; uint32_t timeout = 0xFFFFFF;
-		switch(choice){
-			case 1: // HSI selected as system clock
+	uint32_t choice = RCC_CFGR_SWS_HSI;
+	uint32_t timeout = 0xFFFFF;
+		switch(hclock){
+			case RCC_HCLK_HSI: // HSI selected as system clock
 				set_reg_field_encoded(&dev()->system->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_HSI);
-				verify = 1;
 				break;
 
-			case 2: // HSE oscillator selected as system clock
+			case RCC_HCLK_HSE: // HSE oscillator selected as system clock
 				set_reg_field_encoded(&dev()->system->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_HSE);
-				verify = 1;
+				choice = RCC_CFGR_SWS_HSE;
 				break;
 
-			case 3: // PLL_R selected as system clock
+			case RCC_HCLK_PLL: // PLL_R selected as system clock
 				set_reg_field_encoded(&dev()->system->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_PLL);
-				verify = 1;
+				choice = RCC_CFGR_SWS_PLL;
 				break;
 
 			default:
 				set_reg_field_encoded(&dev()->system->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_HSI);
-				choice = 1;
-				verify = 1;
 				break;
 		}
-	if(verify) { while((get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos) != choice) && timeout){timeout--;} }
+	while( (_mask(dev()->system->rcc->CFGR, RCC_CFGR_SWS_Msk) != choice ) && timeout){timeout--;}
 }
 uint8_t STM32GXXX_Rcc_PLL_Select(uint8_t hclock)
 {
@@ -255,11 +295,11 @@ uint8_t STM32GXXX_Rcc_PLL_Select(uint8_t hclock)
 
     switch (hclock)
     {
-        case 1: /* HSI16 as PLL source */
+        case RCC_CLK_HSI: /* HSI16 as PLL source */
             set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_HSI);
             break;
 
-        case 2: /* HSE as PLL source */
+        case RCC_CLK_HSE: /* HSE as PLL source */
             set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_HSE);
             break;
 
@@ -281,11 +321,11 @@ void STM32GXXX_Rcc_LEnable(uint8_t lclock)
     {
         switch(choice)
         {
-            case 1: // LSION: Internal low-speed oscillator enable
+            case RCC_CLK_LSI: // LSION: Internal low-speed oscillator enable
                 if(set)
                 {
                     dev()->system->rcc->CSR |= RCC_CSR_LSION; // Enable LSI
-                    timeout = 0xFFFFFF;
+                    timeout = 0x1FFFFF;
                     set = 0;
                 }
                 else if(dev()->system->rcc->CSR & RCC_CSR_LSIRDY) // Wait for LSIRDY
@@ -300,13 +340,13 @@ void STM32GXXX_Rcc_LEnable(uint8_t lclock)
                 }
                 break;
 
-            case 2: // LSEON: External low-speed oscillator enable
+            case RCC_CLK_LSE: // LSEON: External low-speed oscillator enable
                 if(set)
                 {
                     STM32GXXX_Rcc_Write_Enable();
                     dev()->system->rcc->BDCR |= RCC_BDCR_LSEON; // Enable LSE
                     STM32GXXX_Rcc_Write_Disable();
-                    timeout = 0xFFFFFF;
+                    timeout = 0x1FFFFF;
                     set = 0;
                 }
                 else if(dev()->system->rcc->BDCR & RCC_BDCR_LSERDY) // Wait for LSERDY
@@ -316,23 +356,20 @@ void STM32GXXX_Rcc_LEnable(uint8_t lclock)
                 else {
                 	timeout--;
                 	if(!timeout){
-                		choice = 1; set = 1;
+                		choice = RCC_CLK_LSI; set = 1;
                 	}
                 }
                 break;
 
-            case 3: // LSEBYP: External low-speed oscillator bypass
-                if(set)
-                {
-                    STM32GXXX_Rcc_Write_Enable();
-                    dev()->system->rcc->BDCR |= RCC_BDCR_LSEBYP; // Enable LSE bypass
-                    STM32GXXX_Rcc_Write_Disable();
-                }
-                choice = 2; // Switch to enabling LSE
+            case RCC_CLK_LSEBYP: // LSEBYP: External low-speed oscillator bypass
+                STM32GXXX_Rcc_Write_Enable();
+                dev()->system->rcc->BDCR |= RCC_BDCR_LSEBYP; // Enable LSE bypass
+                STM32GXXX_Rcc_Write_Disable();
+                choice = RCC_CLK_LSE; // Switch to enabling LSE
                 break;
 
             default: // Default to enabling LSI (0)
-            	choice = 1;
+            	choice = RCC_CLK_LSI;
                 break;
         }
     }
@@ -343,20 +380,20 @@ void STM32GXXX_Rcc_LSelect(uint8_t lclock)
 
     switch (lclock)
     {
-        case 1: /* LSI */
-            set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, 2 << RCC_BDCR_RTCSEL_Pos);
+        case RTC_CLK_LSE: /* LSE */
+            set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_0);
             break;
 
-        case 2: /* LSE */
-            set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, 1 << RCC_BDCR_RTCSEL_Pos);
+        case RTC_CLK_LSI: /* LSI */
+            set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_1);
             break;
 
-        case 3: /* HSE / 32 */
+        case RTC_CLK_HSE: /* HSE / 32 */
             set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, 3 << RCC_BDCR_RTCSEL_Pos);
             break;
 
         default:
-            set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, 1 << RCC_BDCR_RTCSEL_Pos);
+            set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_1);
             break;
     }
 
@@ -488,16 +525,6 @@ void STM32GXXX_Prescaler(uint16_t ahbpre, uint8_t ppre1, uint8_t ppre2)
     /* APB1 */
     _STM32GXXX_ppre1(ppre1);
 }
-void STM32GXXX_RTC_ClockSelect(uint8_t rtc)
-{
-    STM32GXXX_Rcc_Write_Enable();
-
-    uint32_t val = (rtc & 0x3U) << RCC_BDCR_RTCSEL_Pos;
-
-    set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, val);
-
-    STM32GXXX_Rcc_Write_Disable();
-}
 void _STM32GXXX_pllr(uint8_t pllr)
 {
     uint32_t val;
@@ -537,7 +564,7 @@ void STM32GXXX_PLL_Division(uint8_t pllm, uint16_t plln, uint8_t pllr, uint8_t p
     while (get_reg_field_value(dev()->system->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos));
 
     /* PLLM */
-    set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, (uint32_t)pllm << RCC_PLLCFGR_PLLM_Pos);
+    set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, (uint32_t)(pllm - 1U) << RCC_PLLCFGR_PLLM_Pos);
 
     /* PLLN */
     set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, (uint32_t)plln << RCC_PLLCFGR_PLLN_Pos);
@@ -548,19 +575,7 @@ void STM32GXXX_PLL_Division(uint8_t pllm, uint16_t plln, uint8_t pllr, uint8_t p
     /* PLLQ */
     set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, (uint32_t)pllq << RCC_PLLCFGR_PLLQ_Pos);
 }
-/*** RCC Bit Mapping Definition ***/
-/*** Other ***/
-void STM32GXXX_RCC_nvic(uint8_t state)
-{
-    if (state)
-    {
-        NVIC_EnableIRQ(RCC_IRQn);
-    }
-    else
-    {
-        NVIC_DisableIRQ(RCC_IRQn);
-    }
-}
+
 /*** Extended ***/
 static STM32GXXX_RCC_PLL STM32GXXX_rcc_pll_setup = {
 	.division = STM32GXXX_PLL_Division,
@@ -575,9 +590,7 @@ static STM32GXXX_RCC_HANDLER STM32GXXX_rcc_setup = {
 	.hselect = STM32GXXX_Rcc_HSelect,
 	.lenable = STM32GXXX_Rcc_LEnable,
 	.lselect = STM32GXXX_Rcc_LSelect,
-	.prescaler = STM32GXXX_Prescaler,
-
-	.nvic = STM32GXXX_RCC_nvic
+	.prescaler = STM32GXXX_Prescaler
 };
 
 STM32GXXX_RCC_HANDLER* rcc(void){ return &STM32GXXX_rcc_setup; };

@@ -14,8 +14,8 @@ Update:   15/11/2025
 unsigned int ft_Delay_Lock[FTDELAY_SIZE] = {0};
 volatile unsigned int ftCounter[FTDELAY_SIZE] = {0};
 /*** Local ***/
-uint32_t _mask_var(uint32_t var, uint32_t Msk);
-uint32_t _imask_var(uint32_t var, uint32_t Msk);
+uint32_t _mask(uint32_t var, uint32_t Msk);
+uint32_t _imask(uint32_t var, uint32_t Msk);
 uint32_t _size_to_block(uint32_t size_block);
 uint32_t _block_to_size(uint32_t block);
 uint32_t _block_mask(uint32_t size_block, uint32_t Pos);
@@ -33,10 +33,10 @@ void clear_reg(volatile uint32_t* reg, uint32_t hbits){
 inline uint32_t _block_pos(uint32_t size_block, uint32_t block_n){
 	return size_block * block_n;
 }
-inline uint32_t _mask_var(uint32_t var, uint32_t Msk){
+inline uint32_t _mask(uint32_t var, uint32_t Msk){
 	return (var & Msk);
 }
-inline uint32_t _imask_var(uint32_t var, uint32_t Msk){
+inline uint32_t _imask(uint32_t var, uint32_t Msk){
 	return (var & ~Msk);
 }
 inline uint32_t _size_to_block(uint32_t size_block){
@@ -52,7 +52,7 @@ inline uint32_t _mask_pos(uint32_t Msk){
 	return Msk ? (unsigned int)__builtin_ctz(Msk) : 0U;
 }
 inline uint32_t _mask_data(uint32_t Msk, uint32_t data){
-	return _mask_var(data << _mask_pos(Msk), Msk);
+	return _mask(data << _mask_pos(Msk), Msk);
 }
 
 /*** ToolSet ***/
@@ -70,12 +70,12 @@ inline void set_reg_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t
 }
 inline void write_reg_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data)
 {
-	uint32_t value = _imask_var(*reg, Msk);
-	data = _mask_var((data << Pos), Msk); value |= data; *reg = value;
+	uint32_t value = _imask(*reg, Msk);
+	data = _mask((data << Pos), Msk); value |= data; *reg = value;
 }
 inline void set_reg_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data)
 {
-	data = _mask_var((data << Pos), Msk); clear_reg(reg, Msk); set_reg(reg, data);
+	data = _mask((data << Pos), Msk); clear_reg(reg, Msk); set_reg(reg, data);
 }
 // block
 uint32_t get_reg_block_value(uint32_t reg, uint8_t size_block, uint8_t Pos)

@@ -25,6 +25,8 @@ Update:   15/11/2025
 /***************************** ToolSet *****************************/
 /*******************************************************************/
 uint32_t _block_pos(uint32_t size_block, uint32_t block_n);
+uint32_t _mask(uint32_t var, uint32_t Msk);
+uint32_t _imask(uint32_t var, uint32_t Msk);
 void set_reg(volatile uint32_t* reg, uint32_t hbits);
 void clear_reg(volatile uint32_t* reg, uint32_t hbits);
 
