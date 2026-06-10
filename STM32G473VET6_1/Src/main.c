@@ -81,7 +81,7 @@ int main(void)
 	Serial1->init(9600);
 	Serial1->start_rx();
 
-	Serial1->send((uint8_t *) "Received: X\n", 12);
+	//Serial1->send((uint8_t *) "Received: X\n", 12);
 
 	lcd1.start(&lcd1.par);
 	lcd1.draw_circle(&lcd1.par,200,80,15,ST77XX_BLACK);

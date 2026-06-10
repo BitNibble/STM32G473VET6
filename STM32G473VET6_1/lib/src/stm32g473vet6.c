@@ -208,25 +208,22 @@ inline uint32_t get_pll_source(void)
 /*=========================================================
   PLL CONFIG READBACK
 =========================================================*/
-
 inline uint8_t get_pllm(void)
 {
     /* PLLM is encoded as (M - 1) */
-    uint32_t m = (dev()->system->rcc->PLLCFGR & RCC_PLLCFGR_PLLM) >> RCC_PLLCFGR_PLLM_Pos;
+    uint32_t m = get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, RCC_PLLCFGR_PLLM_Pos);
     return (uint8_t)(m + 1U);
 }
 
 inline uint16_t get_plln(void)
 {
-    return (uint16_t)(
-        (dev()->system->rcc->PLLCFGR & RCC_PLLCFGR_PLLN) >> RCC_PLLCFGR_PLLN_Pos
-    );
+    return get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, RCC_PLLCFGR_PLLN_Pos);
 }
 
 /* PLLP: fixed mapping /2 /4 /6 /8 */
 inline uint8_t get_pllp(void)
 {
-    uint32_t p = (dev()->system->rcc->PLLCFGR & RCC_PLLCFGR_PLLP) >> RCC_PLLCFGR_PLLP_Pos;
+    uint32_t p = get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLP_Msk, RCC_PLLCFGR_PLLP_Pos);
 
     switch (p)
     {
@@ -241,14 +238,14 @@ inline uint8_t get_pllp(void)
 inline uint8_t get_pllq(void)
 {
     /* PLLQ is encoded as (Q - 1) */
-    uint32_t q = (dev()->system->rcc->PLLCFGR & RCC_PLLCFGR_PLLQ) >> RCC_PLLCFGR_PLLQ_Pos;
+    uint32_t q = get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, RCC_PLLCFGR_PLLQ_Pos);
     return (uint8_t)(q + 1U);
 }
 
 inline uint8_t get_pllr(void)
 {
     /* PLLR is NOT linear encoded on STM32G4 */
-    uint32_t r = (dev()->system->rcc->PLLCFGR & RCC_PLLCFGR_PLLR) >> RCC_PLLCFGR_PLLR_Pos;
+    uint32_t r = get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, RCC_PLLCFGR_PLLR_Pos);
 
     switch (r)
     {
@@ -260,11 +257,9 @@ inline uint8_t get_pllr(void)
     }
 }
 
-
 /*=========================================================
   PLL FREQUENCY MODEL
 =========================================================*/
-
 inline uint32_t get_pll_vco_in(void)
 {
     uint32_t m = get_pllm();
@@ -283,14 +278,12 @@ inline uint32_t get_pllclk(void)
     return get_pll_vco_out() / get_pllr();
 }
 
-
 /*=========================================================
   SYSTEM CLOCK
 =========================================================*/
-
 inline uint32_t get_sysclk(void)
 {
-    uint32_t sws = (dev()->system->rcc->CFGR & RCC_CFGR_SWS) >> RCC_CFGR_SWS_Pos;
+    uint32_t sws = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos);
 
     switch (sws)
     {
@@ -301,11 +294,9 @@ inline uint32_t get_sysclk(void)
     }
 }
 
-
 /*=========================================================
   AHB CLOCK (HCLK)
 =========================================================*/
-
 inline uint32_t get_hclk(void)
 {
     static const uint16_t ahb_presc_table[16] =
@@ -316,21 +307,19 @@ inline uint32_t get_hclk(void)
         64, 128, 256, 512
     };
 
-    uint32_t hpre = (dev()->system->rcc->CFGR & RCC_CFGR_HPRE) >> RCC_CFGR_HPRE_Pos;
+    uint32_t hpre = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_HPRE_Msk, RCC_CFGR_HPRE_Pos);
 
     return get_sysclk() / ahb_presc_table[hpre];
 }
 
-
 /*=========================================================
   APB CLOCKS
 =========================================================*/
-
 inline uint32_t get_pclk1(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
 
-    uint32_t ppre1 = (dev()->system->rcc->CFGR & RCC_CFGR_PPRE1) >> RCC_CFGR_PPRE1_Pos;
+    uint32_t ppre1 = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
 
     return get_hclk() / apb_presc[ppre1];
 }
@@ -339,7 +328,7 @@ inline uint32_t get_pclk2(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
 
-    uint32_t ppre2 = (dev()->system->rcc->CFGR & RCC_CFGR_PPRE2) >> RCC_CFGR_PPRE2_Pos;
+    uint32_t ppre2 = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
 
     return get_hclk() / apb_presc[ppre2];
 }
@@ -348,10 +337,9 @@ inline uint32_t get_pclk2(void)
 /*=========================================================
   TIMER CLOCKS (STM32G4 RULE)
 =========================================================*/
-
 inline uint32_t get_timclk1(void)
 {
-    uint32_t ppre1 = (dev()->system->rcc->CFGR & RCC_CFGR_PPRE1) >> RCC_CFGR_PPRE1_Pos;
+    uint32_t ppre1 = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
     uint32_t pclk1 = get_pclk1();
 
     uint32_t apb_div = (ppre1 < 4U) ? 1U : 2U;
@@ -361,7 +349,7 @@ inline uint32_t get_timclk1(void)
 
 inline uint32_t get_timclk2(void)
 {
-    uint32_t ppre2 = (dev()->system->rcc->CFGR & RCC_CFGR_PPRE2) >> RCC_CFGR_PPRE2_Pos;
+    uint32_t ppre2 = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
     uint32_t pclk2 = get_pclk2();
 
     uint32_t apb_div = (ppre2 < 4U) ? 1U : 2U;
