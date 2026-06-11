@@ -288,7 +288,7 @@ inline uint16_t get_plln(void)
     return (uint16_t)get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, RCC_PLLCFGR_PLLN_Pos);
 }
 
-/* PLLP: fixed mapping /2 to /31 via division lookup */
+/* PLLP */
 inline uint8_t get_pllp_div(void)
 {
     return get_reg_field_value(dev()->system->rcc->PLLCFGR,RCC_PLLCFGR_PLLP_Msk,RCC_PLLCFGR_PLLP_Pos);

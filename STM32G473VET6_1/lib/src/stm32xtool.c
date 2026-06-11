@@ -22,14 +22,8 @@ uint32_t _block_mask(uint32_t size_block, uint32_t Pos);
 uint32_t _mask_pos(uint32_t Msk);
 uint32_t _mask_data(uint32_t Msk, uint32_t data);
 
-/*** Tools ***/
-void set_reg(volatile uint32_t* reg, uint32_t hbits){
-	*reg |= hbits;
-}
-void clear_reg(volatile uint32_t* reg, uint32_t hbits){
-	*reg &= ~hbits;
-}
-/*** SUB Tools ***/
+
+/*** Helpers ***/
 inline uint32_t _block_pos(uint32_t size_block, uint32_t block_n){
 	return size_block * block_n;
 }
@@ -55,27 +49,31 @@ inline uint32_t _mask_data(uint32_t Msk, uint32_t data){
 	return _mask(data << _mask_pos(Msk), Msk);
 }
 
+/*** Tools ***/
+void set_reg(volatile uint32_t* reg, uint32_t hbits){
+	*reg |= hbits;
+}
+void clear_reg(volatile uint32_t* reg, uint32_t hbits){
+	*reg &= ~hbits;
+}
+
 /*** ToolSet ***/
 // field
 inline uint32_t get_reg_field_value(uint32_t reg, uint32_t Msk, uint32_t Pos)
 {
-	return (reg & Msk) >> Pos;
+	return _mask(Msk , reg) >> Pos;
 }
 inline void set_reg_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData)
 {
-    uint32_t tmp = *reg;
-    tmp &= ~Msk;
-    tmp |= (ShiftedData & Msk);
-    *reg = tmp;
+    *reg =_imask(*reg, Msk) | _mask(ShiftedData, Msk);
 }
 inline void write_reg_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data)
 {
-	uint32_t value = _imask(*reg, Msk);
-	data = _mask((data << Pos), Msk); value |= data; *reg = value;
+	*reg = _imask(*reg, Msk) | _mask((data << Pos), Msk);
 }
 inline void set_reg_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data)
 {
-	data = _mask((data << Pos), Msk); clear_reg(reg, Msk); set_reg(reg, data);
+	clear_reg(reg, Msk); set_reg(reg, _mask((data << Pos), Msk));
 }
 // block
 uint32_t get_reg_block_value(uint32_t reg, uint8_t size_block, uint8_t Pos)

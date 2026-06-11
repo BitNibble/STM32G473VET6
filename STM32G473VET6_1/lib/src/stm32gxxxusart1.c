@@ -154,7 +154,7 @@ static void impl_send(const uint8_t *data, uint16_t len) {
     clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
     dev()->dma->dma1_ch2->CMAR  = (uint32_t)u1_tx_raw;
     dev()->dma->dma1_ch2->CNDTR = len;
-    set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
+    //set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
 }
 
 static uint8_t impl_tx_ready(void) {
@@ -214,15 +214,22 @@ void USART1_IRQHandler(void)
 {
     /* Route the hardware interrupt event straight into your library */
     usart1()->idle_irq();
+    set_pin(dev()->gpio->f, 2);
 }
 
-/**
-  * @brief This function handles DMA1 Channel 2 global interrupt (Your TX Channel).
-  *        Note: Ensure this matches the exact channel you configured for TX!
-  */
 void DMA1_Channel2_IRQHandler(void)
 {
-    /* Route the DMA Transfer Complete event into your library */
-    usart1()->dma_tx_irq();
+    uint32_t isr = DMA1->ISR;
+
+    if (isr & DMA_ISR_TCIF2)
+    {
+        DMA1->IFCR = DMA_IFCR_CTCIF2;
+
+        clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
+
+        u1_singleton.tx_busy = 0;
+    }
+
+    set_pin(dev()->gpio->f, 2);
 }
 
