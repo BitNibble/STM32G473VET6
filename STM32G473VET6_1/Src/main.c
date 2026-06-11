@@ -62,7 +62,6 @@ void tim1_u_callback(void)
 int main(void)
 {
 	rcc()->inic();
-	systick_Configure();
 	fpu_enable();
 	rtc()->inic();
 

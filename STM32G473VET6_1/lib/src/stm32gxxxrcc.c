@@ -7,6 +7,7 @@ Date: 04062026
 *******************************************************************************/
 /*** File Library ***/
 #include "stm32gxxxrcc.h"
+#include "armsystick.h"
 
 typedef enum
 {
@@ -111,6 +112,8 @@ void rcc_start(void)
 
     /* Set core internal prescalers AFTER system clock stabilization (AHB=1, APB1=1, APB2=1) */
     STM32GXXX_Prescaler(1, 1, 1);
+
+    systick_Configure();
 }
 
 void rcc_start_test(void)
