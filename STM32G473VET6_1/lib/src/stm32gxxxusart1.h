@@ -6,7 +6,7 @@ Hardware: STM32G473
 Date:     08/06/2026
 *******************************************************************************/
 #ifndef STM32GXXXUSART1_H
-#define STM32GXXXUSART1_H
+	#define STM32GXXXUSART1_H
 
 #include "stm32g473vet6.h"
 
@@ -58,5 +58,7 @@ typedef struct {
 
 /* Public Factory Singleton Accessor */
 USARTG4_Handle* usart1(void);
+
+void DMA1_CH2_IRQHandler(void);
 
 #endif /* STM32GXXXUSART1_H */

@@ -108,8 +108,8 @@ static void impl_init(USART1_par* par) {
     // 5. Configure DMA TX Channel (Normal Single-Shot mode)
     clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
     dev()->dma->dma1_ch2->CPAR  = (uint32_t)&(dev()->comm->usart1->TDR);
-    //set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE);
-    set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_MINC | DMA_CCR_DIR);
+    set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE);
+    //set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_MINC | DMA_CCR_DIR);
 
     // 6. Set USART registers using dynamic system clock reading helper
     clear_reg(&(dev()->comm->usart1->CR1), USART_CR1_UE);
@@ -163,7 +163,7 @@ static uint16_t impl_read(USART1_par* par, uint8_t *out) {
     return ONE;
 }
 
-static void impl_send_v1(USART1_par* par, const uint8_t *data, uint16_t len) {
+static void impl_send(USART1_par* par, const uint8_t *data, uint16_t len) {
     if (isPtrNull((void*)data) || len == ZERO || len > USART1_TX_SIZE || par->tx_busy) {
         return;
     }
@@ -174,14 +174,14 @@ static void impl_send_v1(USART1_par* par, const uint8_t *data, uint16_t len) {
     clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
     dev()->dma->dma1_ch2->CMAR  = (uint32_t)par->buff_tx;
     dev()->dma->dma1_ch2->CNDTR = len;
-    set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN); /* FIXED: This was commented out! this blocks when in interrupt mode*/
+    set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN); /* FIXED: This was commented out!*/
 }
 
-static uint8_t impl_tx_ready_v1(USART1_par* par) {
+static uint8_t impl_tx_ready(USART1_par* par) {
     return !par->tx_busy;
 }
 
-static void impl_send(USART1_par* par, const uint8_t *data, uint16_t len) {
+void impl_send_v2(USART1_par* par, const uint8_t *data, uint16_t len) {
     if (isPtrNull((void*)data) || len == ZERO || len > USART1_TX_SIZE) {
         return;
     }
@@ -200,7 +200,7 @@ static void impl_send(USART1_par* par, const uint8_t *data, uint16_t len) {
     set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
 }
 
-static uint8_t impl_tx_ready(USART1_par* par) {
+uint8_t impl_tx_ready_v2(USART1_par* par) {
     // If the channel is currently running, poll its hardware state
     if (dev()->dma->dma1_ch2->CCR & DMA_CCR_EN) {
         // Check if the hardware completed the transfer
@@ -258,13 +258,14 @@ static void impl_dma_tx_irq(USART1_par* par) {
 }
 
 void USART1_IRQHandler(void) {
-	set_pin( dev()->gpio->f, 2 );
+	//clear_pin( dev()->gpio->f, 2 );
     // Call high level driver singleton entry hook
     usart1()->run.idle_irq(&usart1()->par);
 }
 
-void DMA1_Channel2_IRQHandler(void) {
+void DMA1_CH2_IRQHandler(void) {
 	set_pin( dev()->gpio->f, 2 );
     // Call DMA TX completion tracker hook
     usart1()->run.dma_tx_irq(&usart1()->par);
 }
+
