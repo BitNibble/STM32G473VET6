@@ -16,9 +16,9 @@ License:  GNU General Public License
 //#endif
 
 // Retrieve global reference to layout instance
-static const USARTG4_Handle* Serial1;
+static USARTG4_Handle* Serial1;
 
-//char str[32];
+uint8_t str[32];
 char* ptr;
 
 void tim1_blink_setup(void)
@@ -77,10 +77,12 @@ int main(void)
 
 	Serial1 = usart1();
 
-	Serial1->init(9600);
-	Serial1->start_rx();
+	Serial1->run.init(&Serial1->par);
 
-	//Serial1->send((uint8_t *) "Received: X\n", 12);
+	// 2. CRITICAL: Turn on the receiver engine and enable the DMA stream!
+	Serial1->run.start_rx(&Serial1->par);
+
+	Serial1->run.send(&Serial1->par, (uint8_t *) "Received: Xgdgdgsdgsdgsdgsdfgsdgdgsdgfdsg", 30);
 
 	lcd1.start(&lcd1.par);
 	lcd1.draw_circle(&lcd1.par,200,80,15,ST77XX_BLACK);
@@ -129,7 +131,21 @@ int main(void)
 		lcd1.stop(&lcd1.par);
 		***/
 
+		// 1. Check if the circular DMA buffer has received new data
+		if (Serial1->run.available(&Serial1->par) > 0) {
 
+			// 2. Fetch the byte out of the ring buffer
+			Serial1->run.read(&Serial1->par, str);
+
+			// 3. Wait for the TX hardware to be ready
+			while(!Serial1->run.tx_ready(&Serial1->par));
+
+			// 4. Echo the byte back to your phone/PC screen
+			Serial1->run.send(&Serial1->par, str, 1);
+		}
+		lcd1.start(&lcd1.par);
+		lcd1.drawstring16x24_size(&lcd1.par,(const char*)str,10,150,ST77XX_RED,ST77XX_GREEN,8);
+		lcd1.stop(&lcd1.par);
 	}
 }
 

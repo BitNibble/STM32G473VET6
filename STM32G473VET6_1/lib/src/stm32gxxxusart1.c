@@ -13,223 +13,258 @@ Date:     08/06/2026
 static uint8_t u1_rx_raw[USART1_RX_SIZE];
 static uint8_t u1_tx_raw[USART1_TX_SIZE];
 
-/* Static internal Singleton context tracking structures */
-typedef struct {
-    volatile uint16_t rx_read;
-    volatile uint16_t rx_write;
-    volatile uint8_t  tx_busy;
-} USART1_Private_Ctx;
-
-static USART1_Private_Ctx u1_singleton = {
-    .rx_read  = ZERO,
-    .rx_write = ZERO,
-    .tx_busy  = ZERO
-};
-
 /* Forward Declaration of V-Table Implementations */
-static void           impl_init(uint32_t baud);
-static void           impl_start_rx(void);
-static uint16_t       impl_available(void);
-static uint16_t       impl_read(uint8_t *out);
-static void           impl_send(const uint8_t *data, uint16_t len);
-static uint8_t        impl_tx_ready(void);
-static const uint8_t* impl_get_rx_buffer_ptr(void);
-static uint16_t       impl_get_rx_read_index(void);
-static uint16_t       impl_get_rx_write_index(void);
-static void           impl_idle_irq(void);
-static void           impl_dma_tx_irq(void);
+static void           impl_config(USART1_par* par, uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t* buff_rx, uint8_t* buff_tx);
+static void           impl_init(USART1_par* par);
+static void           impl_start_rx(USART1_par* par);
+static uint16_t       impl_available(USART1_par* par);
+static uint16_t       impl_read(USART1_par* par, uint8_t *out);
+static void           impl_send(USART1_par* par, const uint8_t *data, uint16_t len);
+static uint8_t        impl_tx_ready(USART1_par* par);
+static uint16_t       impl_get_rx_read_index(USART1_par* par);
+static uint16_t       impl_get_rx_write_index(USART1_par* par);
+static void           impl_idle_irq(USART1_par* par);
+static void           impl_dma_tx_irq(USART1_par* par);
 
 /* V-Table initialization mapping back to public struct blueprint */
-static const USARTG4_Handle handle_instance = {
-    .init               = impl_init,
-    .start_rx           = impl_start_rx,
-    .available          = impl_available,
-    .read               = impl_read,
-    .send               = impl_send,
-    .tx_ready           = impl_tx_ready,
-    .get_rx_buffer_ptr  = impl_get_rx_buffer_ptr,
-    .get_rx_read_index  = impl_get_rx_read_index,
-    .get_rx_write_index = impl_get_rx_write_index,
-    .idle_irq           = impl_idle_irq,
-    .dma_tx_irq         = impl_dma_tx_irq
+static USARTG4_Handle handle_instance = {
+    .par = {
+        .wordlength    = 8,
+        .stopbit       = 1,
+        .samplingmode  = 16,
+        .baudrate      = 38400,
+        .rx_read_index = 0,
+        .rx_write_index= 0,
+        .tx_busy       = 0,
+        .buff_rx       = u1_rx_raw,
+        .buff_tx       = u1_tx_raw  /* FIXED: Was incorrectly mapped to u1_rx_raw */
+    },
+    .run = {
+        .config             = impl_config,
+        .init               = impl_init,
+        .start_rx           = impl_start_rx,
+        .available          = impl_available,
+        .read               = impl_read,
+        .send               = impl_send,
+        .tx_ready           = impl_tx_ready,
+        .get_rx_read_index  = impl_get_rx_read_index,
+        .get_rx_write_index = impl_get_rx_write_index,
+        .idle_irq           = impl_idle_irq,
+        .dma_tx_irq         = impl_dma_tx_irq,
+    }
 };
 
 /* Singleton factory gateway entry point */
-const USARTG4_Handle* usart1(void) {
+USARTG4_Handle* usart1(void) {
     return &handle_instance;
 }
 
 /* ============================================================================
-   DRIVER CODE IMPLEMENTATIONS WITH YOUR BACKBONE
+   DRIVER CODE IMPLEMENTATIONS
    ============================================================================ */
 
-static void impl_init(uint32_t baud) {
-    // 1. Gating Clocks via your Native GPIO and Clock System tree APIs
+static void impl_config(USART1_par* par, uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t* buff_rx, uint8_t* buff_tx) {
+    if (isPtrNull(par)) return;
+    par->wordlength   = wordlength;
+    par->stopbit      = stopbit;
+    par->samplingmode = samplingmode;
+    par->baudrate     = baudrate;
+    if (!isPtrNull(buff_rx)) par->buff_rx = buff_rx;
+    if (!isPtrNull(buff_tx)) par->buff_tx = buff_tx;
+}
+
+static void impl_init(USART1_par* par) {
+    // 1. Gating Clocks via Native GPIO and Clock System tree APIs
     GPIO_clock(dev()->gpio->a, ONE);
     set_reg(&(dev()->system->rcc->AHB1ENR), RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMAMUX1EN);
     set_reg(&(dev()->system->rcc->APB2ENR), RCC_APB2ENR_USART1EN);
 
     // 2. Configure Alternate Pin Functions using your tool functions (AF7 for USART1)
-    GPIO_moder(dev()->gpio->a, 9,  MODE_AF);  // PA9  -> TX Line
-    GPIO_moder(dev()->gpio->a, 10, MODE_AF);  // PA10 -> RX Line
-    GPIO_af(dev()->gpio->a, 9,  7);
-    GPIO_af(dev()->gpio->a, 10, 7);
+    GPIO_moder(GPIOA, 9,  MODE_AF);  // PA9  -> TX Line
+    GPIO_moder(GPIOA, 10, MODE_AF);  // PA10 -> RX Line
+    GPIO_af(GPIOA, 9,  7);
+    GPIO_af(GPIOA, 10, 7);
 
-    // 3. Routing Peripheral Signals into DMAMUX Matrices via your mapped device tree channel structures
+    GPIO_ospeed(GPIOA, 9,  3);
+    GPIO_ospeed(GPIOA, 10, 3);
+
+    GPIO_otype(GPIOA, 9,  0);
+    GPIO_otype(GPIOA, 10, 0);
+
+    GPIO_pupd(GPIOA, 9,  0);  // TX no pull
+    GPIO_pupd(GPIOA, 10, 1); // RX pull-up
+
+    // 3. Routing Peripheral Signals into DMAMUX Matrices (Ch1=RX, Ch2=TX)
     write_reg_field_value(&(dev()->dma->dmamux1_ch1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, 24);
     write_reg_field_value(&(dev()->dma->dmamux1_ch2->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, 25);
 
-    // 4. Configure DMA RX Channel (Circular mode, memory auto-incrementing pointer blocks)
+    // 4. Configure DMA RX Channel (Circular mode)
     clear_reg(&(dev()->dma->dma1_ch1->CCR), DMA_CCR_EN);
     dev()->dma->dma1_ch1->CPAR  = (uint32_t)&(dev()->comm->usart1->RDR);
-    dev()->dma->dma1_ch1->CMAR  = (uint32_t)u1_rx_raw;
+    dev()->dma->dma1_ch1->CMAR  = (uint32_t)par->buff_rx;
     dev()->dma->dma1_ch1->CNDTR = USART1_RX_SIZE;
     set_reg(&(dev()->dma->dma1_ch1->CCR), DMA_CCR_MINC | DMA_CCR_CIRC | DMA_CCR_PL_0);
 
-    // 5. Configure DMA TX Channel (Normal Single-Shot mode, memory increment, TCIE active)
+    // 5. Configure DMA TX Channel (Normal Single-Shot mode)
     clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
     dev()->dma->dma1_ch2->CPAR  = (uint32_t)&(dev()->comm->usart1->TDR);
-    set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE);
+    //set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE);
+    set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_MINC | DMA_CCR_DIR);
 
-    // 6. Set USART registers using your dynamic system clock reading helper
+    // 6. Set USART registers using dynamic system clock reading helper
     clear_reg(&(dev()->comm->usart1->CR1), USART_CR1_UE);
 
-    //uint32_t brr_calculated_val = get_sysclk() / baud;
-    uint32_t brr_calculated_val = get_pclk2() / baud;
+    uint32_t brr_calculated_val = get_pclk2() / par->baudrate;
     write_reg_field_value(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
+
 
     set_reg(&(dev()->comm->usart1->CR1), USART_CR1_TE | USART_CR1_RE | USART_CR1_IDLEIE);
     set_reg(&(dev()->comm->usart1->CR3), USART_CR3_DMAT | USART_CR3_DMAR);
     set_reg(&(dev()->comm->usart1->CR1), USART_CR1_UE);
 
-    // 7. Core NVIC Interrupt Vectors Configurations via your layout handles
+    // 7. Core NVIC Interrupt Vectors Configurations
     NVIC_SetPriority(USART1_IRQn, 5);
     NVIC_EnableIRQ(USART1_IRQn);
     NVIC_SetPriority(DMA1_Channel2_IRQn, 5);
     NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 }
 
-static void impl_start_rx(void) {
-    u1_singleton.rx_read  = ZERO;
-    u1_singleton.rx_write = ZERO;
+static void impl_start_rx(USART1_par* par) {
+    par->rx_read_index  = ZERO;
+    par->rx_write_index = ZERO;
     set_reg(&(dev()->dma->dma1_ch1->CCR), DMA_CCR_EN);
 }
 
-static uint16_t impl_available(void) {
-    u1_singleton.rx_write = USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
+static uint16_t impl_available(USART1_par* par) {
+    par->rx_write_index = USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
 
-    if (u1_singleton.rx_write >= u1_singleton.rx_read) {
-        return (u1_singleton.rx_write - u1_singleton.rx_read);
+    if (par->rx_write_index >= par->rx_read_index) {
+        return (par->rx_write_index - par->rx_read_index);
     } else {
-        return (USART1_RX_SIZE - u1_singleton.rx_read) + u1_singleton.rx_write;
+        return (USART1_RX_SIZE - par->rx_read_index) + par->rx_write_index;
     }
 }
 
-static uint16_t impl_read(uint8_t *out) {
+static uint16_t impl_read(USART1_par* par, uint8_t *out) {
     if (isPtrNull(out)) return ZERO;
 
-    u1_singleton.rx_write = USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
+    par->rx_write_index = USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
 
-    if (u1_singleton.rx_read == u1_singleton.rx_write) {
+    if (par->rx_read_index == par->rx_write_index) {
         return ZERO;
     }
 
-    *out = u1_rx_raw[u1_singleton.rx_read];
-    uint16_t next = u1_singleton.rx_read + ONE;
+    *out = par->buff_rx[par->rx_read_index];
+    uint16_t next = par->rx_read_index + ONE;
     if (next >= USART1_RX_SIZE) {
         next = ZERO;
     }
-    u1_singleton.rx_read = next;
+    par->rx_read_index = next;
     return ONE;
 }
 
-static void impl_send(const uint8_t *data, uint16_t len) {
-    if (isPtrNull((void*)data) || len == ZERO || len > USART1_TX_SIZE || u1_singleton.tx_busy) {
+static void impl_send_v1(USART1_par* par, const uint8_t *data, uint16_t len) {
+    if (isPtrNull((void*)data) || len == ZERO || len > USART1_TX_SIZE || par->tx_busy) {
         return;
     }
 
-    u1_singleton.tx_busy = ONE;
-    memcpy(u1_tx_raw, data, len);
+    par->tx_busy = ONE;
+    memcpy(par->buff_tx, data, len);
 
     clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
-    dev()->dma->dma1_ch2->CMAR  = (uint32_t)u1_tx_raw;
+    dev()->dma->dma1_ch2->CMAR  = (uint32_t)par->buff_tx;
     dev()->dma->dma1_ch2->CNDTR = len;
-    //set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
+    set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN); /* FIXED: This was commented out! this blocks when in interrupt mode*/
 }
 
-static uint8_t impl_tx_ready(void) {
-    return !u1_singleton.tx_busy;
+static uint8_t impl_tx_ready_v1(USART1_par* par) {
+    return !par->tx_busy;
+}
+
+static void impl_send(USART1_par* par, const uint8_t *data, uint16_t len) {
+    if (isPtrNull((void*)data) || len == ZERO || len > USART1_TX_SIZE) {
+        return;
+    }
+
+    // Wait until any previous transmission finishes completely
+    while (!impl_tx_ready(par));
+
+    par->tx_busy = ONE;
+    memcpy(par->buff_tx, data, len);
+
+    clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
+    dev()->dma->dma1_ch2->CMAR  = (uint32_t)par->buff_tx;
+    dev()->dma->dma1_ch2->CNDTR = len;
+
+    // Fire the DMA engine
+    set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
+}
+
+static uint8_t impl_tx_ready(USART1_par* par) {
+    // If the channel is currently running, poll its hardware state
+    if (dev()->dma->dma1_ch2->CCR & DMA_CCR_EN) {
+        // Check if the hardware completed the transfer
+        if (dev()->dma->dma1->ISR & DMA_ISR_TCIF2) {
+            dev()->dma->dma1->IFCR = DMA_IFCR_CTCIF2; // Clear hardware flag
+            clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN); // Disable channel
+            par->tx_busy = ZERO; // Release software lock
+            return ONE;
+        }
+        return ZERO; // Transmission is still in progress
+    }
+    return ONE; // Channel is idle and ready
 }
 
 /* ============================================================================
    MEMORY INSPECTION TRACKING HELPER UTILITIES
    ============================================================================ */
 
-static const uint8_t* impl_get_rx_buffer_ptr(void) {
-    return u1_rx_raw; // Exposes base structural memory zone address safely as read-only pointer
+static uint16_t impl_get_rx_read_index(USART1_par* par) {
+    return par->rx_read_index;
 }
 
-static uint16_t impl_get_rx_read_index(void) {
-    return u1_singleton.rx_read; // Current consumer application reading offset position
-}
-
-static uint16_t impl_get_rx_write_index(void) {
-    // Read the real-time hardware status downcounter to return an absolute snapshot index
-    u1_singleton.rx_write = USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
-    return u1_singleton.rx_write;
+static uint16_t impl_get_rx_write_index(USART1_par* par) {
+    par->rx_write_index = USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
+    return par->rx_write_index;
 }
 
 /* ============================================================================
    INTERRUPT VECTOR LAYER DRIVER CONNECTIONS
    ============================================================================ */
 
-static void impl_idle_irq(void) {
-	uint32_t isr = dev()->comm->usart1->ISR;
+static void impl_idle_irq(USART1_par* par) {
+    uint32_t isr = dev()->comm->usart1->ISR;
 
-	if (isr & USART_ISR_ORE)
-	{
-	    dev()->comm->usart1->ICR = USART_ICR_ORECF;
-	}
+    if (isr & USART_ISR_ORE) {
+        dev()->comm->usart1->ICR = USART_ICR_ORECF;
+    }
 
-    if (dev()->comm->usart1->ISR & USART_ISR_IDLE) {
+    if (isr & USART_ISR_IDLE) {
         dev()->comm->usart1->ICR = USART_ICR_IDLECF;
-        u1_singleton.rx_write = USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
+        par->rx_write_index = USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
     }
 }
 
-static void impl_dma_tx_irq(void) {
-    if (DMA1->ISR & DMA_ISR_TCIF2) {
-        DMA1->IFCR = DMA_IFCR_CTCIF2;
-        clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
-        u1_singleton.tx_busy = ZERO;
+static void impl_dma_tx_irq(USART1_par* par) {
+    // Read the DMA channel 2 status using your framework layout
+    uint32_t isr = dev()->dma->dma1->ISR; // double check your framework's name for global ISR
+
+    if (isr & DMA_ISR_TCIF2) {
+        // Clear the Channel 2 Transfer Complete flag using your native helper/register
+        dev()->dma->dma1->IFCR = DMA_IFCR_CTCIF2;
+
+        par->tx_busy = ZERO; // Release the lock so next transfers can happen
     }
 }
 
-#include "STM32GXXXUSART1.h"
-
-/**
-  * @brief This function handles USART1 global interrupt.
-  */
-void USART1_IRQHandler(void)
-{
-    /* Route the hardware interrupt event straight into your library */
-    usart1()->idle_irq();
-    set_pin(dev()->gpio->f, 2);
+void USART1_IRQHandler(void) {
+	set_pin( dev()->gpio->f, 2 );
+    // Call high level driver singleton entry hook
+    usart1()->run.idle_irq(&usart1()->par);
 }
 
-void DMA1_Channel2_IRQHandler(void)
-{
-    uint32_t isr = DMA1->ISR;
-
-    if (isr & DMA_ISR_TCIF2)
-    {
-        DMA1->IFCR = DMA_IFCR_CTCIF2;
-
-        clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
-
-        u1_singleton.tx_busy = 0;
-    }
-
-    set_pin(dev()->gpio->f, 2);
+void DMA1_Channel2_IRQHandler(void) {
+	set_pin( dev()->gpio->f, 2 );
+    // Call DMA TX completion tracker hook
+    usart1()->run.dma_tx_irq(&usart1()->par);
 }
-

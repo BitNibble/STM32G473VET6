@@ -14,28 +14,28 @@ typedef enum
     RCC_CLK_HSI = 1,
     RCC_CLK_HSE = 2,
     RCC_CLK_HSEBYP = 3
-} rcc_clk_t;
+} mcu_enable_clk;
 
 typedef enum
 {
     RCC_HCLK_HSI = 1,
     RCC_HCLK_HSE = 2,
     RCC_HCLK_PLL = 3
-} rcc_hclk_t;
+} mcu_select_clk;
 
 typedef enum
 {
     RCC_CLK_LSI = 1,
     RCC_CLK_LSE = 2,
 	RCC_CLK_LSEBYP = 3
-} rtc_clk_t;
+} rtc_enable_clk;
 
 typedef enum
 {
     RTC_CLK_LSI = 1,
     RTC_CLK_LSE = 2,
 	RTC_CLK_HSE = 3
-} rtc_lclk_t;
+} rtc_select_clk;
 
 /*** File Procedure & Function Header ***/
 static void RCC_Flash_SetLatency(uint32_t sysclk);
