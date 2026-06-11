@@ -346,6 +346,7 @@ void GPIO_lck( GPIO_TypeDef* GPIO, uint16_t hpins );
 void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af );
 void set_hpins(GPIO_TypeDef* reg, uint16_t hpins);
 void clear_hpins(GPIO_TypeDef* reg, uint16_t hpins);
+void toggle_hpins(GPIO_TypeDef* reg, uint16_t hpins);
 void set_pin(GPIO_TypeDef* reg, uint8_t pin);
 void clear_pin(GPIO_TypeDef* reg, uint8_t pin);
 

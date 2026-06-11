@@ -504,6 +504,9 @@ inline void set_hpins(GPIO_TypeDef* reg, uint16_t hpins) {
 inline void clear_hpins(GPIO_TypeDef* reg, uint16_t hpins) {
     reg->BSRR = (uint32_t)(hpins << WORD_BITS);
 }
+inline void toggle_hpins(GPIO_TypeDef* reg, uint16_t hpins) {
+    reg->ODR ^= hpins;
+}
 inline void set_pin(GPIO_TypeDef* reg, uint8_t pin) {
     reg->BSRR = (1 << pin);
 }

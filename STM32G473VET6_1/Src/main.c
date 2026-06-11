@@ -132,20 +132,30 @@ int main(void)
 		***/
 
 		// 1. Check if the circular DMA buffer has received new data
-		if (Serial1->run.available(&Serial1->par) > 0) {
+		//if (Serial1->run.available(&Serial1->par) > 6) {
 
 			// 2. Fetch the byte out of the ring buffer
-			Serial1->run.read(&Serial1->par, str);
+			//Serial1->run.read(&Serial1->par, str);
+
+			//lcd1.start(&lcd1.par);
+			//lcd1.drawstring16x24_size(&lcd1.par,(const char*)str,10,150,ST77XX_RED,ST77XX_GREEN,8);
+			//lcd1.drawstring16x24_size(&lcd1.par,(const char*)Serial1->par.buff_rx + Serial1->par.rx_read_index,10,150,ST77XX_RED,ST77XX_GREEN,12);
+			//Serial1->par.rx_read_index = Serial1->par.rx_write_index;
+			//lcd1.stop(&lcd1.par);
 
 			// 3. Wait for the TX hardware to be ready
-			while(!Serial1->run.tx_ready(&Serial1->par));
+			//while(!Serial1->run.tx_ready(&Serial1->par));
 
 			// 4. Echo the byte back to your phone/PC screen
-			Serial1->run.send(&Serial1->par, str, 1);
-		}
+			//Serial1->run.send(&Serial1->par, str, 1);
+		//}
+
 		lcd1.start(&lcd1.par);
-		lcd1.drawstring16x24_size(&lcd1.par,(const char*)str,10,150,ST77XX_RED,ST77XX_GREEN,8);
+		//  lcd1.drawstring16x24_size(&lcd1.par,(const char*)str,10,150,ST77XX_RED,ST77XX_GREEN,8);
+		lcd1.drawstring16x24_size(&lcd1.par,(const char*)Serial1->par.buff_rx + Serial1->par.rx_read_index,10,150,ST77XX_RED,ST77XX_GREEN,12);
+		Serial1->par.rx_read_index = Serial1->par.rx_write_index;
 		lcd1.stop(&lcd1.par);
+
 	}
 }
 

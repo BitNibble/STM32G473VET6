@@ -91,8 +91,8 @@ static void impl_init(USART1_par* par) {
     GPIO_otype(GPIOA, 9,  0);
     GPIO_otype(GPIOA, 10, 0);
 
-    GPIO_pupd(GPIOA, 9,  0);  // TX no pull
-    GPIO_pupd(GPIOA, 10, 1); // RX pull-up
+    GPIO_pupd(GPIOA, 9,  0);
+    GPIO_pupd(GPIOA, 10, 1);
 
     // 3. Routing Peripheral Signals into DMAMUX Matrices (Ch1=RX, Ch2=TX)
     write_reg_field_value(&(dev()->dma->dmamux1_ch1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, 24);
