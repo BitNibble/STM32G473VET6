@@ -34,7 +34,7 @@ extern const uint8_t font16x16[] PROGMEM;
 extern const uint8_t font24x24[] PROGMEM;
 extern const uint8_t font32x32[] PROGMEM;
 extern const uint8_t font48x48[] PROGMEM;
-extern const uint8_t font64x64[] PROGMEM;
+//extern const uint8_t font64x64[] PROGMEM;
 extern const uint8_t star36x36_outline[180] PROGMEM;
 extern const uint8_t star36x36_filled[180] PROGMEM;
 extern const uint8_t star42x42_filled[252] PROGMEM;
