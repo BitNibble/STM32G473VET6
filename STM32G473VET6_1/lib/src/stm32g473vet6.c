@@ -525,3 +525,8 @@ inline void fpu_enable(void)
     __ISB();
 }
 
+/*** EOF ***/
+/**
+ * Singleton and Multiple Independent instance objects.
+ * Enabling an interrupt and not defining its request procedure blocks the program.
+ **/
