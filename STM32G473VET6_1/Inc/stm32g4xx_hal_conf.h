@@ -22,12 +22,6 @@
 #ifndef STM32G4xx_HAL_CONF_H
 #define STM32G4xx_HAL_CONF_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <stddef.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

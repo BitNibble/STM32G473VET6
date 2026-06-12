@@ -7,10 +7,6 @@ Update:   15/11/2025
 ****************************************************/
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <math.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <stddef.h>

@@ -7,6 +7,11 @@ Update:   15/11/2025
 *****************************************/
 #include "stm32xtool.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <math.h>
+
 /*** Define and Macro ***/
 #define FTDELAY_SIZE 255
 unsigned int ft_Delay_Lock[FTDELAY_SIZE] = {0};
