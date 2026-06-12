@@ -330,12 +330,16 @@ uint32_t get_timclk2(void);
 U_word writeHLbyte(uint16_t v);
 
 /************************** GPIO UTILS *****************************/
-void GPIO_clock( GPIO_TypeDef* GPIO, uint8_t enable );
+void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable);
 void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode );
 void GPIO_otype( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t otype );
 void GPIO_ospeed( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t ospeed );
 void GPIO_pupd( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t pupd );
-void GPIO_lck( GPIO_TypeDef* GPIO, uint16_t hpins );
+void GPIO_hmoder( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t mode );
+void GPIO_hotype( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t otype );
+void GPIO_hospeed( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t ospeed );
+void GPIO_hpupd( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t pupd );
+void GPIO_lck(GPIO_TypeDef* GPIO, uint16_t hpin);
 void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af );
 void set_hpin(GPIO_TypeDef* reg, uint16_t hpin);
 void clear_hpin(GPIO_TypeDef* reg, uint16_t hpin);
