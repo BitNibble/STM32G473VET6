@@ -138,24 +138,24 @@ static void RCC_Flash_SetLatency(uint32_t sysclk)
     else if (sysclk <= 136000000UL) ws = FLASH_ACR_LATENCY_3WS;
     else                            ws = FLASH_ACR_LATENCY_4WS;
 
-    set_reg_field_encoded(&dev()->system->flash->ACR, FLASH_ACR_LATENCY_Msk, ws);
+    set_reg_field_encoded(&dev()->sys->flash->ACR, FLASH_ACR_LATENCY_Msk, ws);
 
     /* Enable prefetch + caches (G4 recommended setup) */
-    set_reg_field_encoded(&dev()->system->flash->ACR, FLASH_ACR_PRFTEN_Msk, FLASH_ACR_PRFTEN);
+    set_reg_field_encoded(&dev()->sys->flash->ACR, FLASH_ACR_PRFTEN_Msk, FLASH_ACR_PRFTEN);
 
-    set_reg_field_encoded(&dev()->system->flash->ACR, FLASH_ACR_ICEN_Msk, FLASH_ACR_ICEN);
+    set_reg_field_encoded(&dev()->sys->flash->ACR, FLASH_ACR_ICEN_Msk, FLASH_ACR_ICEN);
 
-    set_reg_field_encoded(&dev()->system->flash->ACR, FLASH_ACR_DCEN_Msk, FLASH_ACR_DCEN);
+    set_reg_field_encoded(&dev()->sys->flash->ACR, FLASH_ACR_DCEN_Msk, FLASH_ACR_DCEN);
 }
 void STM32GXXX_Rcc_PLL_CLK_Enable(void)
 {
     volatile uint32_t timeout = 0x3FFFFF;
 
     /* Enable PLL */
-    set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_PLLON_Msk, RCC_CR_PLLON);
+    set_reg_field_encoded(&dev()->sys->rcc->CR, RCC_CR_PLLON_Msk, RCC_CR_PLLON);
 
     /* Wait for PLL ready */
-    while (!get_reg_field_value(dev()->system->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos))
+    while (!get_reg_field_value(dev()->sys->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos))
     {
         if (--timeout == 0)
         {
@@ -166,21 +166,21 @@ void STM32GXXX_Rcc_PLL_CLK_Enable(void)
 }
 void STM32GXXX_Rcc_Pwr_Clock_Enable(void)
 {
-    set_reg_field_encoded(&dev()->system->rcc->APB1ENR1, RCC_APB1ENR1_PWREN_Msk, RCC_APB1ENR1_PWREN);
+    set_reg_field_encoded(&dev()->sys->rcc->APB1ENR1, RCC_APB1ENR1_PWREN_Msk, RCC_APB1ENR1_PWREN);
 }
 void STM32GXXX_Rcc_Pwr_Clock_Disable(void)
 {
-    set_reg_field_encoded(&dev()->system->rcc->APB1ENR1, RCC_APB1ENR1_PWREN_Msk, 0U);
+    set_reg_field_encoded(&dev()->sys->rcc->APB1ENR1, RCC_APB1ENR1_PWREN_Msk, 0U);
 }
 void STM32GXXX_Rcc_Write_Enable(void)
 {
     STM32GXXX_Rcc_Pwr_Clock_Enable();
 
-    set_reg_field_encoded(&dev()->system->pwr->CR1, PWR_CR1_DBP_Msk, PWR_CR1_DBP);
+    set_reg_field_encoded(&dev()->sys->pwr->CR1, PWR_CR1_DBP_Msk, PWR_CR1_DBP);
 }
 void STM32GXXX_Rcc_Write_Disable(void)
 {
-    set_reg_field_encoded(&dev()->system->pwr->CR1, PWR_CR1_DBP_Msk, 0U);
+    set_reg_field_encoded(&dev()->sys->pwr->CR1, PWR_CR1_DBP_Msk, 0U);
 }
 // RCC
 void STM32GXXX_Rcc_HEnable(uint8_t clock)
@@ -192,7 +192,7 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
 
     // Enable CSSON
     if(choice == 2 || choice == 3) {
-        set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_CSSON_Msk, RCC_CR_CSSON); // Clock security system enable
+        set_reg_field_encoded(&dev()->sys->rcc->CR, RCC_CR_CSSON_Msk, RCC_CR_CSSON); // Clock security system enable
     }
 
     while(rdy)
@@ -201,11 +201,11 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
         {
             case RCC_CLK_HSI: // HSION: Internal high-speed clock enable
                 if(set) {
-                	set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_HSION_Msk, RCC_CR_HSION); // Enable HSI
+                	set_reg_field_encoded(&dev()->sys->rcc->CR, RCC_CR_HSION_Msk, RCC_CR_HSION); // Enable HSI
                     timeout = 0x1FFFFF;
                     set = 0;
                 }
-                else if(dev()->system->rcc->CR & RCC_CR_HSIRDY) { // Wait for HSIRDY
+                else if(dev()->sys->rcc->CR & RCC_CR_HSIRDY) { // Wait for HSIRDY
                     rdy = 0;
                 }
                 else {
@@ -220,11 +220,11 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
 /**
             case RCC_CLK_CSI: // CSION: Internal high-speed clock enable
 				if(set) {
-					set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_CSION, RCC_CR_CSION); // Enable CSI
+					set_reg_field_encoded(&dev()->sys->rcc->CR, RCC_CR_CSION, RCC_CR_CSION); // Enable CSI
 					timeout = 0x1FFFFF;
 					set = 0;
 				}
-				else if(dev()->system->rcc->CR & RCC_CR_CSIRDY) { // Wait for CSIRDY
+				else if(dev()->sys->rcc->CR & RCC_CR_CSIRDY) { // Wait for CSIRDY
 					rdy = 0;
 				}
 				else {
@@ -238,11 +238,11 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
 
             case RCC_CLK_HSE: // HSEON: External high-speed clock enable
                 if(set) {
-                	set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_HSEON_Msk, RCC_CR_HSEON); // Enable HSE
+                	set_reg_field_encoded(&dev()->sys->rcc->CR, RCC_CR_HSEON_Msk, RCC_CR_HSEON); // Enable HSE
                     timeout = 0x1FFFFF;
                     set = 0;
                 }
-                else if(dev()->system->rcc->CR & RCC_CR_HSERDY) { // Wait for HSERDY
+                else if(dev()->sys->rcc->CR & RCC_CR_HSERDY) { // Wait for HSERDY
                     rdy = 0;
                 }
                 else {
@@ -254,7 +254,7 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
             break;
 
             case RCC_CLK_HSEBYP: // HSEBYP: HSE clock bypass
-                set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_HSEBYP_Msk, RCC_CR_HSEBYP); // Enable HSE bypass
+                set_reg_field_encoded(&dev()->sys->rcc->CR, RCC_CR_HSEBYP_Msk, RCC_CR_HSEBYP); // Enable HSE bypass
                 choice = 2; // Switch to enabling HSE
                 break;
 
@@ -270,48 +270,48 @@ void STM32GXXX_Rcc_HSelect(uint8_t hclock)
 	uint32_t timeout = 0xFFFFF;
 		switch(hclock){
 			case RCC_HCLK_HSI: // HSI selected as system clock
-				set_reg_field_encoded(&dev()->system->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_HSI);
+				set_reg_field_encoded(&dev()->sys->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_HSI);
 				break;
 
 			case RCC_HCLK_HSE: // HSE oscillator selected as system clock
-				set_reg_field_encoded(&dev()->system->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_HSE);
+				set_reg_field_encoded(&dev()->sys->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_HSE);
 				choice = RCC_CFGR_SWS_HSE;
 				break;
 
 			case RCC_HCLK_PLL: // PLL_R selected as system clock
-				set_reg_field_encoded(&dev()->system->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_PLL);
+				set_reg_field_encoded(&dev()->sys->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_PLL);
 				choice = RCC_CFGR_SWS_PLL;
 				break;
 
 			default:
-				set_reg_field_encoded(&dev()->system->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_HSI);
+				set_reg_field_encoded(&dev()->sys->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_HSI);
 				break;
 		}
-	while( (_mask(dev()->system->rcc->CFGR, RCC_CFGR_SWS_Msk) != choice ) && timeout){timeout--;}
+	while( (_mask(dev()->sys->rcc->CFGR, RCC_CFGR_SWS_Msk) != choice ) && timeout){timeout--;}
 }
 uint8_t STM32GXXX_Rcc_PLL_Select(uint8_t hclock)
 {
     /* Disable PLL before configuration */
-    set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_PLLON_Msk, 0U);
+    set_reg_field_encoded(&dev()->sys->rcc->CR, RCC_CR_PLLON_Msk, 0U);
 
-    while (get_reg_field_value(dev()->system->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos));
+    while (get_reg_field_value(dev()->sys->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos));
 
     switch (hclock)
     {
         case RCC_CLK_HSI: /* HSI16 as PLL source */
-            set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_HSI);
+            set_reg_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_HSI);
             break;
 
         case RCC_CLK_HSE: /* HSE as PLL source */
-            set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_HSE);
+            set_reg_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_HSE);
             break;
 
         default: /* fallback to HSI */
-            set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_HSI);
+            set_reg_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_HSI);
             break;
     }
 
-    return (uint8_t)get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
+    return (uint8_t)get_reg_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
 }
 void STM32GXXX_Rcc_LEnable(uint8_t lclock)
 {
@@ -327,11 +327,11 @@ void STM32GXXX_Rcc_LEnable(uint8_t lclock)
             case RCC_CLK_LSI: // LSION: Internal low-speed oscillator enable
                 if(set)
                 {
-                    dev()->system->rcc->CSR |= RCC_CSR_LSION; // Enable LSI
+                    dev()->sys->rcc->CSR |= RCC_CSR_LSION; // Enable LSI
                     timeout = 0x1FFFFF;
                     set = 0;
                 }
-                else if(dev()->system->rcc->CSR & RCC_CSR_LSIRDY) // Wait for LSIRDY
+                else if(dev()->sys->rcc->CSR & RCC_CSR_LSIRDY) // Wait for LSIRDY
                 {
                     rdy = 0; // LSI ready
                 }
@@ -347,12 +347,12 @@ void STM32GXXX_Rcc_LEnable(uint8_t lclock)
                 if(set)
                 {
                     STM32GXXX_Rcc_Write_Enable();
-                    dev()->system->rcc->BDCR |= RCC_BDCR_LSEON; // Enable LSE
+                    dev()->sys->rcc->BDCR |= RCC_BDCR_LSEON; // Enable LSE
                     STM32GXXX_Rcc_Write_Disable();
                     timeout = 0x1FFFFF;
                     set = 0;
                 }
-                else if(dev()->system->rcc->BDCR & RCC_BDCR_LSERDY) // Wait for LSERDY
+                else if(dev()->sys->rcc->BDCR & RCC_BDCR_LSERDY) // Wait for LSERDY
                 {
                     rdy = 0; // LSE ready
                 }
@@ -366,7 +366,7 @@ void STM32GXXX_Rcc_LEnable(uint8_t lclock)
 
             case RCC_CLK_LSEBYP: // LSEBYP: External low-speed oscillator bypass
                 STM32GXXX_Rcc_Write_Enable();
-                dev()->system->rcc->BDCR |= RCC_BDCR_LSEBYP; // Enable LSE bypass
+                dev()->sys->rcc->BDCR |= RCC_BDCR_LSEBYP; // Enable LSE bypass
                 STM32GXXX_Rcc_Write_Disable();
                 choice = RCC_CLK_LSE; // Switch to enabling LSE
                 break;
@@ -384,19 +384,19 @@ void STM32GXXX_Rcc_LSelect(uint8_t lclock)
     switch (lclock)
     {
         case RTC_CLK_LSE: /* LSE */
-            set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_0);
+            set_reg_field_encoded(&dev()->sys->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_0);
             break;
 
         case RTC_CLK_LSI: /* LSI */
-            set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_1);
+            set_reg_field_encoded(&dev()->sys->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_1);
             break;
 
         case RTC_CLK_HSE: /* HSE / 32 */
-            set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, 3 << RCC_BDCR_RTCSEL_Pos);
+            set_reg_field_encoded(&dev()->sys->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, 3 << RCC_BDCR_RTCSEL_Pos);
             break;
 
         default:
-            set_reg_field_encoded(&dev()->system->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_1);
+            set_reg_field_encoded(&dev()->sys->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_1);
             break;
     }
 
@@ -433,7 +433,7 @@ void _STM32GXXX_ppre2(uint8_t ppre2)
             break;
     }
 
-    set_reg_field_encoded(&dev()->system->rcc->CFGR, RCC_CFGR_PPRE2_Msk, val);
+    set_reg_field_encoded(&dev()->sys->rcc->CFGR, RCC_CFGR_PPRE2_Msk, val);
 }
 void _STM32GXXX_ppre1(uint8_t ppre1)
 {
@@ -466,7 +466,7 @@ void _STM32GXXX_ppre1(uint8_t ppre1)
             break;
     }
 
-    set_reg_field_encoded(&dev()->system->rcc->CFGR, RCC_CFGR_PPRE1_Msk, val);
+    set_reg_field_encoded(&dev()->sys->rcc->CFGR, RCC_CFGR_PPRE1_Msk, val);
 }
 void _STM32GXXX_ahbpre(uint16_t ahbpre)
 {
@@ -515,7 +515,7 @@ void _STM32GXXX_ahbpre(uint16_t ahbpre)
             break;
     }
 
-    set_reg_field_encoded(&dev()->system->rcc->CFGR, RCC_CFGR_HPRE_Msk, val);
+    set_reg_field_encoded(&dev()->sys->rcc->CFGR, RCC_CFGR_HPRE_Msk, val);
 }
 void STM32GXXX_Prescaler(uint16_t ahbpre, uint8_t ppre1, uint8_t ppre2)
 {
@@ -555,28 +555,28 @@ void _STM32GXXX_pllr(uint8_t pllr)
             break;
     }
 
-    set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, val << RCC_PLLCFGR_PLLR_Pos);
+    set_reg_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, val << RCC_PLLCFGR_PLLR_Pos);
 }
 // PLL
 void STM32GXXX_PLL_Division(uint8_t pllm, uint16_t plln, uint8_t pllr, uint8_t pllq)
 {
     /* Disable PLL */
-    set_reg_field_encoded(&dev()->system->rcc->CR, RCC_CR_PLLON_Msk, 0U);
+    set_reg_field_encoded(&dev()->sys->rcc->CR, RCC_CR_PLLON_Msk, 0U);
 
     /* Wait until PLL stops */
-    while (get_reg_field_value(dev()->system->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos));
+    while (get_reg_field_value(dev()->sys->rcc->CR, RCC_CR_PLLRDY_Msk, RCC_CR_PLLRDY_Pos));
 
     /* PLLM */
-    set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, (uint32_t)(pllm - 1U) << RCC_PLLCFGR_PLLM_Pos);
+    set_reg_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, (uint32_t)(pllm - 1U) << RCC_PLLCFGR_PLLM_Pos);
 
     /* PLLN */
-    set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, (uint32_t)plln << RCC_PLLCFGR_PLLN_Pos);
+    set_reg_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, (uint32_t)plln << RCC_PLLCFGR_PLLN_Pos);
 
     /* PLLR */
     _STM32GXXX_pllr(pllr);
 
     /* PLLQ */
-    set_reg_field_encoded(&dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, (uint32_t)pllq << RCC_PLLCFGR_PLLQ_Pos);
+    set_reg_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, (uint32_t)pllq << RCC_PLLCFGR_PLLQ_Pos);
 }
 
 /*** Extended ***/

@@ -21,7 +21,7 @@ static CORE_Block core = {
     .coredebug = CoreDebug
 };
 
-static SYSTEM_Block system = {
+static SYSTEM_Block sys = {
     .rcc    = RCC,
     .flash  = FLASH,
     .pwr    = PWR,
@@ -229,18 +229,12 @@ static EVENT_Block event = {
     .dmamux_rg = DMAMUX1_RequestGenerator0
 };
 
-static CLOCK_Block clock = {
-    .rcc   = RCC,
-    .flash = FLASH,
-    .pwr   = PWR,
-};
-
 /******************************************************************
  * DEVICE INSTANCE
  ******************************************************************/
 static const STM32_DEVICE device = {
     .core   = &core,
-    .system = &system,
+    .sys = &sys,
     .gpio   = &gpio,
     .timer  = &tim,
     .dma    = &dma,
@@ -250,7 +244,6 @@ static const STM32_DEVICE device = {
     .wd     = &wd,
     .memory = &memory,
     .event  = &event,
-    .clock  = &clock,
 };
 
 /******************************************************************
@@ -267,7 +260,7 @@ const STM32_DEVICE* dev(void)
 =========================================================*/
 inline uint32_t get_pll_source(void)
 {
-    uint32_t src = get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
+    uint32_t src = get_reg_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
 
     /* On G4: 00=No clock, 01=Reserved, 10=HSI16, 11=HSE */
     return (src == 3U) ? HSE_VALUE : HSI_VALUE;
@@ -279,32 +272,32 @@ inline uint32_t get_pll_source(void)
 inline uint8_t get_pllm(void)
 {
     /* PLLM mapping on G4: 0001=/2, 0010=/3... so M = value + 1 */
-    uint32_t m = get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, RCC_PLLCFGR_PLLM_Pos);
+    uint32_t m = get_reg_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, RCC_PLLCFGR_PLLM_Pos);
     return (uint8_t)(m + 1U);
 }
 
 inline uint16_t get_plln(void)
 {
-    return (uint16_t)get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, RCC_PLLCFGR_PLLN_Pos);
+    return (uint16_t)get_reg_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, RCC_PLLCFGR_PLLN_Pos);
 }
 
 /* PLLP */
 inline uint8_t get_pllp_div(void)
 {
-    return get_reg_field_value(dev()->system->rcc->PLLCFGR,RCC_PLLCFGR_PLLP_Msk,RCC_PLLCFGR_PLLP_Pos);
+    return get_reg_field_value(dev()->sys->rcc->PLLCFGR,RCC_PLLCFGR_PLLP_Msk,RCC_PLLCFGR_PLLP_Pos);
 }
 
 inline uint8_t get_pllq(void)
 {
     /* Output divisor = (value + 1) * 2 */
-    uint32_t q = get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, RCC_PLLCFGR_PLLQ_Pos);
+    uint32_t q = get_reg_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, RCC_PLLCFGR_PLLQ_Pos);
     return (uint8_t)((q + 1U) * 2U);
 }
 
 inline uint8_t get_pllr(void)
 {
     /* Output divisor = (value + 1) * 2 */
-    uint32_t r = get_reg_field_value(dev()->system->rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, RCC_PLLCFGR_PLLR_Pos);
+    uint32_t r = get_reg_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, RCC_PLLCFGR_PLLR_Pos);
     return (uint8_t)((r + 1U) * 2U);
 }
 
@@ -336,7 +329,7 @@ inline uint32_t get_pllclk(void)
 =========================================================*/
 inline uint32_t get_sysclk(void)
 {
-    uint32_t sws = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos);
+    uint32_t sws = get_reg_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos);
 
     switch (sws)
     {
@@ -358,7 +351,7 @@ inline uint32_t get_hclk(void)
         2, 4, 8, 16, 64, 128, 256, 512
     };
 
-    uint32_t hpre = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_HPRE_Msk, RCC_CFGR_HPRE_Pos);
+    uint32_t hpre = get_reg_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_HPRE_Msk, RCC_CFGR_HPRE_Pos);
     return get_sysclk() / ahb_presc_table[hpre & 0x0FU];
 }
 
@@ -368,14 +361,14 @@ inline uint32_t get_hclk(void)
 inline uint32_t get_pclk1(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
-    uint32_t ppre1 = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
+    uint32_t ppre1 = get_reg_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
     return get_hclk() / apb_presc[ppre1 & 0x07U];
 }
 
 inline uint32_t get_pclk2(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
-    uint32_t ppre2 = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
+    uint32_t ppre2 = get_reg_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
     return get_hclk() / apb_presc[ppre2 & 0x07U];
 }
 
@@ -384,7 +377,7 @@ inline uint32_t get_pclk2(void)
 =========================================================*/
 inline uint32_t get_timclk1(void)
 {
-    uint32_t ppre1 = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
+    uint32_t ppre1 = get_reg_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
     uint32_t pclk1 = get_pclk1();
     uint32_t apb_div = ((ppre1 & 0x04U) == 0U) ? 1U : 2U;
     return pclk1 * apb_div;
@@ -392,7 +385,7 @@ inline uint32_t get_timclk1(void)
 
 inline uint32_t get_timclk2(void)
 {
-    uint32_t ppre2 = get_reg_field_value(dev()->system->rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
+    uint32_t ppre2 = get_reg_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
     uint32_t pclk2 = get_pclk2();
     uint32_t apb_div = ((ppre2 & 0x04U) == 0U) ? 1U : 2U;
     return pclk2 * apb_div;
@@ -425,9 +418,9 @@ void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable)
     else return;
 
     if (enable)
-        dev()->system->rcc->AHB2ENR |= mask;
+        dev()->sys->rcc->AHB2ENR |= mask;
     else
-    	dev()->system->rcc->AHB2ENR &= ~mask;
+    	dev()->sys->rcc->AHB2ENR &= ~mask;
 }
 void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode )
 {
@@ -498,14 +491,14 @@ void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af )
     	}
 	}
 }
-inline void set_hpins(GPIO_TypeDef* reg, uint16_t hpins) {
-    reg->BSRR = hpins;
+inline void set_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
+    reg->BSRR = hpin;
 }
-inline void clear_hpins(GPIO_TypeDef* reg, uint16_t hpins) {
-    reg->BSRR = (uint32_t)(hpins << WORD_BITS);
+inline void clear_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
+    reg->BSRR = (uint32_t)(hpin << WORD_BITS);
 }
-inline void toggle_hpins(GPIO_TypeDef* reg, uint16_t hpins) {
-    reg->ODR ^= hpins;
+inline void toggle_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
+    reg->ODR ^= hpin;
 }
 inline void set_pin(GPIO_TypeDef* reg, uint8_t pin) {
     reg->BSRR = (1 << pin);

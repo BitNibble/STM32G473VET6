@@ -22,6 +22,12 @@
 #ifndef STM32G4xx_HAL_CONF_H
 #define STM32G4xx_HAL_CONF_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <inttypes.h>
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,6 +39,7 @@ extern "C" {
 /**
   * @brief This is the list of modules to be used in the HAL driver
   */
+
 #define HAL_MODULE_ENABLED
 #define HAL_ADC_MODULE_ENABLED
 #define HAL_COMP_MODULE_ENABLED
@@ -376,5 +383,4 @@ void assert_failed(uint8_t *file, uint32_t line);
 #endif
 
 #endif /* STM32G4xx_HAL_CONF_H */
-
 

@@ -6,8 +6,6 @@ Hardware: STM32
 Update:   15/11/2025
 *****************************************/
 #include "stm32xtool.h"
-#include <stdarg.h>
-#include <math.h>
 
 /*** Define and Macro ***/
 #define FTDELAY_SIZE 255

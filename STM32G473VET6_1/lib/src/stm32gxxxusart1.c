@@ -76,8 +76,8 @@ static void impl_config(USART1_par* par, uint8_t wordlength, uint8_t stopbit, ui
 static void impl_init(USART1_par* par) {
     // 1. Gating Clocks via Native GPIO and Clock System tree APIs
     GPIO_clock(dev()->gpio->a, ONE);
-    set_reg(&(dev()->system->rcc->AHB1ENR), RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMAMUX1EN);
-    set_reg(&(dev()->system->rcc->APB2ENR), RCC_APB2ENR_USART1EN);
+    set_reg(&(dev()->sys->rcc->AHB1ENR), RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMAMUX1EN);
+    set_reg(&(dev()->sys->rcc->APB2ENR), RCC_APB2ENR_USART1EN);
 
     // 2. Configure Alternate Pin Functions using your tool functions (AF7 for USART1)
     GPIO_moder(GPIOA, 9,  MODE_AF);  // PA9  -> TX Line

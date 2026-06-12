@@ -205,22 +205,22 @@ static uint16_t RTC_get_ss(void) {
 }
 
 static void pwr_clock_enable(void) {
-	set_reg(&(dev()->clock->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
+	set_reg(&(dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
 }
 
 static void pwr_clock_disable(void) {
-	clear_reg(&(dev()->clock->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
+	clear_reg(&(dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
 }
 
 static void RTC_clock_enable(void) {
     RTC_Write_enable();
-    set_reg(&(dev()->clock->rcc->BDCR), RCC_BDCR_RTCEN);
+    set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
     RTC_Write_disable();
 }
 
 static void RTC_clock_disable(void) {
     RTC_Write_enable();
-    clear_reg(&(dev()->clock->rcc->BDCR), RCC_BDCR_RTCEN);
+    clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
     RTC_Write_disable();
 }
 
@@ -262,20 +262,20 @@ static void RTC_inic(void) {
     pwr_clock_enable();
     RTC_Write_enable();
 
-    if (get_reg_field_value(dev()->clock->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos) == RTCSEL_NONE) {
-        set_reg(&(dev()->clock->rcc->BDCR), RCC_BDCR_BDRST);
-        clear_reg(&(dev()->clock->rcc->BDCR), RCC_BDCR_BDRST);
+    if (get_reg_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos) == RTCSEL_NONE) {
+        set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
+        clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
         
-        set_reg(&(dev()->clock->rcc->BDCR), RCC_BDCR_LSEON);
+        set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_LSEON);
         uint32_t timeout = RTC_INIT_TIMEOUT;
-        while(!get_reg_field_value(dev()->clock->rcc->BDCR, RCC_BDCR_LSERDY_Msk, RCC_BDCR_LSERDY_Pos) && --timeout);
+        while(!get_reg_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_LSERDY_Msk, RCC_BDCR_LSERDY_Pos) && --timeout);
 
         if (timeout == 0) { 
-            set_reg(&(dev()->clock->rcc->CSR), RCC_CSR_LSION);
-            while(!get_reg_field_value(dev()->clock->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
-            write_reg_field_value(&(dev()->clock->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSI);
+            set_reg(&(dev()->sys->rcc->CSR), RCC_CSR_LSION);
+            while(!get_reg_field_value(dev()->sys->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
+            write_reg_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSI);
         } else {
-            write_reg_field_value(&(dev()->clock->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSE);
+            write_reg_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSE);
         }
     }
     
@@ -290,15 +290,15 @@ static void RTC_inic(void) {
     RTC_Write_enable();    // Unprotect the backup domain registers (PWR->CR1 |= PWR_CR1_DBP)
 
     // Force a clean, deterministic Backup Domain Reset to unlock the routing multiplexer
-    set_reg(&(dev()->clock->rcc->BDCR), RCC_BDCR_BDRST);
-    clear_reg(&(dev()->clock->rcc->BDCR), RCC_BDCR_BDRST);
+    set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
+    clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
 
     // Turn on the internal LSI (Safe, stable internal clock source)
-    set_reg(&(dev()->clock->rcc->CSR), RCC_CSR_LSION);
-    while(!get_reg_field_value(dev()->clock->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
+    set_reg(&(dev()->sys->rcc->CSR), RCC_CSR_LSION);
+    while(!get_reg_field_value(dev()->sys->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
 
     // Route RTC to use LSI (0x02)
-    write_reg_field_value(&(dev()->clock->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, 0x02U);
+    write_reg_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, 0x02U);
 
     // Enable the RTC peripheral clock
     RTC_clock_enable();        // (RCC->BDCR |= RCC_BDCR_RTCEN)
@@ -311,11 +311,11 @@ static void RTC_inic(void) {
 /*** Under-The-Hood Private Utilities ***/
 
 static void RTC_Write_enable(void) {
-    set_reg(&(dev()->clock->pwr->CR1), PWR_CR1_DBP);
+    set_reg(&(dev()->sys->pwr->CR1), PWR_CR1_DBP);
 }
 
 static void RTC_Write_disable(void) {
-    clear_reg(&(dev()->clock->pwr->CR1), PWR_CR1_DBP);
+    clear_reg(&(dev()->sys->pwr->CR1), PWR_CR1_DBP);
 }
 
 static void RTC_Reg_unlock(void) {

@@ -290,18 +290,12 @@ typedef struct {
     DMAMUX_RequestGen_TypeDef* const dmamux_rg;
 } EVENT_Block;
 
-typedef struct {
-    RCC_TypeDef* const rcc;
-    FLASH_TypeDef* const flash;
-    PWR_TypeDef* const pwr;
-} CLOCK_Block;
-
 /******************************************************************
  * DEVICE STRUCTURE
  ******************************************************************/
 typedef struct {
 	CORE_Block* const core;
-	SYSTEM_Block* const system;
+	SYSTEM_Block* const sys;
 	GPIO_Block* const gpio;
 	TIM_Block* const timer;
 	DMA_Block* const dma;
@@ -311,7 +305,6 @@ typedef struct {
 	WD_Block* const wd;
 	MEMORY_Block* const memory;
 	EVENT_Block* const event;
-	CLOCK_Block* const clock;
 } STM32_DEVICE;
 
 const STM32_DEVICE* dev(void);
@@ -344,9 +337,9 @@ void GPIO_ospeed( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t ospeed );
 void GPIO_pupd( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t pupd );
 void GPIO_lck( GPIO_TypeDef* GPIO, uint16_t hpins );
 void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af );
-void set_hpins(GPIO_TypeDef* reg, uint16_t hpins);
-void clear_hpins(GPIO_TypeDef* reg, uint16_t hpins);
-void toggle_hpins(GPIO_TypeDef* reg, uint16_t hpins);
+void set_hpin(GPIO_TypeDef* reg, uint16_t hpin);
+void clear_hpin(GPIO_TypeDef* reg, uint16_t hpin);
+void toggle_hpin(GPIO_TypeDef* reg, uint16_t hpin);
 void set_pin(GPIO_TypeDef* reg, uint8_t pin);
 void clear_pin(GPIO_TypeDef* reg, uint8_t pin);
 

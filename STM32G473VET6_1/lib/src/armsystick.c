@@ -102,5 +102,10 @@ void systick_inic(void)
 	SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
 }
 
+void SysTick_Handler(void)
+{
+  //HAL_IncTick(); // Updates the global time base
+}
+
 /*** EOF ***/
 

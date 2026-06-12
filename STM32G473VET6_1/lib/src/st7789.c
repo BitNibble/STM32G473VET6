@@ -1088,8 +1088,8 @@ void st7789_setup_gpio(ST7789_par* par)
 
     // Initial pin states
     if(par->cmd_gpio) {
-        set_hpins(par->cmd_gpio, (1 << par->cs_pin) | (1 << par->rst_pin)); // CS & RST high
-        clear_hpins(par->cmd_gpio, (1 << par->dc_pin));                     // DC low
+        set_hpin(par->cmd_gpio, (1 << par->cs_pin) | (1 << par->rst_pin)); // CS & RST high
+        clear_hpin(par->cmd_gpio, (1 << par->dc_pin));                     // DC low
     }
 }
 
@@ -1108,11 +1108,11 @@ void st7789_setup_spi(ST7789_par* par)
 
     // G
     if(spi == SPI1)
-    	device->system->rcc->APB2ENR |= RCC_APB2ENR_SPI1EN_Msk;
+    	device->sys->rcc->APB2ENR |= RCC_APB2ENR_SPI1EN_Msk;
     else if(spi == SPI2)
-    	device->system->rcc->APB1ENR1 |= RCC_APB1ENR1_SPI2EN_Msk;
+    	device->sys->rcc->APB1ENR1 |= RCC_APB1ENR1_SPI2EN_Msk;
     else if(spi == SPI3)
-    	device->system->rcc->APB1ENR1 |= RCC_APB1ENR1_SPI3EN_Msk;
+    	device->sys->rcc->APB1ENR1 |= RCC_APB1ENR1_SPI3EN_Msk;
 
 
 
