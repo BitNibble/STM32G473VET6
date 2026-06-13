@@ -10,8 +10,8 @@ Date:     08/06/2026
 #include <string.h>
 
 /* Static private memory allocation buffers hidden from application workspace */
-static uint8_t u1_rx_raw[USART1_RX_SIZE];
-static uint8_t u1_tx_raw[USART1_TX_SIZE];
+static uint8_t u1_rx_raw[USART1_RX_SIZE + ONE] = {0};
+static uint8_t u1_tx_raw[USART1_TX_SIZE + ONE] = {0};
 
 /* Forward Declaration of V-Table Implementations */
 static void           impl_config(USART1_par* par, uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t* buff_rx, uint8_t* buff_tx);
@@ -156,7 +156,7 @@ static uint16_t impl_read(USART1_par* par, uint8_t *out) {
 
     *out = par->buff_rx[par->rx_read_index];
     uint16_t next = par->rx_read_index + ONE;
-    if (next >= USART1_RX_SIZE) {
+    if (next > USART1_RX_SIZE) {
         next = ZERO;
     }
     par->rx_read_index = next;

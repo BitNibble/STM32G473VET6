@@ -13,13 +13,13 @@ Update:   15/11/2025
 
 /*** Define & Macro ***/
 #define ZERO 0
-#define ONE 1
-#define TWO 2
-#define NIBBLE_BITS 4
-#define BYTE_BITS 8
-#define WORD_BITS 16
-#define DWORD_BITS 32
-#define QWORD_BITS 64
+#define ONE 1UL
+#define TWO 2UL
+#define NIBBLE_BITS 4UL
+#define BYTE_BITS 8UL
+#define WORD_BITS 16UL
+#define DWORD_BITS 32UL
+#define QWORD_BITS 64UL
 
 /*******************************************************************/
 /***************************** ToolSet *****************************/

@@ -9,18 +9,8 @@ Date:     04062026
 #define STM32G4XX_FAMILY_H
 
 #include <stm32g4xx.h>
-#include <stm32g4xx_hal.h>
+#include "custom_hal_def.h"
 #include "stm32xtool.h"
-
-#ifndef MODE_OUTPUT
-	#define MODE_OUTPUT 0
-#endif
-#ifndef MODE_INPUT
-	#define MODE_INPUT 1
-#endif
-#ifndef MODE_AF
-	#define MODE_AF 2
-#endif
 
 /****************************************/
 /*******   1 -> HSI    2->HSE   *********/

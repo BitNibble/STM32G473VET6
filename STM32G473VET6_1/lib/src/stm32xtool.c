@@ -14,11 +14,9 @@ Update:   15/11/2025
 
 /*** Define and Macro ***/
 #define FTDELAY_SIZE 255
-unsigned int ft_Delay_Lock[FTDELAY_SIZE] = {0};
-volatile unsigned int ftCounter[FTDELAY_SIZE] = {0};
+unsigned int ft_Delay_Lock[FTDELAY_SIZE + ONE] = {0};
+volatile unsigned int ftCounter[FTDELAY_SIZE + ONE] = {0};
 /*** Local ***/
-uint32_t _mask(uint32_t var, uint32_t Msk);
-uint32_t _imask(uint32_t var, uint32_t Msk);
 uint32_t _size_to_block(uint32_t size_block);
 uint32_t _block_to_size(uint32_t block);
 uint32_t _block_mask(uint32_t size_block, uint32_t Pos);
@@ -127,7 +125,7 @@ float CalculateTemperature(uint16_t adc_value) {
 /*** Fall Threw Delay ***/
 int ftdelayCycles(uint8_t lock_ID, unsigned int n_cycle, void (*execute)(void)) {
     int ret = 0;
-    if (lock_ID >= FTDELAY_SIZE) return 0; // safety check
+    if (lock_ID > FTDELAY_SIZE) return 0; // safety check
 
     if (ft_Delay_Lock[lock_ID] != lock_ID) {
         ft_Delay_Lock[lock_ID] = lock_ID;
@@ -146,7 +144,7 @@ int ftdelayCycles(uint8_t lock_ID, unsigned int n_cycle, void (*execute)(void)) 
 }
 
 void ftdelayReset(uint8_t ID) {
-    if (ID >= FTDELAY_SIZE) return; // safety check
+    if (ID > FTDELAY_SIZE) return; // safety check
     ft_Delay_Lock[ID] = 0U;
     ftCounter[ID] = 0U;
 }
