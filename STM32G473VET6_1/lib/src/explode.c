@@ -39,10 +39,11 @@ IO_var EXPLODE_update(explode_par* par, IO_var x)
 	par->XI = par->XF;
 	par->XF = x;
 	par->DIFF = (par->XF ^ par->XI);
-	par->HH = EXPLODE_hh(par);
-	par->LL = EXPLODE_ll(par);
-	par->LH = EXPLODE_lh(par);
-	par->HL = EXPLODE_hl(par);
+
+	par->HH = (par->XI & par->XF);
+	par->LL = ~(par->XI | par->XF);
+	par->LH = (par->DIFF & par->XF);
+	par->HL = (par->DIFF & par->XI);
 	return par->DIFF;
 }
 // hh

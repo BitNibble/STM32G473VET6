@@ -101,7 +101,7 @@ int main(void)
 		toggle_hpin( dev()->gpio->f, 1 << 2 );
 		lcd1.start(&lcd1.par);
 		lcd1.drawstring16x24_size(&lcd1.par,"LED OFF",10,20,ST77XX_MAGENTA,ST77XX_GREEN, 8);
-		lcd1.drawstring24x48_size( &lcd1.par, "HHbra", 10, 80, ST77XX_MAGENTA, ST77XX_GREEN, 5 );
+		lcd1.drawstring24x48_size( &lcd1.par, func()->ui32toa(get_sysclk()), 10, 100, ST77XX_MAGENTA, ST77XX_GREEN, 10 );
 		lcd1.stop(&lcd1.par);
 		_delay_ms(1000);
 		toggle_hpin( dev()->gpio->f, 1 << 2 );
@@ -151,7 +151,7 @@ int main(void)
 
 		lcd1.start(&lcd1.par);
 		//  lcd1.drawstring16x24_size(&lcd1.par,(const char*)str,10,150,ST77XX_RED,ST77XX_GREEN,8);
-		lcd1.drawstring16x24_size(&lcd1.par,(const char*)Serial1->par.buff_rx + Serial1->par.rx_read_index,10,150,ST77XX_RED,ST77XX_GREEN,12);
+		lcd1.drawstring16x24_size(&lcd1.par,(const char*)Serial1->par.buff_rx + Serial1->par.rx_read_index,10,160,ST77XX_RED,ST77XX_GREEN,12);
 		Serial1->par.rx_read_index = Serial1->par.rx_write_index;
 		lcd1.stop(&lcd1.par);
 

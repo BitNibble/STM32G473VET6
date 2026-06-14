@@ -282,10 +282,15 @@ inline uint16_t get_plln(void)
 }
 
 /* PLLP */
-inline uint8_t get_pllp_div(void)
+inline uint8_t get_pllp(void)
 {
-    return get_reg_field_value(dev()->sys->rcc->PLLCFGR,RCC_PLLCFGR_PLLP_Msk,RCC_PLLCFGR_PLLP_Pos);
+    uint32_t p = get_reg_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLP_Msk, RCC_PLLCFGR_PLLP_Pos);
+    // Hardware rule: values 0 and 1 are invalid/reserved on STM32G4.
+    // If read as 0 or 1, the PLLP output clock path is effectively disabled.
+    if (p < 2U) return 0;
+    return (uint8_t)p;
 }
+
 
 inline uint8_t get_pllq(void)
 {
@@ -307,8 +312,7 @@ inline uint8_t get_pllr(void)
 inline uint32_t get_pll_vco_in(void)
 {
     uint32_t m = get_pllm();
-    if (m == 0) return 0;
-
+    if (m < 1 || m > 16) return 0;
     return get_pll_source() / m;
 }
 
@@ -358,6 +362,15 @@ inline uint32_t get_hclk(void)
 /*=========================================================
   APB CLOCKS
 =========================================================*/
+uint8_t get_systickpre(void) {
+    uint32_t value = get_reg_field_value(dev()->core->systick->CTRL, SysTick_CTRL_CLKSOURCE_Msk, SysTick_CTRL_CLKSOURCE_Pos);
+    return value ? 8 : 1;
+}
+
+uint32_t get_systickclk(void) {
+    return get_hclk() / get_systickpre();
+}
+
 inline uint32_t get_pclk1(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};

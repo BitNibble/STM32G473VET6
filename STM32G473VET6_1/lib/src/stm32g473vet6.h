@@ -16,7 +16,7 @@ Date:     04062026
 /*******   1 -> HSI    2->HSE   *********/
 #define H_Clock_Source 2
 /****   PLL ON -> 1    PLL OFF = 0   ****/
-#define PLL_ON_OFF 0
+#define PLL_ON_OFF 1
 /****************************************/
 
 /****************************************/
@@ -311,6 +311,7 @@ uint32_t get_pll_vco_out(void);
 uint32_t get_pllclk(void);
 uint32_t get_sysclk(void);
 uint32_t get_hclk(void);
+uint32_t get_systickclk(void);
 uint32_t get_pclk1(void);
 uint32_t get_pclk2(void);
 uint32_t get_timclk1(void);

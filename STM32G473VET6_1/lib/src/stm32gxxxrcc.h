@@ -12,7 +12,7 @@ Date: 04062026
 // RCC -> PLL
 typedef struct
 {
-	void (*division)(uint8_t pllm, uint16_t plln, uint8_t pllp, uint8_t pllq);
+	void (*division)(uint8_t pllm, uint16_t plln, uint8_t pllp, uint8_t pllq, uint8_t pllr);
 	void (*enable)(void);
 }STM32GXXX_RCC_PLL;
 /*** RCC TypeDef ***/

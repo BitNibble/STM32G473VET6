@@ -23,7 +23,6 @@ uint32_t _block_mask(uint32_t size_block, uint32_t Pos);
 uint32_t _mask_pos(uint32_t Msk);
 uint32_t _mask_data(uint32_t Msk, uint32_t data);
 
-
 /*** Helpers ***/
 inline uint32_t _block_pos(uint32_t size_block, uint32_t block_n){
 	return size_block * block_n;
@@ -66,11 +65,13 @@ inline uint32_t get_reg_field_value(uint32_t reg, uint32_t Msk, uint32_t Pos)
 }
 inline void set_reg_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData)
 {
-    *reg =_imask(*reg, Msk) | _mask(ShiftedData, Msk);
+	uint32_t tmp = *reg;
+	*reg = _imask(tmp, Msk) | _mask(ShiftedData, Msk);
 }
 inline void write_reg_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data)
 {
-	*reg = _imask(*reg, Msk) | _mask((data << Pos), Msk);
+	uint32_t tmp = *reg;
+	*reg = _imask(tmp, Msk) | _mask((data << Pos), Msk);
 }
 inline void set_reg_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data)
 {

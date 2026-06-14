@@ -1118,7 +1118,9 @@ void st7789_setup_spi(ST7789_par* par)
         SPI_CR1_SSI_Msk;     // internal NSS high
 
     // fastest safe default (adjust later if needed)
-    spi->CR1 &= ~SPI_CR1_BR_Msk;  // fPCLK / 2
+    //spi->CR1 &= ~SPI_CR1_BR_Msk;  // fPCLK / 2
+    set_reg_field_value(&spi->CR1, SPI_CR1_BR_Msk, SPI_CR1_BR_Pos,0); // fastest fPCLK / 2
+    //set_reg_field_value(&spi->CR1, SPI_CR1_BR_Msk, SPI_CR1_BR_Pos,7); // slowest
 
     // F - 8-bit, MSB first, 2-line full duplex
     //spi->CR1 &= ~(SPI_CR1_DFF_Msk | SPI_CR1_LSBFIRST_Msk | SPI_CR1_BIDIMODE_Msk);
