@@ -42,53 +42,53 @@ static RTC_callback rtc_callbacks = {NULL, NULL, NULL, NULL, NULL};
 static uint8_t RTC_get_year(void) {
     RTC_Wait_sync();
     uint32_t dr = RTC->DR;
-    uint8_t t = (uint8_t)get_reg_field_value(dr, RTC_DR_YT_Msk, RTC_DR_YT_Pos);
-    uint8_t u = (uint8_t)get_reg_field_value(dr, RTC_DR_YU_Msk, RTC_DR_YU_Pos);
+    uint8_t t = (uint8_t)get_field_value(dr, RTC_DR_YT_Msk, RTC_DR_YT_Pos);
+    uint8_t u = (uint8_t)get_field_value(dr, RTC_DR_YU_Msk, RTC_DR_YU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
 static uint8_t RTC_get_month(void) {
     RTC_Wait_sync();
     uint32_t dr = RTC->DR;
-    uint8_t t = (uint8_t)get_reg_field_value(dr, RTC_DR_MT_Msk, RTC_DR_MT_Pos);
-    uint8_t u = (uint8_t)get_reg_field_value(dr, RTC_DR_MU_Msk, RTC_DR_MU_Pos);
+    uint8_t t = (uint8_t)get_field_value(dr, RTC_DR_MT_Msk, RTC_DR_MT_Pos);
+    uint8_t u = (uint8_t)get_field_value(dr, RTC_DR_MU_Msk, RTC_DR_MU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
 static uint8_t RTC_get_weekday(void) {
     RTC_Wait_sync();
-    return (uint8_t)get_reg_field_value(RTC->DR, RTC_DR_WDU_Msk, RTC_DR_WDU_Pos);
+    return (uint8_t)get_field_value(RTC->DR, RTC_DR_WDU_Msk, RTC_DR_WDU_Pos);
 }
 
 static uint8_t RTC_get_day(void) {
     RTC_Wait_sync();
     uint32_t dr = RTC->DR;
-    uint8_t t = (uint8_t)get_reg_field_value(dr, RTC_DR_DT_Msk, RTC_DR_DT_Pos);
-    uint8_t u = (uint8_t)get_reg_field_value(dr, RTC_DR_DU_Msk, RTC_DR_DU_Pos);
+    uint8_t t = (uint8_t)get_field_value(dr, RTC_DR_DT_Msk, RTC_DR_DT_Pos);
+    uint8_t u = (uint8_t)get_field_value(dr, RTC_DR_DU_Msk, RTC_DR_DU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
 static uint8_t RTC_get_hour(void) {
     RTC_Wait_sync();
     uint32_t tr = RTC->TR;
-    uint8_t t = (uint8_t)get_reg_field_value(tr, RTC_TR_HT_Msk, RTC_TR_HT_Pos);
-    uint8_t u = (uint8_t)get_reg_field_value(tr, RTC_TR_HU_Msk, RTC_TR_HU_Pos);
+    uint8_t t = (uint8_t)get_field_value(tr, RTC_TR_HT_Msk, RTC_TR_HT_Pos);
+    uint8_t u = (uint8_t)get_field_value(tr, RTC_TR_HU_Msk, RTC_TR_HU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
 static uint8_t RTC_get_minute(void) {
     RTC_Wait_sync();
     uint32_t tr = RTC->TR;
-    uint8_t t = (uint8_t)get_reg_field_value(tr, RTC_TR_MNT_Msk, RTC_TR_MNT_Pos);
-    uint8_t u = (uint8_t)get_reg_field_value(tr, RTC_TR_MNU_Msk, RTC_TR_MNU_Pos);
+    uint8_t t = (uint8_t)get_field_value(tr, RTC_TR_MNT_Msk, RTC_TR_MNT_Pos);
+    uint8_t u = (uint8_t)get_field_value(tr, RTC_TR_MNU_Msk, RTC_TR_MNU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
 static uint8_t RTC_get_second(void) {
     RTC_Wait_sync();
     uint32_t tr = RTC->TR;
-    uint8_t t = (uint8_t)get_reg_field_value(tr, RTC_TR_ST_Msk, RTC_TR_ST_Pos);
-    uint8_t u = (uint8_t)get_reg_field_value(tr, RTC_TR_SU_Msk, RTC_TR_SU_Pos);
+    uint8_t t = (uint8_t)get_field_value(tr, RTC_TR_ST_Msk, RTC_TR_ST_Pos);
+    uint8_t u = (uint8_t)get_field_value(tr, RTC_TR_SU_Msk, RTC_TR_SU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
@@ -111,7 +111,7 @@ static void RTC_set_month(uint8_t month) {
 static void RTC_set_weekday(uint8_t weekday) {
     if (weekday < MIN_WEEKDAY || weekday > MAX_WEEKDAY) return;
     uint32_t dr = RTC->DR;
-    write_reg_field_value(&dr, RTC_DR_WDU_Msk, RTC_DR_WDU_Pos, weekday);
+    write_field_value(&dr, RTC_DR_WDU_Msk, RTC_DR_WDU_Pos, weekday);
     RTC_Set_dr(dr);
 }
 
@@ -262,20 +262,20 @@ static void RTC_inic(void) {
     pwr_clock_enable();
     RTC_Write_enable();
 
-    if (get_reg_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos) == RTCSEL_NONE) {
+    if (get_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos) == RTCSEL_NONE) {
         set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
         clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
         
         set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_LSEON);
         uint32_t timeout = RTC_INIT_TIMEOUT;
-        while(!get_reg_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_LSERDY_Msk, RCC_BDCR_LSERDY_Pos) && --timeout);
+        while(!get_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_LSERDY_Msk, RCC_BDCR_LSERDY_Pos) && --timeout);
 
         if (timeout == 0) { 
             set_reg(&(dev()->sys->rcc->CSR), RCC_CSR_LSION);
-            while(!get_reg_field_value(dev()->sys->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
-            write_reg_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSI);
+            while(!get_field_value(dev()->sys->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
+            write_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSI);
         } else {
-            write_reg_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSE);
+            write_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSE);
         }
     }
     
@@ -333,7 +333,7 @@ static void RTC_Wait_sync(void) {
 static void RTC_Wait_sync(void) {
     clear_reg(&(RTC->ICSR), RTC_ICSR_RSF);
     volatile uint32_t timeout = 50000U; // Hardware safety counter
-    while(!get_reg_field_value(RTC->ICSR, RTC_ICSR_RSF_Msk, RTC_ICSR_RSF_Pos) && --timeout);
+    while(!get_field_value(RTC->ICSR, RTC_ICSR_RSF_Msk, RTC_ICSR_RSF_Pos) && --timeout);
 }
 
 static void RTC_Set_tr(uint32_t value) {
@@ -342,7 +342,7 @@ static void RTC_Set_tr(uint32_t value) {
     
     set_reg(&(RTC->ICSR), RTC_ICSR_INIT);
     uint32_t timeout = RTC_INIT_TIMEOUT;
-    while(!get_reg_field_value(RTC->ICSR, RTC_ICSR_INITF_Msk, RTC_ICSR_INITF_Pos) && --timeout);
+    while(!get_field_value(RTC->ICSR, RTC_ICSR_INITF_Msk, RTC_ICSR_INITF_Pos) && --timeout);
     
     if (timeout > 0) {
         RTC->TR = value;
@@ -358,7 +358,7 @@ static void RTC_Set_dr(uint32_t value) {
     
     set_reg(&(RTC->ICSR), RTC_ICSR_INIT);
     uint32_t timeout = RTC_INIT_TIMEOUT;
-    while(!get_reg_field_value(RTC->ICSR, RTC_ICSR_INITF_Msk, RTC_ICSR_INITF_Pos) && --timeout);
+    while(!get_field_value(RTC->ICSR, RTC_ICSR_INITF_Msk, RTC_ICSR_INITF_Pos) && --timeout);
     
     if (timeout > 0) {
         RTC->DR = value;
