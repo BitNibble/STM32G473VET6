@@ -416,16 +416,16 @@ U_word writeHLbyte(uint16_t v)
 /************************** GPIO UTILS *****************************/
 /*** STM32G473VET6 ***/
 #ifndef TWO
-	#define TWO 2
+	#define TWO 2UL
 #endif
 #ifndef NIBBLE_BITS
-	#define NIBBLE_BITS 4
+	#define NIBBLE_BITS 4UL
 #endif
 #ifndef WORD_BITS
-	#define WORD_BITS 16
+	#define WORD_BITS 16UL
 #endif
 #ifndef DWORD_BITS
-	#define DWORD_BITS 32
+	#define DWORD_BITS 32UL
 #endif
 
 void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable)

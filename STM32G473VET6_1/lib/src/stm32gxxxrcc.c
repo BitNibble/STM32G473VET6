@@ -57,7 +57,7 @@ void STM32GXXX_RTC_ClockSelect(uint8_t rtc);
 /*** RCC Procedure & Function Definition ***/
 void rcc_start(void)
 {
-	uint8_t multiply = 120; // (plln >= 8 && plln <= 127)
+	uint8_t multiply = 96; // (plln >= 8 && plln <= 127)
 	uint8_t devide = 2;
     /* Enable primary clock source safely */
     STM32GXXX_Rcc_HEnable(H_Clock_Source);
