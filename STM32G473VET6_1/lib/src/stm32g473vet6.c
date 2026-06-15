@@ -604,6 +604,7 @@ void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af )
     	}
 	}
 }
+
 inline void set_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
     reg->BSRR = hpin;
 }
@@ -638,4 +639,5 @@ inline void fpu_enable(void)
 /**
  * Singleton and Multiple Independent instance objects.
  * Enabling an interrupt and not defining its request procedure blocks the program.
+ * RCC only gets a clean slate when powered off.
  **/

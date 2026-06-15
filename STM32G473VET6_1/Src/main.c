@@ -102,6 +102,8 @@ int main(void)
 		lcd1.start(&lcd1.par);
 		lcd1.drawstring16x24_size(&lcd1.par,"LED OFF",10,20,ST77XX_MAGENTA,ST77XX_GREEN, 8);
 		lcd1.drawstring24x48_size( &lcd1.par, func()->ui32toa(get_sysclk()), 10, 100, ST77XX_MAGENTA, ST77XX_GREEN, 10 );
+		//lcd1.drawstring24x48_size( &lcd1.par, func()->ui32toa(get_pll_source()), 10, 100, ST77XX_MAGENTA, ST77XX_GREEN, 10 );
+		//lcd1.drawstring24x48_size( &lcd1.par, func()->ui32toa(get_pll_vco_out()), 10, 100, ST77XX_MAGENTA, ST77XX_GREEN, 10 );
 		lcd1.stop(&lcd1.par);
 		_delay_ms(1000);
 		toggle_hpin( dev()->gpio->f, 1 << 2 );

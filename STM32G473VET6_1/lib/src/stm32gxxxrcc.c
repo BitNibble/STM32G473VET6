@@ -54,19 +54,11 @@ void STM32GXXX_Rcc_LSelect(uint8_t lclock);
 void STM32GXXX_Prescaler(uint16_t ahbpre, uint8_t ppre1, uint8_t ppre2);
 void STM32GXXX_RTC_ClockSelect(uint8_t rtc);
 
-/*******   0 -> HSI    1->HSE   *********/
-#ifndef H_Clock_Source
-	#define H_Clock_Source 2
-#endif
-/****************************************/
-/****   PLL ON -> 1    PLL OFF = 0   ****/
-#ifndef PLL_ON_OFF
-	#define PLL_ON_OFF 1
-#endif
-
 /*** RCC Procedure & Function Definition ***/
 void rcc_start(void)
 {
+	uint8_t multiply = 120; // (plln >= 8 && plln <= 127)
+	uint8_t devide = 2;
     /* Enable primary clock source safely */
     STM32GXXX_Rcc_HEnable(H_Clock_Source);
 
@@ -74,18 +66,21 @@ void rcc_start(void)
     STM32GXXX_Rcc_PLL_Source(H_Clock_Source);
 
     uint32_t input = get_pll_source();
-    uint32_t pllm = input / 4000000;
+    uint32_t pllm = input / 1000000;
+    //uint32_t pllm = input / 2000000;
+    //uint32_t pllm = input / 4000000;
+    //uint32_t pllm = input / 8000000;
 
     if (pllm < 1)  pllm = 1;
     if (pllm > 16) pllm = 16;
 
     /* Configure PLL (M, N, P, Q, R) */
-    STM32GXXX_PLL_Division((uint8_t)pllm, 40, 2, 2, 2);
+    STM32GXXX_PLL_Division((uint8_t)pllm, multiply, 2, 2, devide);
 
     if (PLL_ON_OFF)
     {
-        uint32_t vco = (input / pllm) * 340;
-        uint32_t sysclk = vco / 2;
+        uint32_t vco = (input / pllm) * multiply;
+        uint32_t sysclk = vco / devide;
 
         /* Flash latency MUST match final target SYSCLK frequency BEFORE switching */
         RCC_Flash_SetLatency(sysclk);
