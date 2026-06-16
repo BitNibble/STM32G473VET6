@@ -18,8 +18,11 @@ typedef struct {
 	uint8_t stopbit;
 	uint8_t samplingmode;
 	uint32_t baudrate;
+	volatile uint16_t rx_left;
     volatile uint16_t rx_read_index;
     volatile uint16_t rx_write_index;
+    volatile uint16_t rx_available;
+    uint8_t rx_overflow;
     volatile uint8_t  tx_busy;
 	uint8_t*  buff_rx;
 	uint8_t*  buff_tx;
@@ -27,41 +30,41 @@ typedef struct {
 
 typedef struct {
 	/* Hardware Interrupt Entry hooks */
-	void (*idle)(USART1_par* par);
-	void (*dma_tx)(USART1_par* par);
+	void (*idle)(void);
+	void (*dma_tx)(void);
 } USART1_irq;
 
 typedef struct {
     /* Lifecycle */
-	void (*config)(USART1_par* par, uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t*  buff_rx, uint8_t*  buff_tx);
-    void (*init)(USART1_par* par);
-    void (*start_rx)(USART1_par* par);
+	void (*config)(uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t*  buff_rx, uint8_t*  buff_tx);
+    void (*init)(void);
+    void (*start_rx)(void);
 
     /* RX API */
-    uint16_t (*read)(USART1_par* par, uint8_t *out);
+    uint16_t (*read)(uint8_t *out);
 
     /* TX API */
-    void (*send)(USART1_par* par, const uint8_t *data, uint16_t len);
-    uint8_t (*tx_ready)(USART1_par* par);
+    void (*send)(const uint8_t *data, uint16_t len);
+    uint8_t (*tx_ready)(void);
 
     /* Memory Inspection Helpers */
-    uint16_t (*get_rx_left)(USART1_par* par);
-    uint16_t (*get_rx_read_index)(USART1_par* par);
-    uint16_t (*get_rx_write_index)(USART1_par* par);
-    uint16_t (*rx_available)(USART1_par* par);
+    uint16_t (*get_rx_left)(void);
+    uint16_t (*get_rx_read_index)(void);
+    uint16_t (*get_rx_write_index)(void);
+    uint16_t (*rx_available)(void);
 } USART1_run;
 
 /* =========================================================
    HIGH LEVEL HANDLE (Singleton V-table Interface)
    ========================================================= */
 typedef struct {
-	USART1_par par;
-	USART1_irq irq;
-	const USART1_run run;
+	USART1_par* par;
+	USART1_irq* irq;
+	const USART1_run* run;
 } USARTG4_Handle;
 
 /* Public Factory Singleton Accessor */
-USARTG4_Handle* usart1(void);
+const USARTG4_Handle* usart1(void);
 
 void DMA1_CH2_IRQHandler(void);
 
