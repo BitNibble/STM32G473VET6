@@ -26,13 +26,18 @@ typedef struct {
 } USART1_par;
 
 typedef struct {
+	/* Hardware Interrupt Entry hooks */
+	void (*idle)(USART1_par* par);
+	void (*dma_tx)(USART1_par* par);
+} USART1_irq;
+
+typedef struct {
     /* Lifecycle */
 	void (*config)(USART1_par* par, uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t*  buff_rx, uint8_t*  buff_tx);
     void (*init)(USART1_par* par);
     void (*start_rx)(USART1_par* par);
 
     /* RX API */
-    uint16_t (*available)(USART1_par* par);
     uint16_t (*read)(USART1_par* par, uint8_t *out);
 
     /* TX API */
@@ -40,12 +45,10 @@ typedef struct {
     uint8_t (*tx_ready)(USART1_par* par);
 
     /* Memory Inspection Helpers */
+    uint16_t (*get_rx_left)(USART1_par* par);
     uint16_t (*get_rx_read_index)(USART1_par* par);
     uint16_t (*get_rx_write_index)(USART1_par* par);
-
-    /* Hardware Interrupt Entry hooks */
-    void (*idle_irq)(USART1_par* par);
-    void (*dma_tx_irq)(USART1_par* par);
+    uint16_t (*rx_available)(USART1_par* par);
 } USART1_run;
 
 /* =========================================================
@@ -53,6 +56,7 @@ typedef struct {
    ========================================================= */
 typedef struct {
 	USART1_par par;
+	USART1_irq irq;
 	const USART1_run run;
 } USARTG4_Handle;
 

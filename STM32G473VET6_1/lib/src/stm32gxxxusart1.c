@@ -13,51 +13,8 @@ Date:     08/06/2026
 static uint8_t u1_rx_raw[USART1_RX_SIZE + ONE] = {0};
 static uint8_t u1_tx_raw[USART1_TX_SIZE + ONE] = {0};
 
-/* Forward Declaration of V-Table Implementations */
-static void           impl_config(USART1_par* par, uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t* buff_rx, uint8_t* buff_tx);
-static void           impl_init(USART1_par* par);
-static void           impl_start_rx(USART1_par* par);
-static uint16_t       impl_available(USART1_par* par);
-static uint16_t       impl_read(USART1_par* par, uint8_t *out);
-static void           impl_send(USART1_par* par, const uint8_t *data, uint16_t len);
-static uint8_t        impl_tx_ready(USART1_par* par);
-static uint16_t       impl_get_rx_read_index(USART1_par* par);
-static uint16_t       impl_get_rx_write_index(USART1_par* par);
-static void           impl_idle_irq(USART1_par* par);
-static void           impl_dma_tx_irq(USART1_par* par);
-
-/* V-Table initialization mapping back to public struct blueprint */
-static USARTG4_Handle handle_instance = {
-    .par = {
-        .wordlength    = 8,
-        .stopbit       = 1,
-        .samplingmode  = 16,
-        .baudrate      = 38400,
-        .rx_read_index = 0,
-        .rx_write_index= 0,
-        .tx_busy       = 0,
-        .buff_rx       = u1_rx_raw,
-        .buff_tx       = u1_tx_raw  /* FIXED: Was incorrectly mapped to u1_rx_raw */
-    },
-    .run = {
-        .config             = impl_config,
-        .init               = impl_init,
-        .start_rx           = impl_start_rx,
-        .available          = impl_available,
-        .read               = impl_read,
-        .send               = impl_send,
-        .tx_ready           = impl_tx_ready,
-        .get_rx_read_index  = impl_get_rx_read_index,
-        .get_rx_write_index = impl_get_rx_write_index,
-        .idle_irq           = impl_idle_irq,
-        .dma_tx_irq         = impl_dma_tx_irq,
-    }
-};
-
-/* Singleton factory gateway entry point */
-USARTG4_Handle* usart1(void) {
-    return &handle_instance;
-}
+static void default_idle_irq(USART1_par* par);
+static void default_dma_tx_irq(USART1_par* par);
 
 /* ============================================================================
    DRIVER CODE IMPLEMENTATIONS
@@ -135,16 +92,6 @@ static void impl_start_rx(USART1_par* par) {
     set_reg(&(dev()->dma->dma1_ch1->CCR), DMA_CCR_EN);
 }
 
-static uint16_t impl_available(USART1_par* par) {
-    par->rx_write_index = USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
-
-    if (par->rx_write_index >= par->rx_read_index) {
-        return (par->rx_write_index - par->rx_read_index);
-    } else {
-        return (USART1_RX_SIZE - par->rx_read_index) + par->rx_write_index;
-    }
-}
-
 static uint16_t impl_read(USART1_par* par, uint8_t *out) {
     if (isPtrNull(out)) return ZERO;
 
@@ -219,6 +166,10 @@ uint8_t impl_tx_ready_v2(USART1_par* par) {
    MEMORY INSPECTION TRACKING HELPER UTILITIES
    ============================================================================ */
 
+static uint16_t impl_get_rx_left(USART1_par* par) {
+    return dev()->dma->dma1_ch1->CNDTR;
+}
+
 static uint16_t impl_get_rx_read_index(USART1_par* par) {
     return par->rx_read_index;
 }
@@ -228,11 +179,57 @@ static uint16_t impl_get_rx_write_index(USART1_par* par) {
     return par->rx_write_index;
 }
 
+static uint16_t impl_rx_available(USART1_par* par) {
+    par->rx_write_index = USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
+
+    if (par->rx_write_index >= par->rx_read_index) {
+        return (par->rx_write_index - par->rx_read_index);
+    } else {
+        return (USART1_RX_SIZE - par->rx_read_index) + par->rx_write_index;
+    }
+}
+
+/* V-Table initialization mapping back to public struct blueprint */
+static USARTG4_Handle handle_instance = {
+    .par = {
+        .wordlength     = 8,
+        .stopbit        = 1,
+        .samplingmode   = 16,
+        .baudrate       = 38400,
+        .rx_read_index  = 0,
+        .rx_write_index = 0,
+        .tx_busy        = 0,
+        .buff_rx        = u1_rx_raw,
+        .buff_tx        = u1_tx_raw
+    },
+	.irq = {
+		.idle    = default_idle_irq,
+		.dma_tx = default_dma_tx_irq,
+	},
+    .run = {
+        .config             = impl_config,
+        .init               = impl_init,
+        .start_rx           = impl_start_rx,
+        .read               = impl_read,
+        .send               = impl_send,
+        .tx_ready           = impl_tx_ready,
+		.get_rx_left        = impl_get_rx_left,
+        .get_rx_read_index  = impl_get_rx_read_index,
+        .get_rx_write_index = impl_get_rx_write_index,
+		.rx_available       = impl_rx_available
+    }
+};
+
+/* Singleton factory gateway entry point */
+USARTG4_Handle* usart1(void) {
+    return &handle_instance;
+}
+
 /* ============================================================================
    INTERRUPT VECTOR LAYER DRIVER CONNECTIONS
    ============================================================================ */
 
-static void impl_idle_irq(USART1_par* par) {
+static void default_idle_irq(USART1_par* par) {
     uint32_t isr = dev()->comm->usart1->ISR;
 
     if (isr & USART_ISR_ORE) {
@@ -245,7 +242,7 @@ static void impl_idle_irq(USART1_par* par) {
     }
 }
 
-static void impl_dma_tx_irq(USART1_par* par) {
+static void default_dma_tx_irq(USART1_par* par) {
     // Read the DMA channel 2 status using your framework layout
     uint32_t isr = dev()->dma->dma1->ISR; // double check your framework's name for global ISR
 
@@ -257,15 +254,18 @@ static void impl_dma_tx_irq(USART1_par* par) {
     }
 }
 
+/*** INTERRUPT ***/
 void USART1_IRQHandler(void) {
+	USART1_irq* req = &usart1()->irq;
 	//clear_pin( dev()->gpio->f, 2 );
     // Call high level driver singleton entry hook
-    usart1()->run.idle_irq(&usart1()->par);
+    if(req->idle) req->idle(&usart1()->par);
 }
 
 void DMA1_CH2_IRQHandler(void) {
+	USART1_irq* req = &usart1()->irq;
 	set_pin( dev()->gpio->f, 2 );
     // Call DMA TX completion tracker hook
-    usart1()->run.dma_tx_irq(&usart1()->par);
+    if(req->dma_tx) req->dma_tx(&usart1()->par);
 }
 
