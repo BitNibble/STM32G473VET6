@@ -81,6 +81,7 @@ typedef struct
 	/******/
 	int (*tokenize_string)(char *input, char *tokens[], int max_tokens, const char *delimiters);
 	void (*nullify_last_n_chars)(char *str, int n);
+	void (*parse_string)(char* raw_input_string, uint8_t n_tokens, char* token[], const char* parser);
 }FUNC_Handler;
 
 const FUNC_Handler* func(void);

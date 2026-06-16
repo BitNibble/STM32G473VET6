@@ -10,13 +10,15 @@ License:  GNU General Public License
 #include "armfunction.h"
 #include "stm32gxxxrtc.h"
 #include "stm32gxxxusart1.h"
-
+#include<string.h>
 //#if !defined(__SOFT_FP__) && defined(__ARM_FP)
 //  #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 //#endif
 
 // Retrieve global reference to layout instance
 static const USARTG4_Handle* Serial1;
+char* token[4];
+
 
 uint8_t str[32];
 char* ptr;
@@ -98,7 +100,7 @@ int main(void)
 		lcd1.drawstring16x24_size(&lcd1.par,"LeD ON",10,20,ST77XX_MAGENTA,ST77XX_GREEN, 8);
 		lcd1.stop(&lcd1.par);
 		_delay_ms(1000);
-		toggle_hpin( dev()->gpio->f, 1 << 2 );
+		//toggle_hpin( dev()->gpio->f, 1 << 2 );
 		lcd1.start(&lcd1.par);
 		lcd1.drawstring16x24_size(&lcd1.par,"LED OFF",10,20,ST77XX_MAGENTA,ST77XX_GREEN, 8);
 		lcd1.drawstring24x48_size( &lcd1.par, func()->ui32toa(get_sysclk()), 10, 100, ST77XX_MAGENTA, ST77XX_GREEN, 10 );
@@ -106,7 +108,7 @@ int main(void)
 		//lcd1.drawstring24x48_size( &lcd1.par, func()->ui32toa(get_pll_vco_out()), 10, 100, ST77XX_MAGENTA, ST77XX_GREEN, 10 );
 		lcd1.stop(&lcd1.par);
 		_delay_ms(1000);
-		toggle_hpin( dev()->gpio->f, 1 << 2 );
+		//toggle_hpin( dev()->gpio->f, 1 << 2 );
 
 		lcd1.start(&lcd1.par);
 		//func()->format_string(str,32,"%u", 60);
@@ -154,9 +156,16 @@ int main(void)
 		lcd1.start(&lcd1.par);
 		//  lcd1.drawstring16x24_size(&lcd1.par,(const char*)str,10,150,ST77XX_RED,ST77XX_GREEN,8);
 		lcd1.drawstring16x24_size(&lcd1.par,(const char*)Serial1->par->buff_rx + Serial1->par->rx_read_index,10,160,ST77XX_RED,ST77XX_GREEN,12);
-		Serial1->par->rx_read_index = Serial1->par->rx_write_index;
-		lcd1.stop(&lcd1.par);
 
+		func()->parse_string( (char*)(Serial1->par->buff_rx + Serial1->par->rx_read_index), 4, token, "\r\n");
+
+		if( !strcmp( token[0], "s00" ) ) {
+			toggle_hpin( dev()->gpio->f, 1 << 2 );
+		}
+
+		Serial1->par->rx_read_index = Serial1->par->rx_write_index;
+
+		lcd1.stop(&lcd1.par);
 	}
 }
 
