@@ -172,15 +172,18 @@ static uint16_t impl_read(uint8_t *out) {
 }
 
 static char* impl_read_raw(void) {
-	char* r_ptr = (char*)(u1_rx_raw + par.rx_read_index);
-	par.rx_write_index = _rx_dma_write_snapshot();
+    par.rx_write_index = _rx_dma_write_snapshot();
 
     if (par.rx_read_index == par.rx_write_index) {
         return NULL;
-    }else if (par.rx_read_index > par.rx_write_index) {
-    	par.rx_read_index = 0;
+    }
+
+    char* r_ptr = (char*)(u1_rx_raw + par.rx_read_index);
+
+    if (par.rx_read_index > par.rx_write_index) {
+        par.rx_read_index = 0;
     } else {
-    	par.rx_read_index = par.rx_write_index;
+        par.rx_read_index = par.rx_write_index;
     }
 
     return r_ptr;
