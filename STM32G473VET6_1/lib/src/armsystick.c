@@ -20,7 +20,7 @@ static inline uint32_t calc_tick(uint32_t div)
     uint32_t tmp = get_hclk() / div;
     return (tmp > 1U) ? (tmp - 1U) : 1U;
 }
-void systick_Configure(void)
+void systick_configure(void)
 {
     systick_us    = calc_tick(1000000U);
     systick_10us  = calc_tick(100000U);

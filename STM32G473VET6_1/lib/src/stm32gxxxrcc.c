@@ -98,7 +98,7 @@ void rcc_start(void)
     /* (AHB=1, APB1=1, APB2=1) */
     STM32GXXX_Prescaler(1, 1, 1);
     /* SysTick Time Constants */
-    systick_Configure();
+    systick_configure();
 }
 
 void rcc_start_test(void)

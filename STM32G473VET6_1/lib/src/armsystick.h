@@ -12,7 +12,7 @@ Update:   16012024
 #include <stdint.h>
 #include <inttypes.h>
 /*** SysTick Constants ***/
-void systick_Configure(void);
+void systick_configure(void);
 /*** SysTick Polling ***/
 void _delay_us(uint32_t us);
 void _delay_10us(uint32_t dez_us);
