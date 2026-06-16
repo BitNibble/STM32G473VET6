@@ -12,13 +12,14 @@ Date:     08/06/2026
 #define USART1_RX_COUNT (USART1_RX_SIZE - ONE)
 #define USART1_TX_COUNT (USART1_TX_SIZE - ONE)
 /* Static private memory allocation buffers hidden from application workspace */
-static uint8_t u1_rx_raw[USART1_RX_SIZE] = {0};
+static uint8_t u1_rx_raw[USART1_RX_SIZE + ONE] = {0}; // overflow safety
 static uint8_t u1_tx_raw[USART1_TX_SIZE] = {0};
 
 static void impl_config(uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t* buff_rx, uint8_t* buff_tx);
 static void impl_init(void);
 static void impl_start_rx(void);
 static uint16_t impl_read(uint8_t *out);
+static char* impl_read_raw(void);
 static void impl_send(const uint8_t *data, uint16_t len);
 static uint8_t impl_tx_ready(void);
 void impl_send_v2(const uint8_t *data, uint16_t len);
@@ -53,6 +54,7 @@ USART1_run run = {
 	.init               = impl_init,
 	.start_rx           = impl_start_rx,
 	.read               = impl_read,
+	.read_raw           = impl_read_raw,
 	.send               = impl_send,
 	.tx_ready           = impl_tx_ready,
 	.get_rx_left        = impl_get_rx_left,
@@ -169,6 +171,21 @@ static uint16_t impl_read(uint8_t *out) {
     return ONE;
 }
 
+static char* impl_read_raw(void) {
+	char* r_ptr = (char*)(u1_rx_raw + par.rx_read_index);
+	par.rx_write_index = _rx_dma_write_snapshot();
+
+    if (par.rx_read_index == par.rx_write_index) {
+        return NULL;
+    }else if (par.rx_read_index > par.rx_write_index) {
+    	par.rx_read_index = 0;
+    } else {
+    	par.rx_read_index = par.rx_write_index;
+    }
+
+    return r_ptr;
+}
+
 static void impl_send(const uint8_t *data, uint16_t len) {
     if (isPtrNull((void*)data) || len == ZERO || len > USART1_TX_SIZE || par.tx_busy) {
         return;
@@ -264,7 +281,7 @@ void USART1_IRQHandler(void) {
 
 void DMA1_CH2_IRQHandler(void) {
 	USART1_irq* req = usart1()->irq;
-	set_pin( dev()->gpio->f, 2 );
+	//set_pin( dev()->gpio->f, 2 );
     // Call DMA TX completion tracker hook
     if(req->dma_tx) req->dma_tx();
 }

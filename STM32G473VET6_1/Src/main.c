@@ -72,7 +72,9 @@ int main(void)
 	//char vecT[8]; // for calendar time
 
 	GPIO_clock( dev()->gpio->f, 1 );
-	GPIO_moder( dev()->gpio->f, 2, 1 );
+	GPIO_hmoder( dev()->gpio->f, 1 << 2, 1 );
+
+	//clear_pin(dev()->gpio->f, 1 << 2);
 
 	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
 	(void) lcd1;
@@ -154,18 +156,19 @@ int main(void)
 		//}
 
 		lcd1.start(&lcd1.par);
-		//  lcd1.drawstring16x24_size(&lcd1.par,(const char*)str,10,150,ST77XX_RED,ST77XX_GREEN,8);
-		lcd1.drawstring16x24_size(&lcd1.par,(const char*)Serial1->par->buff_rx + Serial1->par->rx_read_index,10,160,ST77XX_RED,ST77XX_GREEN,12);
+		char* ptr = Serial1->run->read_raw();
 
-		func()->parse_string( (char*)(Serial1->par->buff_rx + Serial1->par->rx_read_index), 4, token, "\r\n");
+		//  lcd1.drawstring16x24_size(&lcd1.par,(const char*)str,10,150,ST77XX_RED,ST77XX_GREEN,8);
+		lcd1.drawstring16x24_size(&lcd1.par,ptr,10,160,ST77XX_RED,ST77XX_GREEN,12);
+
+		func()->parse_string( ptr, 4, token, "\r\n");
 
 		if( !strcmp( token[0], "s00" ) ) {
 			toggle_hpin( dev()->gpio->f, 1 << 2 );
 		}
 
-		Serial1->par->rx_read_index = Serial1->par->rx_write_index;
-
 		lcd1.stop(&lcd1.par);
+
 	}
 }
 
