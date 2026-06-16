@@ -42,7 +42,8 @@ typedef struct {
 
     /* RX API */
     uint16_t (*read)(uint8_t *out);
-    char* (*read_raw)(void);
+    char (*read_char)(void);
+    uint16_t (*read_str)(char* str);
 
     /* TX API */
     void (*send)(const uint8_t *data, uint16_t len);

@@ -19,7 +19,7 @@ License:  GNU General Public License
 static const USARTG4_Handle* Serial1;
 char* token[4];
 
-
+char usart_1[USART1_RX_SIZE];
 uint8_t str[32];
 char* ptr;
 
@@ -156,12 +156,20 @@ int main(void)
 		//}
 
 		lcd1.start(&lcd1.par);
-		char* ptr = Serial1->run->read_raw();
 
-		//  lcd1.drawstring16x24_size(&lcd1.par,(const char*)str,10,150,ST77XX_RED,ST77XX_GREEN,8);
-		lcd1.drawstring16x24_size(&lcd1.par,ptr,10,160,ST77XX_RED,ST77XX_GREEN,12);
+		if(Serial1->run->read_str(usart_1)) {
+			//Serial1->run->read_str(usart_1);
+			//  lcd1.drawstring16x24_size(&lcd1.par,(const char*)str,10,150,ST77XX_RED,ST77XX_GREEN,8);
+			//lcd1.drawstring16x24_size(&lcd1.par,ptr,10,160,ST77XX_RED,ST77XX_GREEN,12);
+			lcd1.drawstring16x24_size(&lcd1.par,usart_1,10,160,ST77XX_RED,ST77XX_GREEN,12);
 
-		func()->parse_string( ptr, 4, token, "\r\n");
+			//func()->parse_string( ptr, 4, token, "\r\n");
+			//func()->parse_string( usart_1, 4, token, "\r\n");
+			//memset(usart_1, 0, USART1_RX_SIZE);
+		}
+
+		//func()->parse_string( ptr, 4, token, "\r\n");
+		func()->parse_string( usart_1, 4, token, "\r\n");
 
 		if( !strcmp( token[0], "s00" ) ) {
 			toggle_hpin( dev()->gpio->f, 1 << 2 );
