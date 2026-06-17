@@ -21,6 +21,7 @@ static void impl_start_rx(void);
 static uint16_t impl_read(uint8_t *out);
 static char impl_read_char(void);
 static uint16_t impl_read_str(char* str);
+static uint16_t impl_read_str_size(char* str, uint16_t max_len);
 static void impl_send(const uint8_t *data, uint16_t len);
 static uint8_t impl_tx_ready(void);
 void impl_send_v2(const uint8_t *data, uint16_t len);
@@ -57,6 +58,7 @@ USART1_run run = {
 	.read               = impl_read,
 	.read_char          = impl_read_char,
 	.read_str           = impl_read_str,
+	.read_str_size      = impl_read_str_size,
 	.send               = impl_send,
 	.tx_ready           = impl_tx_ready,
 	.get_rx_left        = impl_get_rx_left,
@@ -174,18 +176,19 @@ static uint16_t impl_read(uint8_t *out) {
 }
 
 static char impl_read_char(void) {
-    char tmp;
     par.rx_write_index = _rx_dma_write_snapshot();
 
     if (par.rx_read_index == par.rx_write_index) {
         return ZERO;
     }
 
-    tmp = par.buff_rx[par.rx_read_index];
-    uint16_t next = par.rx_read_index + ONE;
+    char tmp = par.buff_rx[par.rx_read_index];
+    uint16_t next = par.rx_read_index + 1;
+
     if (next >= USART1_RX_SIZE) {
         next = ZERO;
     }
+
     par.rx_read_index = next;
     return tmp;
 }
@@ -200,6 +203,21 @@ static uint16_t impl_read_str(char* str) {
         }
         str[i] = ZERO;
     }
+    return i;
+}
+
+static uint16_t impl_read_str_size(char* str, uint16_t max_len) {
+    uint16_t i = 0;
+
+    if (!str || max_len == ZERO) {
+        return ZERO;
+    }
+
+    while (par.rx_read_index != par.rx_write_index && i < (max_len - 1)) {
+        str[i++] = impl_read_char();
+    }
+
+    str[i] = ZERO;
     return i;
 }
 
@@ -252,12 +270,20 @@ static uint16_t impl_rx_available(void) {
         available = (USART1_RX_SIZE - par.rx_read_index) + par.rx_write_index;
     }
 
-    if (available == USART1_RX_COUNT) {
+    // Determine the next position the DMA will write to
+    uint16_t next_write = par.rx_write_index + 1;
+    if (next_write >= USART1_RX_SIZE) {
+        next_write = 0;
+    }
+
+    // If the next hardware write point hits our read index, it's completely full
+    if (next_write == par.rx_read_index) {
         par.rx_overflow = 1;
     }
 
     return available;
 }
+
 
 /* ============================================================================
    INTERRUPT VECTOR LAYER DRIVER CONNECTIONS

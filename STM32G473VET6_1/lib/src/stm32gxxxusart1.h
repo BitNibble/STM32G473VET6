@@ -44,6 +44,7 @@ typedef struct {
     uint16_t (*read)(uint8_t *out);
     char (*read_char)(void);
     uint16_t (*read_str)(char* str);
+    uint16_t (*read_str_size)(char* str, uint16_t max_len);
 
     /* TX API */
     void (*send)(const uint8_t *data, uint16_t len);

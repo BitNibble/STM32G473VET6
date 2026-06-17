@@ -101,7 +101,7 @@ int main(void)
 		lcd1.start(&lcd1.par);
 		lcd1.drawstring16x24_size(&lcd1.par,"LeD ON",10,20,ST77XX_MAGENTA,ST77XX_GREEN, 8);
 		lcd1.stop(&lcd1.par);
-		_delay_ms(1000);
+		_delay_ms(500);
 		//toggle_hpin( dev()->gpio->f, 1 << 2 );
 		lcd1.start(&lcd1.par);
 		lcd1.drawstring16x24_size(&lcd1.par,"LED OFF",10,20,ST77XX_MAGENTA,ST77XX_GREEN, 8);
@@ -109,7 +109,7 @@ int main(void)
 		//lcd1.drawstring24x48_size( &lcd1.par, func()->ui32toa(get_pll_source()), 10, 100, ST77XX_MAGENTA, ST77XX_GREEN, 10 );
 		//lcd1.drawstring24x48_size( &lcd1.par, func()->ui32toa(get_pll_vco_out()), 10, 100, ST77XX_MAGENTA, ST77XX_GREEN, 10 );
 		lcd1.stop(&lcd1.par);
-		_delay_ms(1000);
+		_delay_ms(500);
 		//toggle_hpin( dev()->gpio->f, 1 << 2 );
 
 		lcd1.start(&lcd1.par);
@@ -138,7 +138,7 @@ int main(void)
 
 		lcd1.start(&lcd1.par);
 
-		if(Serial1->run->read_str(usart_1)) {
+		if(Serial1->run->read_str_size(usart_1, 10)) {
 			func()->parse_string( usart_1, 4, token, "\r\n");
 			lcd1.drawstring16x24_size(&lcd1.par,token[0],10,160,ST77XX_RED,ST77XX_GREEN,12);
 		}
