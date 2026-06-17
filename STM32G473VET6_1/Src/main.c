@@ -135,19 +135,26 @@ int main(void)
 		lcd1.drawstring24x48_size(&lcd1.par,str,15,70,ST77XX_RED,ST77XX_GREEN,8);
 		lcd1.stop(&lcd1.par);
 		***/
+		if (Serial1->run->read_str_size(usart_1, sizeof(usart_1)) > 0) {
+			// Clear prior pointers to avoid parsing contamination
+			memset(token, 0, sizeof(token));
 
-		lcd1.start(&lcd1.par);
+			// Extract command fragments based on carriage return sequences
+			func()->parse_string(usart_1, 4, token, "\r\n");
 
-		if(Serial1->run->read_str_size(usart_1, 10)) {
-			func()->parse_string( usart_1, 4, token, "\r\n");
-			lcd1.drawstring16x24_size(&lcd1.par,token[0],10,160,ST77XX_RED,ST77XX_GREEN,12);
+			// Confirm token[0] was successfully parsed before utilizing it
+			if (token[0] != NULL) {
+				lcd1.start(&lcd1.par);
+				lcd1.drawstring16x24_size(&lcd1.par, token[0], 10, 160, ST77XX_RED, ST77XX_GREEN, 12);
+				lcd1.stop(&lcd1.par);
+
+				// Safe command structure execution context
+				if (strcmp(token[0], "s00") == 0) {
+					toggle_hpin(dev()->gpio->f, 1 << 2);
+					Serial1->run->send((uint8_t *) "ACK: Pin Toggled\r\n", 18);
+				}
+			}
 		}
-
-		if( !strcmp( token[0], "s00" ) ) {
-			toggle_hpin( dev()->gpio->f, 1 << 2 );
-		}
-
-		lcd1.stop(&lcd1.par);
 
 	}
 }
