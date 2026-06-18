@@ -1138,9 +1138,7 @@ void st7789_setup_spi(ST7789_par* par)
 
 /*** Initial Screen ***/
 void boot_screen(ST7789_par* par){
-	//U_word color = { .var = 0x0340 };
-	U_word color = { .var = ST77XX_GREEN };
-	//U_word color = { .var = ST77XX_WHITE };
+	U_word color = { .var = ST77XX_BLACK };
 	st7789_cs_low(par);
 	st7789_set_window(par, 0, 0, 239, 239);
 	for (uint32_t i = 0; i < 240UL * 240; i++) {
@@ -1153,7 +1151,7 @@ void boot_screen(ST7789_par* par){
 
 void welcome_screen(ST7789_par* par){
     st7789_cs_low(par);
-    st7789_drawstring16x24(par,"Welcome",60,90,ST77XX_GOLD,ST77XX_GREEN);
+    st7789_drawstring16x24(par,"Welcome",60,90,ST77XX_GOLD,ST77XX_BLACK);
     st7789_cs_high(par);
 }
 

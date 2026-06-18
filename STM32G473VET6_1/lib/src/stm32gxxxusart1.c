@@ -124,24 +124,27 @@ static void impl_config(uint8_t wordlength, uint8_t stopbit, uint8_t samplingmod
 
     // Setup Sampling Mode (CR1->OVER8)
     // 0: Oversampling by 16, 1: Oversampling by 8
-    write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, samplingmode);
+    if(samplingmode == 8) {
+    	write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ONE);
+    } else {
+    	write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ZERO);
+    }
 
     // Fetch the peripheral clock frequency
     uint32_t pclk = get_pclk2();
-    uint32_t brr_calculated_val = 0;
+    uint32_t brr_calculated_val = ZERO;
 
     // Calculate BRR using direct floor division (as expected by STM32 hardware)
-    if (par.samplingmode == 0) {
-        // Oversampling by 16 (Standard Mode)
-        brr_calculated_val = pclk / par.baudrate;
+    if (par.samplingmode == 8) {
+    	// Oversampling by 8
+    	// Hardware expects: (2 * pclk) / baudrate
+    	uint32_t usartdiv = (2 * pclk) / par.baudrate;
+    	// Shift logic to fit USARTDIV into BRR register fields when OVER8 = 1
+    	brr_calculated_val = (usartdiv & 0xFFF0) | ((usartdiv & 0x0007) >> 1);
     }
     else {
-        // Oversampling by 8
-        // Hardware expects: (2 * pclk) / baudrate
-        uint32_t usartdiv = (2 * pclk) / par.baudrate;
-
-        // Shift logic to fit USARTDIV into BRR register fields when OVER8 = 1
-        brr_calculated_val = (usartdiv & 0xFFF0) | ((usartdiv & 0x0007) >> 1);
+    	// Oversampling by 16 (Standard Mode)
+    	brr_calculated_val = pclk / par.baudrate;
     }
 
     // Write calculated value to the USART1 BRR Register
@@ -271,7 +274,7 @@ static uint16_t impl_read_str_size(char* str, uint16_t max_len) {
         return ZERO;
     }
 
-    while (par.rx_read_index != par.rx_write_index && i < (max_len - 1)) {
+    while (par.rx_read_index != par.rx_write_index && i < (max_len - ONE)) {
         str[i++] = impl_read_char();
     }
 
@@ -295,7 +298,7 @@ static void impl_send(const uint8_t *data, uint16_t len) {
 
 static uint8_t impl_tx_ready(void) {
     if (!(dev()->dma->dma1_ch2->CCR & DMA_CCR_EN)) {
-        par.tx_busy = 0;
+        par.tx_busy = ZERO;
     }
     return !par.tx_busy;
 }
@@ -331,12 +334,12 @@ static uint16_t impl_rx_available(void) {
     // Determine the next position the DMA will write to
     uint16_t next_write = par.rx_write_index + 1;
     if (next_write >= USART1_RX_SIZE) {
-        next_write = 0;
+        next_write = ZERO;
     }
 
     // If the next hardware write point hits our read index, it's completely full
     if (next_write == par.rx_read_index) {
-        par.rx_overflow = 1;
+        par.rx_overflow = ONE;
     }
 
     return available;
