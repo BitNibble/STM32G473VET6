@@ -35,7 +35,7 @@ static void default_dma_tx_irq(void);
 
 USART1_par par = {
 	.wordlength     = 8,
-	.stopbit        = 1,
+	.stopbit        = 0,
 	.samplingmode   = 16,
 	.baudrate       = 38400,
 	.rx_left 		= 0,
@@ -87,21 +87,78 @@ static inline uint16_t _rx_dma_write_snapshot(void) {
 }
 
 static void impl_config(uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t* buff_rx, uint8_t* buff_tx) {
+    // Assign configuration parameters
     par.wordlength   = wordlength;
     par.stopbit      = stopbit;
     par.samplingmode = samplingmode;
     par.baudrate     = baudrate;
+
+    volatile uint32_t* cr1_reg = &(dev()->comm->usart1->CR1);
+    volatile uint32_t* cr2_reg = &(dev()->comm->usart1->CR2);
+
+    // Setup Word Length (Split across CR1->M1 and CR1->M0)
+    uint32_t m0_val = 0;
+    uint32_t m1_val = 0;
+
+    switch(wordlength) {
+        case 7:  // 7-bit data
+            m0_val = 0;
+            m1_val = 1;
+            break;
+        case 9:  // 9-bit data
+            m0_val = 1;
+            m1_val = 0;
+            break;
+        case 8:  // 8-bit data (Default)
+        default:
+            m0_val = 0;
+            m1_val = 0;
+            break;
+    }
+    write_field_value(cr1_reg, USART_CR1_M0_Msk, USART_CR1_M0_Pos, m0_val);
+    write_field_value(cr1_reg, USART_CR1_M1_Msk, USART_CR1_M1_Pos, m1_val);
+
+    // Setup Stop Bits (CR2->STOP[1:0])
+    // Expected input values standard mapping: 00: 1 Stop bit, 01: 0.5 Stop bit, 10: 2 Stop bits, 11: 1.5 Stop bits
+    write_field_value(cr2_reg, USART_CR2_STOP_Msk, USART_CR2_STOP_Pos, stopbit);
+
+    // Setup Sampling Mode (CR1->OVER8)
+    // 0: Oversampling by 16, 1: Oversampling by 8
+    write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, samplingmode);
+
+    // Fetch the peripheral clock frequency
+    uint32_t pclk = get_pclk2();
+    uint32_t brr_calculated_val = 0;
+
+    // Calculate BRR using direct floor division (as expected by STM32 hardware)
+    if (par.samplingmode == 0) {
+        // Oversampling by 16 (Standard Mode)
+        brr_calculated_val = pclk / par.baudrate;
+    }
+    else {
+        // Oversampling by 8
+        // Hardware expects: (2 * pclk) / baudrate
+        uint32_t usartdiv = (2 * pclk) / par.baudrate;
+
+        // Shift logic to fit USARTDIV into BRR register fields when OVER8 = 1
+        brr_calculated_val = (usartdiv & 0xFFF0) | ((usartdiv & 0x0007) >> 1);
+    }
+
+    // Write calculated value to the USART1 BRR Register
+    write_field_value(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
+
+    // Secure buffer assignments
     if (!isPtrNull(buff_rx)) par.buff_rx = buff_rx;
     if (!isPtrNull(buff_tx)) par.buff_tx = buff_tx;
 }
 
 static void impl_init(void) {
-    // 1. Gating Clocks via Native GPIO and Clock System tree APIs
+    // Gating Clocks via Native GPIO and Clock System tree APIs
     GPIO_clock(dev()->gpio->a, ONE);
     set_reg(&(dev()->sys->rcc->AHB1ENR), RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMAMUX1EN);
     set_reg(&(dev()->sys->rcc->APB2ENR), RCC_APB2ENR_USART1EN);
 
-    // 2. Configure Alternate Pin Functions using your tool functions (AF7 for USART1)
+    // Configure Alternate Pin Functions using your tool functions (AF7 for USART1)
     GPIO_moder(GPIOA, 9,  MODE_AF);  // PA9  -> TX Line
     GPIO_moder(GPIOA, 10, MODE_AF);  // PA10 -> RX Line
     GPIO_af(GPIOA, 9,  7);
@@ -116,27 +173,28 @@ static void impl_init(void) {
     GPIO_pupd(GPIOA, 9,  0);
     GPIO_pupd(GPIOA, 10, 1);
 
-    // 3. Routing Peripheral Signals into DMAMUX Matrices (Ch1=RX, Ch2=TX)
+    // Routing Peripheral Signals into DMAMUX Matrices (Ch1=RX, Ch2=TX)
     write_field_value(&(dev()->dma->dmamux1_ch1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, 24);
     write_field_value(&(dev()->dma->dmamux1_ch2->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, 25);
 
-    // 4. Configure DMA RX Channel (Circular mode)
+    // Configure DMA RX Channel (Circular mode)
     clear_reg(&(dev()->dma->dma1_ch1->CCR), DMA_CCR_EN);
     dev()->dma->dma1_ch1->CPAR  = (uint32_t)&(dev()->comm->usart1->RDR);
     dev()->dma->dma1_ch1->CMAR  = (uint32_t)par.buff_rx;
     dev()->dma->dma1_ch1->CNDTR = USART1_RX_SIZE;
     set_reg(&(dev()->dma->dma1_ch1->CCR), DMA_CCR_MINC | DMA_CCR_CIRC | DMA_CCR_PL_0);
 
-    // 5. Configure DMA TX Channel (Normal Single-Shot mode)
+    // Configure DMA TX Channel (Normal Single-Shot mode)
     clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
     dev()->dma->dma1_ch2->CPAR  = (uint32_t)&(dev()->comm->usart1->TDR);
     set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE);
     //set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_MINC | DMA_CCR_DIR);
 
-    // 6. Set USART registers using dynamic system clock reading helper
+    // Set USART registers using dynamic system clock reading helper
     clear_reg(&(dev()->comm->usart1->CR1), USART_CR1_UE);
 
-    uint32_t brr_calculated_val = get_pclk2() / par.baudrate;
+    uint32_t pclk = get_pclk2();
+    uint32_t brr_calculated_val = pclk / par.baudrate;
     write_field_value(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
 
 
@@ -144,7 +202,7 @@ static void impl_init(void) {
     set_reg(&(dev()->comm->usart1->CR3), USART_CR3_DMAT | USART_CR3_DMAR);
     set_reg(&(dev()->comm->usart1->CR1), USART_CR1_UE);
 
-    // 7. Core NVIC Interrupt Vectors Configurations
+    // Core NVIC Interrupt Vectors Configurations
     NVIC_SetPriority(USART1_IRQn, 5);
     NVIC_EnableIRQ(USART1_IRQn);
     NVIC_SetPriority(DMA1_Channel2_IRQn, 5);

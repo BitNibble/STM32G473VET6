@@ -32,15 +32,16 @@ void set_reg(volatile uint32_t* reg, uint32_t hbits);
 void clear_reg(volatile uint32_t* reg, uint32_t hbits);
 
 uint32_t get_field_value(uint32_t reg, uint32_t Msk, uint32_t Pos);
-void set_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData);
 void write_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
 void set_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
+void set_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData);
 
 uint32_t get_block_value(uint32_t reg, uint8_t size_block, uint8_t Pos);
 void write_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 void set_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 
 uint32_t get_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos);
+void write_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 void set_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 /****************************************/
 /*** NULL Check ***/

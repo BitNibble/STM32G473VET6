@@ -794,6 +794,36 @@ void function_trim_whitespace(char* str) {
     }
 }
 
+void function_parse_string(char* raw_input_string, uint8_t n_tokens, char* token[], const char* parser) {
+    // Safety check: Ensure the output array and input string are valid
+    if (token == NULL || raw_input_string == NULL || n_tokens == 0) {
+        return;
+    }
+
+    uint8_t i = 0;
+
+    // 1. Extract the first token directly from the mutable string
+    token[i] = strtok(raw_input_string, parser);
+
+    // 2. Loop to find subsequent tokens up to the safe maximum limit
+    while (token[i] != NULL) {
+        i++;
+
+        // Break out early if we have filled all available token slots
+        if (i >= n_tokens) {
+            break;
+        }
+
+        token[i] = strtok(NULL, parser);
+    }
+
+    // 3. Optional: Explicitly null-terminate the remainder of the token array
+    // This helps prevent reading garbage pointers if fewer tokens were found
+    for (uint8_t j = i; j < n_tokens; j++) {
+        token[j] = NULL;
+    }
+}
+
 static const FUNC_Handler func_setup = {
 	.power = function_power,
 	.divide = function_divide,
@@ -837,7 +867,8 @@ static const FUNC_Handler func_setup = {
 	.strToInt = function_StrToInt,
 	// 9
 	.tokenize_string = function_tokenize_string,
-	.nullify_last_n_chars = function_nullify_last_n_chars
+	.nullify_last_n_chars = function_nullify_last_n_chars,
+	.parse_string = function_parse_string
 	};
 
 const FUNC_Handler* func(void){ return &func_setup; }

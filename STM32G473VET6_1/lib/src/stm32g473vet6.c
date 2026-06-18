@@ -460,7 +460,7 @@ void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode )
 		const uint8_t Pos = pin * BLOCK_SIZE;
 
 		uint32_t temp = GPIO->MODER;
-		temp &= ~(temp & (BLOCK << Pos));
+		temp &= ~(BLOCK << Pos);
 		temp |= ((uint32_t)mode << Pos);
 		GPIO->MODER = temp;
 	}
