@@ -133,6 +133,7 @@ void TIM1_BRK_TIM15_IRQHandler(void)
     }
 }
 
+/**
 void TIM1_UP_TIM16_IRQHandler(void)
 {
     uint32_t sr = TIM1->SR;
@@ -142,7 +143,21 @@ void TIM1_UP_TIM16_IRQHandler(void)
         tim1_u_callback();
     }
 }
+**/
 
+/* Update this name at the bottom of stm32gxxx_tim1.c */
+void TIM1_UP_TIM16_IRQHandler(void) {
+    if (_mask(TIM1->SR, TIM_SR_UIF)) {
+        clear_reg(&TIM1->SR, TIM_SR_UIF);
+        (void)TIM1->SR; // Compliance bus-cycle synchronization barrier
+
+        if (tim1()->callback->u != NULL) {
+            tim1()->callback->u();
+        }
+    }
+}
+
+/**
 void TIM1_TRG_COM_TIM17_IRQHandler(void)
 {
     uint32_t sr = TIM1->SR;
@@ -155,6 +170,21 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void)
     if (sr & TIM_SR_COMIF) {
         CLEAR_FLAG(TIM1->SR, TIM_SR_COMIF);
         tim1_com_callback();
+    }
+}
+**/
+
+void TIM1_TRG_COM_TIM17_IRQHandler(void) {
+    if (_mask(TIM1->SR, TIM_SR_TIF)) {
+        // Direct safe assignment to clear the rc_w0 flag
+        TIM1->SR = ~TIM_SR_TIF;
+
+        // Pipeline barrier: read back to guarantee clear cycles
+        (void)TIM1->SR;
+
+        if (tim1()->callback->t != NULL) {
+            tim1()->callback->t();
+        }
     }
 }
 

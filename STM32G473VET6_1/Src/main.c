@@ -134,6 +134,7 @@ int main(void)
 		lcd1.drawstring24x48_size(&lcd1.par,str,15,70,ST77XX_RED,ST77XX_GREEN,8);
 		lcd1.stop(&lcd1.par);
 		***/
+
 		if (Serial1->run->read_str_size(usart_1, sizeof(usart_1)) > 0) {
 			// Clear prior pointers to avoid parsing contamination
 			memset(token, 0, sizeof(token));

@@ -10,7 +10,8 @@ Comment:
 #ifndef TIMER_IRQ_H
 	#define TIMER_IRQ_H
 
-#include <stdint.h>
+#include "stm32g473vet6.h"
+#include "stm32gxxx_tim1.h"
 
 /********************************************************************
  * PER-TIMER INSTANCES (semantic routing layer)
