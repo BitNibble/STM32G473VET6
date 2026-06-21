@@ -332,6 +332,7 @@ void GPIO_hospeed( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t ospeed );
 void GPIO_hpupd( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t pupd );
 void GPIO_lck(GPIO_TypeDef* GPIO, uint16_t hpin);
 void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af );
+void GPIO_haf( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t af );
 void set_hpin(GPIO_TypeDef* reg, uint16_t hpin);
 void clear_hpin(GPIO_TypeDef* reg, uint16_t hpin);
 void toggle_hpin(GPIO_TypeDef* reg, uint16_t hpin);

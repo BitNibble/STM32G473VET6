@@ -6,7 +6,6 @@ License:  GNU General Public License
 #include "stm32gxxxrcc.h"
 #include "armsystick.h"
 #include "stm32gxxx_tim1.h"
-#include "timer_irq.h"
 #include "st7789.h"
 #include "armfunction.h"
 #include "stm32gxxxrtc.h"
@@ -25,15 +24,44 @@ char* ptr = NULL;
 
 void tim1_blink_setup(void)
 {
-    tim1()->init(119,1999999);
+    tim1()->run->init(119,1999999);
 
-    tim1()->nvic_u_enable(2);
+    tim1()->run->nvic_u_enable(2);
 
-    tim1()->start();
+    tim1()->run->start();
 }
 void tim1_u_callback(void)
 {
 	toggle_hpin(dev()->gpio->f, 1 << 2);
+}
+
+void application_init(void)
+{
+    // Define target pins for TIM1 CH1, CH2, CH3 (PA8 | PA9 | PA10)
+    uint16_t tim1_pins = (1UL << 8) | (1UL << 9) | (1UL << 10);
+
+    // 1. Fire up the clock gating blocks through the accessors
+    GPIO_clock(dev()->gpio->a, 1);
+
+    // 2. Multi-pin batch setup: Mode = Alternate Function (0x02)
+    GPIO_hmoder(dev()->gpio->a, tim1_pins, 2);
+
+    // 3. Speed selection: Very High Speed (0x03) for crisp PWM edges
+    GPIO_hospeed(dev()->gpio->a, tim1_pins, 3);
+
+    // 4. Batch assign Alternate Function 6 (AF6 = TIM1) across your target array
+    GPIO_haf(dev()->gpio->a, tim1_pins, 6);
+
+    // 5. Initialize TIM1 to fire at a clean 20kHz target using your frequency tool
+    tim1()->run->init_by_freq(0, 20000);
+
+    // 6. Set initial 50% duty cycle pulses (assuming ARR configured via auto calculation)
+    tim1()->run->config_pwm(TIM1_CH1, PWM_MODE_1, 2000);
+    tim1()->run->config_pwm(TIM1_CH2, PWM_MODE_1, 2000);
+    tim1()->run->config_pwm(TIM1_CH3, PWM_MODE_1, 2000);
+
+    // 7. Fire up execution tracking!
+    tim1()->run->start();
 }
 
 int main(void)

@@ -605,6 +605,32 @@ void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af )
 	}
 }
 
+void GPIO_haf( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t af )
+{
+    if(af < WORD_BITS) {
+        const uint8_t BLOCK_SIZE = NIBBLE_BITS;
+        const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
+
+        // Cache both AFR array masks to run modifications locally before write back
+        uint32_t hafr[2] = { GPIO->AFR[0], GPIO->AFR[1] };
+
+        for(uint8_t pin = 0; pin < WORD_BITS; pin++)
+        {
+            if(hpin & (1UL << pin)) {
+                const uint8_t index = (pin * BLOCK_SIZE) / DWORD_BITS;
+                const uint16_t Pos = (pin * BLOCK_SIZE) % DWORD_BITS;
+
+                hafr[index] &= ~( BLOCK << Pos );
+                hafr[index] |= ( ((uint32_t)af & BLOCK) << Pos );
+            }
+        }
+
+        // Atomic memory block write updates the physical GPIO hardware register layout
+        GPIO->AFR[0] = hafr[0];
+        GPIO->AFR[1] = hafr[1];
+    }
+}
+
 inline void set_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
     reg->BSRR = hpin;
 }

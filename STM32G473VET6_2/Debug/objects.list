@@ -11,6 +11,7 @@
 "./lib/src/st7789.o"
 "./lib/src/st7789_fonts.o"
 "./lib/src/stm32g473vet6.o"
+"./lib/src/stm32gxxx_tim1.o"
 "./lib/src/stm32gxxxrcc.o"
 "./lib/src/stm32gxxxrtc.o"
 "./lib/src/stm32gxxxusart1.o"

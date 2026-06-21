@@ -133,6 +133,7 @@ void TIM1_BRK_TIM15_IRQHandler(void)
     }
 }
 
+/**
 void TIM1_UP_TIM16_IRQHandler(void)
 {
     uint32_t sr = TIM1->SR;
@@ -142,7 +143,21 @@ void TIM1_UP_TIM16_IRQHandler(void)
         tim1_u_callback();
     }
 }
+**/
 
+/* Update this name at the bottom of stm32gxxx_tim1.c */
+void TIM1_UP_TIM16_IRQHandler(void) {
+    if (_mask(TIM1->SR, TIM_SR_UIF)) {
+        clear_reg(&TIM1->SR, TIM_SR_UIF);
+        (void)TIM1->SR; // Compliance bus-cycle synchronization barrier
+
+        if (tim1()->callback->u != NULL) {
+            tim1()->callback->u();
+        }
+    }
+}
+
+/**
 void TIM1_TRG_COM_TIM17_IRQHandler(void)
 {
     uint32_t sr = TIM1->SR;
@@ -157,7 +172,23 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void)
         tim1_com_callback();
     }
 }
+**/
 
+void TIM1_TRG_COM_TIM17_IRQHandler(void) {
+    if (_mask(TIM1->SR, TIM_SR_TIF)) {
+        // Direct safe assignment to clear the rc_w0 flag
+        TIM1->SR = ~TIM_SR_TIF;
+
+        // Pipeline barrier: read back to guarantee clear cycles
+        (void)TIM1->SR;
+
+        if (tim1()->callback->t != NULL) {
+            tim1()->callback->t();
+        }
+    }
+}
+
+/**
 void TIM1_CC_IRQHandler(void)
 {
     uint32_t sr = TIM1->SR;
@@ -180,6 +211,33 @@ void TIM1_CC_IRQHandler(void)
     if (sr & TIM_SR_CC4IF) {
         CLEAR_FLAG(TIM1->SR, TIM_SR_CC4IF);
         tim1_cc4_callback();
+    }
+}
+**/
+
+void TIM1_CC_IRQHandler(void) {
+    uint32_t sr_status = dev()->timer->tim1->SR;
+    tim1_callback* cb_instance = tim1()->callback;
+
+    // Channel 1 Capture/Compare flag check
+    if (sr_status & TIM_SR_CC1IF) {
+        dev()->timer->tim1->SR = ~TIM_SR_CC1IF;
+        if (cb_instance->cc1) cb_instance->cc1();
+    }
+    // Channel 2 Capture/Compare flag check
+    if (sr_status & TIM_SR_CC2IF) {
+        dev()->timer->tim1->SR = ~TIM_SR_CC2IF;
+        if (cb_instance->cc2) cb_instance->cc2();
+    }
+    // Channel 3 Capture/Compare flag check
+    if (sr_status & TIM_SR_CC3IF) {
+        dev()->timer->tim1->SR = ~TIM_SR_CC3IF;
+        if (cb_instance->cc3) cb_instance->cc3();
+    }
+    // Channel 4 Capture/Compare flag check
+    if (sr_status & TIM_SR_CC4IF) {
+        dev()->timer->tim1->SR = ~TIM_SR_CC4IF;
+        if (cb_instance->cc4) cb_instance->cc4();
     }
 }
 
