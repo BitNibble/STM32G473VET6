@@ -5,6 +5,7 @@ License:  GNU General Public License
 ************************************************************************/
 #include "stm32gxxxrcc.h"
 #include "armsystick.h"
+#include "stm32gxxx_tim1.h"
 #include "timer_irq.h"
 #include "st7789.h"
 #include "armfunction.h"
@@ -24,40 +25,15 @@ char* ptr = NULL;
 
 void tim1_blink_setup(void)
 {
-    /*-----------------------------
-     * 1. CLOCK ENABLE (TIM1)
-     *----------------------------*/
-    dev()->sys->rcc->APB2ENR |= RCC_APB2ENR_TIM1EN;
+    tim1()->init(119,1999999);
 
-    /*-----------------------------
-     * 2. TIMER CONFIG (1 Hz example)
-     *    assuming 170 MHz TIM clock
-     *----------------------------*/
-    dev()->timer->tim1->PSC = 119;
-    dev()->timer->tim1->ARR = 1999999;
-    dev()->timer->tim1->CNT = 0;
+    tim1()->nvic_u_enable(2);
 
-    /* Force update so registers load */
-    dev()->timer->tim1->EGR = TIM_EGR_UG;
-
-    /*-----------------------------
-     * 3. INTERRUPT ENABLE (TIM1 update)
-     *----------------------------*/
-    dev()->timer->tim1->DIER |= TIM_DIER_UIE;
-
-    /*-----------------------------
-     * 4. NVIC ENABLE (TIM1 UP IRQ)
-     *----------------------------*/
-    NVIC_EnableIRQ(TIM1_UP_TIM16_IRQn);
-
-    /*-----------------------------
-     * 5. START TIMER
-     *----------------------------*/
-    dev()->timer->tim1->CR1 |= TIM_CR1_CEN;
+    tim1()->start();
 }
 void tim1_u_callback(void)
 {
-    dev()->gpio->f->ODR ^= (1 << 2);
+	toggle_hpin(dev()->gpio->f, 1 << 2);
 }
 
 int main(void)
@@ -93,7 +69,8 @@ int main(void)
 
 	lcd1.stop(&lcd1.par);
 
-	//tim1_blink_setup();
+	tim1_blink_setup();
+	tim1()->callback->u = tim1_u_callback;
 
 	while(1)
 	{
