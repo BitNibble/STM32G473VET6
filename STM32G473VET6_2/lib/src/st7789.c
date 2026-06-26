@@ -212,7 +212,7 @@ void st7789_set_raset(ST7789_par* par, uint16_t y0, uint16_t y1)
 }
 
 // Initialization sequence
-/**/
+/***
 void st7789_init_seq(ST7789_par* par) {
 	st7789_cs_low(par);
 	//st7789_start(par);
@@ -278,6 +278,75 @@ void st7789_init_seq(ST7789_par* par) {
 	st7789_delay_ms(20);
 	st7789_cs_high(par);
 }
+***/
+
+/***/
+void st7789_init_seq(ST7789_par* par) {
+    st7789_cs_low(par);
+    st7789_cmd(par, ST77XX_SWRESET); // SWRESET
+    st7789_spi_flush(par);
+    st7789_cs_high(par);
+
+    st7789_delay_ms(150);
+
+    st7789_cs_low(par);
+    st7789_cmd(par, ST77XX_SLPOUT); // SLPOUT
+    st7789_spi_flush(par);
+    st7789_cs_high(par);
+
+    st7789_delay_ms(120);
+
+    // --- CHIP SELECT TOGGLE FIX ---
+    // Added st7789_cs_low here because it was left floating high from SLPOUT
+    st7789_cs_low(par);
+    st7789_cmd(par, ST77XX_COLMOD); // COLMOD
+    st7789_data(par, 0x55);         // 16-bit color (RGB565)
+    st7789_spi_flush(par);
+    st7789_cs_high(par);            // Added CS high for protocol safety
+
+    st7789_cs_low(par);
+    st7789_cmd(par, 0x36); // MADCTL
+    st7789_data(par, 0x00); // 0x00 = Standard Portrait, 240x320, RGB color order
+    st7789_spi_flush(par);
+    st7789_cs_high(par);
+
+    // --- CASET: COLUMN ADDRESS SET ---
+    st7789_cs_low(par);
+    // Columns 0 to 239 (0x00EF) -> 240 pixels wide
+    st7789_set_caset(par, 0x0000, 0x00EF);
+    st7789_cs_high(par); // Toggle CS between window bounds
+
+    // --- RASET: ROW ADDRESS SET (CRITICAL CHANGE) ---
+    st7789_cs_low(par);
+    // Changed from 0x00EF (239) to 0x013F (319) -> 320 pixels high
+    st7789_set_raset(par, 0x0000, 0x013F);
+    st7789_cs_high(par);
+
+    // --- COLOR INVERSION ---
+    st7789_cs_low(par);
+    // Note: Most standard 2.8" panels require INVOFF (0x20).
+    // If your colors are inverted/photonegative, change this command to 0x20.
+    st7789_cmd(par, ST77XX_INVOFF);
+    st7789_spi_flush(par);
+    st7789_cs_high(par);
+
+    st7789_delay_ms(10);
+
+    st7789_cs_low(par);
+    st7789_cmd(par, ST77XX_NORON); // NORON
+    st7789_spi_flush(par);
+    st7789_cs_high(par);
+
+    st7789_delay_ms(10);
+
+    st7789_cs_low(par);
+    st7789_cmd(par, ST77XX_DISPON); // DISPON
+    st7789_spi_flush(par);
+
+    st7789_delay_ms(20);
+    st7789_cs_high(par);
+}
+/***/
 
 void st7789_set_window(ST7789_par* par, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
 {
@@ -1140,8 +1209,8 @@ void st7789_setup_spi(ST7789_par* par)
 void boot_screen(ST7789_par* par){
 	U_word color = { .var = ST77XX_BLACK };
 	st7789_cs_low(par);
-	st7789_set_window(par, 0, 0, 239, 239);
-	for (uint32_t i = 0; i < 240UL * 240; i++) {
+	st7789_set_window(par, 0, 0, par->width, par->height);
+	for (uint32_t i = 0; i < (uint32_t)(par->width * par->height); i++) {
 		st7789_data(par, color.par.h);
 		st7789_data(par, color.par.l);
 	}
@@ -1166,8 +1235,8 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
     st.par.cs_pin  = cs_pin;
     st.par.dc_pin  = dc_pin;
     st.par.rst_pin = rst_pin;
-    st.par.width   = 240;
-    st.par.height  = 240;
+    st.par.width   = ST7789_WIDTH;
+    st.par.height  = ST7789_HEIGHT;
     st.par.fb      = fb;
 
     // -------------------------

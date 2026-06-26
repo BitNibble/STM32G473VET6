@@ -14,19 +14,6 @@ static void t1_clk_di(void) {
     clear_reg(&dev()->sys->rcc->APB2ENR, RCC_APB2ENR_TIM1EN);
 }
 
-static void t1_init(uint16_t prescaler, uint32_t autoreload) {
-    t1_clk_en();
-    
-    dev()->timer->tim1->PSC = prescaler;
-    dev()->timer->tim1->ARR = autoreload;
-    
-    set_reg(&dev()->timer->tim1->BDTR, TIM_BDTR_MOE);
-    set_reg(&dev()->timer->tim1->EGR, TIM_EGR_UG);
-    clear_reg(&dev()->timer->tim1->SR, TIM_SR_UIF);
-
-    (void)TIM1->SR; // Sync barrier
-}
-
 static void t1_init_by_ticks(uint16_t prescaler, uint32_t autoreload) {
     t1_clk_en();
 
@@ -37,8 +24,7 @@ static void t1_init_by_ticks(uint16_t prescaler, uint32_t autoreload) {
     set_reg(&dev()->timer->tim1->EGR, TIM_EGR_UG);
     clear_reg(&dev()->timer->tim1->SR, TIM_SR_UIF);
 
-    __asm volatile ("dsb sy" : : : "memory");
-    __asm volatile ("isb sy" : : : "memory");
+    (void)TIM1->SR; // Sync barrier
 }
 
 static void t1_init_by_freq(uint16_t prescaler, uint32_t target_freq_hz) {
@@ -171,9 +157,8 @@ static uint32_t t1_get_capture(tim1_ch_t ch) {
 }
 
 static tim1_run t1_run = {
-	.init                 = t1_init,
-	.init_by_freq         = t1_init_by_freq,
 	.init_by_ticks        = t1_init_by_ticks,
+	.init_by_freq         = t1_init_by_freq,
 	.clock_enable         = t1_clk_en,
 	.clock_disable        = t1_clk_di,
 	.nvic_u_enable        = t1_nvic_u_en,

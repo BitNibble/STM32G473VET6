@@ -13,6 +13,10 @@ Date:     23/01/2026
 #include "armsystick.h"
 #include "st7789_fonts.h"
 
+#define ST7789_WIDTH  240
+#define ST7789_HEIGHT 320 // Changed from 240
+
+
 /*** Define & Macro ***/
 // RGB to RGB656
 #define ST7789_RGB565(r,g,b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3))

@@ -24,7 +24,7 @@ char* ptr = NULL;
 
 void tim1_blink_setup(void)
 {
-    tim1()->run->init(119,1999999);
+    tim1()->run->init_by_ticks(119,1999999);
 
     tim1()->run->nvic_u_enable(2);
 

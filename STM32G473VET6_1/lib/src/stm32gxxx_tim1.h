@@ -28,9 +28,8 @@ typedef enum {
 } ic_edge_t;
 
 typedef struct {
-	void (*init)(uint16_t prescaler, uint32_t autoreload);
-	void (*init_by_freq)(uint16_t prescaler, uint32_t target_freq_hz);
 	void (*init_by_ticks)(uint16_t prescaler, uint32_t autoreload);
+	void (*init_by_freq)(uint16_t prescaler, uint32_t target_freq_hz);
 	void (*clock_enable)(void);
 	void (*clock_disable)(void);
 	void (*nvic_u_enable)(uint8_t priority);
