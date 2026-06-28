@@ -83,8 +83,9 @@ void adjust_active_field(EXPLODE_Handler active_press)
             	break;
             case CFG_DAY:
             	t_day = rtc()->get_day();
-            	t_day  = LIMIT_INC(t_day,  31, 1); break;
+            	t_day  = LIMIT_INC(t_day,  31, 1);
             	rtc()->set_day(t_day);
+            	break;
             case CFG_MONTH:
             	t_mth = rtc()->get_month();
             	t_mth  = LIMIT_INC(t_mth,  12, 1);
@@ -166,11 +167,14 @@ int main(void)
 
 	while(1)
 	{
-		btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR);
+		if(btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR & BTN_ALL_PINS_MASK)) {
+			select_mode(btn_engine);
+			adjust_active_field(btn_engine);
 
-		select_mode(btn_engine);
-
-		adjust_active_field(btn_engine);
+			lcd1.start(&lcd1.par);
+			lcd1.drawstring16x24(&lcd1.par,func()->ui16toa(ui_state),10,10,ST77XX_WHITE,BG_colour);
+			lcd1.stop(&lcd1.par);
+		}
 
 		/***/
 		rtc()->dr2vec(vecD);
@@ -181,8 +185,6 @@ int main(void)
 			toggle_hpin(dev()->gpio->f, 1 << 2);
 
 			lcd1.start(&lcd1.par);
-			lcd1.drawstring16x24(&lcd1.par,func()->ui16toa(ui_state),10,10,ST77XX_WHITE,BG_colour);
-
 			func()->format_string(str,32,"%d%d-%d%d-20%d%d",vecD[5], vecD[6], vecD[3], vecD[4], vecD[0], vecD[1]);
 			lcd1.drawstring16x24(&lcd1.par,str,10,190,ST77XX_WHITE,BG_colour);
 
