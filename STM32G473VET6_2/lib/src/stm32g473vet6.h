@@ -12,6 +12,10 @@ Date:     04062026
 #include "custom_hal_def.h"
 #include "stm32xtool.h"
 
+// Clamping wrappers
+#define LIMIT_INC(val, max, min)  ((val) >= (max) ? (min) : (val) + 1)
+#define LIMIT_DEC(val, max, min)  ((val) <= (min) ? (max) : (val) - 1)
+
 /****************************************/
 /*******   1 -> HSI    2->HSE   *********/
 #define H_Clock_Source 2

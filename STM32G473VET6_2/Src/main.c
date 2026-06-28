@@ -14,8 +14,6 @@ License:  GNU General Public License
 
 #define BG_colour 0x0000
 
-char* ptr = NULL;
-
 // Define a unified bitmask for PD8, PD9, PD10, PD11, PD12, and PD13
 // Binary: 0011 1111 0000 0000 -> Hex: 0x3F00
 #define BTN_ALL_PINS_MASK    (0x3FU << 8)
@@ -25,10 +23,6 @@ char* ptr = NULL;
 #define BTN_UP_PIN           (1UL << 9)   // PD9
 #define BTN_DOWN_PIN         (1UL << 10)  // PD10
 #define BTN_SAVE_PIN         (1UL << 11)  // PD11
-
-// Clamping wrappers
-#define LIMIT_INC(val, max, min)  ((val) >= (max) ? (min) : (val) + 1)
-#define LIMIT_DEC(val, max, min)  ((val) <= (min) ? (max) : (val) - 1)
 
 typedef enum {
     CFG_IDLE = 0,
@@ -44,13 +38,6 @@ typedef enum {
 static ui_state_t ui_state = CFG_IDLE;
 static EXPLODE_Handler btn_engine;
 
-// Local configuration scratchpad variable storage
-static uint8_t t_hr, t_min, t_day, t_mth, t_yr, t_wday;
-
-/**
- * 1. Initialize Inputs Using Custom Utilities
- * Leverages your batch-pin helpers for instant, glitch-free peripheral routing.
- */
 void rtc_ui_init(void)
 {
     // Enable GPIO Port D Clock via your helper
@@ -66,43 +53,91 @@ void rtc_ui_init(void)
     btn_engine = EXPLODE_enable();
 }
 
-/**
- * 2. Process Adjustments Dynamically
- * Steps parameters forward or backward based on the active UI stage.
- */
+void select_mode(EXPLODE_Handler active_press)
+{
+	if (active_press.par.HL & BTN_MODE_PIN) {
+		ui_state = LIMIT_INC(ui_state, 7, 0);
+	}
+}
+
 void adjust_active_field(EXPLODE_Handler active_press)
 {
+	uint8_t t_hr = ZERO;
+	uint8_t t_min = ZERO;
+	uint8_t t_day = ZERO;
+	uint8_t t_mth = ZERO;
+	uint8_t t_yr = ZERO;
+	uint8_t t_wday = ZERO;
+
     if (active_press.par.HL & BTN_UP_PIN) {
         switch (ui_state) {
-            case CFG_HOUR:    t_hr   = LIMIT_INC(t_hr,   23, 0); break;
-            case CFG_MINUTE:  t_min  = LIMIT_INC(t_min,  59, 0); break;
-            case CFG_DAY:     t_day  = LIMIT_INC(t_day,  31, 1); break;
-            case CFG_MONTH:   t_mth  = LIMIT_INC(t_mth,  12, 1); break;
-            case CFG_YEAR:    t_yr   = LIMIT_INC(t_yr,   99, 0); break;
-            case CFG_WEEKDAY: t_wday = LIMIT_INC(t_wday,  7, 1); break;
+            case CFG_HOUR:
+            	t_hr = rtc()->get_hour();
+            	t_hr   = LIMIT_INC(t_hr,   23, 0);
+            	rtc()->set_hour(t_hr);
+            	break;
+            case CFG_MINUTE:
+            	t_min = rtc()->get_minute();
+            	t_min  = LIMIT_INC(t_min,  59, 0);
+            	rtc()->set_minute(t_min);
+            	break;
+            case CFG_DAY:
+            	t_day = rtc()->get_day();
+            	t_day  = LIMIT_INC(t_day,  31, 1); break;
+            	rtc()->set_day(t_day);
+            case CFG_MONTH:
+            	t_mth = rtc()->get_month();
+            	t_mth  = LIMIT_INC(t_mth,  12, 1);
+            	rtc()->set_month(t_mth);
+            	break;
+            case CFG_YEAR:
+            	t_yr = rtc()->get_year();
+            	t_yr   = LIMIT_INC(t_yr,   99, 0);
+            	rtc()->set_year(t_yr);
+            	break;
+            case CFG_WEEKDAY:
+            	t_wday = rtc()->get_weekday();
+            	t_wday = LIMIT_INC(t_wday,  7, 1);
+            	rtc()->set_weekday(t_wday);
+            	break;
             default: break;
         }
     }
     else if (active_press.par.HL & BTN_DOWN_PIN) {
         switch (ui_state) {
-            case CFG_HOUR:    t_hr   = LIMIT_DEC(t_hr,   23, 0); break;
-            case CFG_MINUTE:  t_min  = LIMIT_DEC(t_min,  59, 0); break;
-            case CFG_DAY:     t_day  = LIMIT_DEC(t_day,  31, 1); break;
-            case CFG_MONTH:   t_mth  = LIMIT_DEC(t_mth,  12, 1); break;
-            case CFG_YEAR:    t_yr   = LIMIT_DEC(t_yr,   99, 0); break;
-            case CFG_WEEKDAY: t_wday = LIMIT_DEC(t_wday,  7, 1); break;
+            case CFG_HOUR:
+            	t_hr = rtc()->get_hour();
+            	t_hr   = LIMIT_DEC(t_hr,   23, 0);
+            	rtc()->set_hour(t_hr);
+            	break;
+            case CFG_MINUTE:
+            	t_min = rtc()->get_minute();
+            	t_min  = LIMIT_DEC(t_min,  59, 0);
+            	rtc()->set_minute(t_min);
+            	break;
+            case CFG_DAY:
+            	t_day = rtc()->get_day();
+            	t_day  = LIMIT_DEC(t_day,  31, 1);
+            	rtc()->set_day(t_day);
+            	break;
+            case CFG_MONTH:
+            	t_mth = rtc()->get_month();
+            	t_mth  = LIMIT_DEC(t_mth,  12, 1);
+            	rtc()->set_month(t_mth);
+            	break;
+            case CFG_YEAR:
+            	t_yr = rtc()->get_year();
+            	t_yr   = LIMIT_DEC(t_yr,   99, 0);
+            	rtc()->set_year(t_yr);
+            	break;
+            case CFG_WEEKDAY:
+            	t_wday = rtc()->get_weekday();
+            	t_wday = LIMIT_DEC(t_wday,  7, 1);
+            	rtc()->set_weekday(t_wday);
+            	break;
             default: break;
         }
     }
-}
-
-/**
- * 4. Fetch Active State
- * @return The state ID index indicating which value is actively selected or flashing.
- */
-uint8_t rtc_ui_get_state(void)
-{
-    return (uint8_t)ui_state;
 }
 
 int main(void)
@@ -132,6 +167,11 @@ int main(void)
 	while(1)
 	{
 		btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR);
+
+		select_mode(btn_engine);
+
+		adjust_active_field(btn_engine);
+
 		/***/
 		rtc()->dr2vec(vecD);
 		rtc()->tr2vec(vecT);
@@ -141,18 +181,18 @@ int main(void)
 			toggle_hpin(dev()->gpio->f, 1 << 2);
 
 			lcd1.start(&lcd1.par);
+			lcd1.drawstring16x24(&lcd1.par,func()->ui16toa(ui_state),10,10,ST77XX_WHITE,BG_colour);
+
 			func()->format_string(str,32,"%d%d-%d%d-20%d%d",vecD[5], vecD[6], vecD[3], vecD[4], vecD[0], vecD[1]);
 			lcd1.drawstring16x24(&lcd1.par,str,10,190,ST77XX_WHITE,BG_colour);
 
-			lcd1.drawstring12x16_size(&lcd1.par,(char*)WeekDay_String(vecD[2]),10,240,ST77XX_WHITE,BG_colour,7);
+			lcd1.drawstring12x16_size(&lcd1.par,(char*)WeekDay_String(vecD[2]),10,240,ST77XX_WHITE,BG_colour,10);
 
 			func()->format_string(str,32,"%d%d:%d%d:%d%d",vecT[0], vecT[1], vecT[2], vecT[3], vecT[4], vecT[5]);
 			lcd1.drawstring24x48_size(&lcd1.par,str,15,100,ST77XX_RED,BG_colour,8);
 			lcd1.stop(&lcd1.par);
 
 		}
-
-		/***/
 
 	}
 }
