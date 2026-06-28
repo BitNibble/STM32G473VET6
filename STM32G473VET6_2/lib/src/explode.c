@@ -16,6 +16,14 @@ IO_var EXPLODE_ll(explode_par* par);
 IO_var EXPLODE_lh(explode_par* par);
 IO_var EXPLODE_hl(explode_par* par);
 
+static const explode_run run_setup = {
+	.update = EXPLODE_update,
+	.hh = EXPLODE_hh,
+	.ll = EXPLODE_ll,
+	.lh = EXPLODE_lh,
+	.hl = EXPLODE_hl
+};
+
 /*** EXPLODE Procedure & Function Definition ***/
 EXPLODE_Handler EXPLODE_enable( void )
 {
@@ -29,7 +37,7 @@ EXPLODE_Handler EXPLODE_enable( void )
 				.LH = 0,
 				.HL = 0
 			},
-		.update = EXPLODE_update
+		.run = &run_setup,
 	};
 	return setup;
 }
