@@ -320,6 +320,10 @@ uint32_t get_pclk1(void);
 uint32_t get_pclk2(void);
 uint32_t get_timclk1(void);
 uint32_t get_timclk2(void);
+uint32_t get_adc12_hclk(void);
+uint32_t get_adc12_ker_ck_input(void);
+uint32_t get_adc12_ker_ck(void);
+uint32_t get_freq_adc12(void);
 
 /************************* Generic UTILS ***************************/
 U_word writeHLbyte(uint16_t v);

@@ -868,7 +868,14 @@ static const FUNC_Handler func_setup = {
 	// 9
 	.tokenize_string = function_tokenize_string,
 	.nullify_last_n_chars = function_nullify_last_n_chars,
-	.parse_string = function_parse_string
+	.parse_string = function_parse_string,
+	// 10
+	.int_to_string = int_to_string,
+	.uint_to_string = uint_to_string,
+	.string_to_int = string_to_int,
+	.string_to_uint = string_to_uint,
+	.int_to_hex_string = int_to_hex_string,
+	.float_to_string = float_to_string
 	};
 
 const FUNC_Handler* func(void){ return &func_setup; }

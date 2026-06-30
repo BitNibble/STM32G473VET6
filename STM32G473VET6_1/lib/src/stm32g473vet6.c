@@ -404,6 +404,78 @@ inline uint32_t get_timclk2(void)
     return pclk2 * apb_div;
 }
 
+uint32_t get_adc_hclk(void)
+{
+    return get_hclk();
+}
+
+static inline uint32_t _get_adc12_sel(void)
+{
+    return get_field_value( dev()->sys->rcc->CCIPR, RCC_CCIPR_ADC12SEL_Msk, RCC_CCIPR_ADC12SEL_Pos );
+}
+
+uint32_t get_adc12_ker_ck_input(void)
+{
+    switch (_get_adc12_sel())
+    {
+        case 0:
+            return get_sysclk();
+
+        case 1:
+            return get_pllclk() / get_pllp();
+
+        default:
+            return 0;
+    }
+}
+
+uint32_t get_adc12_ker_ck(void)
+{
+    uint32_t input = get_adc12_ker_ck_input();
+
+    if (input == 0)
+        return 0;
+
+    uint32_t ckmode = get_field_value( dev()->analog->adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
+
+    /* PRESC only applies in asynchronous mode */
+    if (ckmode == 0)
+    {
+        uint32_t presc = get_field_value( dev()->analog->adc12_common->CCR, ADC_CCR_PRESC_Msk, ADC_CCR_PRESC_Pos );
+
+        uint32_t div = 1U << presc;
+        return input / div;
+    }
+
+    /* synchronous mode: kernel clock bypassed */
+    return input;
+}
+
+uint32_t get_freq_adc12(void)
+{
+    uint32_t hclk = get_hclk();
+
+    uint32_t ckmode = get_field_value( dev()->analog->adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
+
+    switch (ckmode)
+    {
+        case 0:
+            return get_adc12_ker_ck();
+
+        case 1:
+            return hclk;
+
+        case 2:
+            return hclk / 2U;
+
+        case 3:
+            return hclk / 4U;
+
+        default:
+            return 0;
+    }
+}
+
 /************************* Generic UTILS ***************************/
 U_word writeHLbyte(uint16_t v)
 {

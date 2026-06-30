@@ -82,6 +82,13 @@ typedef struct
 	int (*tokenize_string)(char *input, char *tokens[], int max_tokens, const char *delimiters);
 	void (*nullify_last_n_chars)(char *str, int n);
 	void (*parse_string)(char* raw_input_string, uint8_t n_tokens, char* token[], const char* parser);
+	/******/
+	void (*int_to_string)(int value, char* buffer, size_t buffer_size);
+	void (*uint_to_string)(unsigned int value, char* buffer, size_t buffer_size);
+	int32_t (*string_to_int)(const char* str);
+	uint32_t (*string_to_uint)(const char* str);
+	void (*int_to_hex_string)(unsigned int value, char* buffer, size_t buffer_size);
+	void (*float_to_string)(float value, char* buffer, size_t buffer_size);
 }FUNC_Handler;
 
 const FUNC_Handler* func(void);
