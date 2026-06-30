@@ -38,6 +38,116 @@ typedef enum {
 static ui_state_t ui_state = CFG_IDLE;
 static EXPLODE_Handler btn_engine;
 
+void rtc_ui_init(void);
+void select_mode(EXPLODE_Handler active_press);
+void adjust_active_field(EXPLODE_Handler active_press);
+
+void adc_temp_init(void);
+uint16_t adc_temp_read_raw(void);
+float adc_temp_to_celsius(uint16_t raw);
+float adc_temp_read_celsius(void);
+
+int main(void)
+{
+	rcc()->inic();
+	fpu_enable();
+	rtc()->inic();
+
+	char str[32];
+	char vecD[8]; // for calendar date
+	char vecT[8]; // for calendar time
+
+	GPIO_clock( dev()->gpio->f, 1 );
+	GPIO_hmoder( dev()->gpio->f, 1 << 2, 1 );
+	rtc_ui_init();
+
+	adc_temp_init();
+
+	EXPLODE_Handler seconds = EXPLODE_enable();
+
+	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
+	(void) lcd1;
+
+	lcd1.start(&lcd1.par);
+	lcd1.draw_circle(&lcd1.par,220,300,15,ST77XX_CYAN);
+	lcd1.draw_star5(&lcd1.par,220,300,15,5,ST77XX_GOLD);
+	lcd1.stop(&lcd1.par);
+
+	while(1)
+	{
+		if(btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR & BTN_ALL_PINS_MASK)) {
+			select_mode(btn_engine);
+			adjust_active_field(btn_engine);
+
+			switch(ui_state){
+			case CFG_IDLE:
+				lcd1.start(&lcd1.par);
+				lcd1.drawstring16x24_size(&lcd1.par,"Relogio",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.stop(&lcd1.par);
+				break;
+			case CFG_HOUR:
+				lcd1.start(&lcd1.par);
+				lcd1.drawstring16x24_size(&lcd1.par,"Hora",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.stop(&lcd1.par);
+				break;
+			case CFG_MINUTE:
+				lcd1.start(&lcd1.par);
+				lcd1.drawstring16x24_size(&lcd1.par,"Minuto",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.stop(&lcd1.par);
+				break;
+			case CFG_DAY:
+				lcd1.start(&lcd1.par);
+				lcd1.drawstring16x24_size(&lcd1.par,"Dia",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.stop(&lcd1.par);
+				break;
+			case CFG_MONTH:
+				lcd1.start(&lcd1.par);
+				lcd1.drawstring16x24_size(&lcd1.par,"Mes",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.stop(&lcd1.par);
+				break;
+			case CFG_YEAR:
+				lcd1.start(&lcd1.par);
+				lcd1.drawstring16x24_size(&lcd1.par,"Ano",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.stop(&lcd1.par);
+				break;
+			case CFG_WEEKDAY:
+				lcd1.start(&lcd1.par);
+				lcd1.drawstring16x24_size(&lcd1.par,"Semana",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.stop(&lcd1.par);
+				break;
+			case CFG_MAX:
+				lcd1.start(&lcd1.par);
+				lcd1.drawstring16x24_size(&lcd1.par,"MAX",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.stop(&lcd1.par);
+				break;
+			default: break;
+			};
+		}
+
+		/***/
+		rtc()->dr2vec(vecD);
+		rtc()->tr2vec(vecT);
+
+		if (seconds.run->update(&seconds.par, vecT[5])) {
+			toggle_hpin(dev()->gpio->f, 1 << 2);
+
+			func()->float_to_string(adc_temp_read_celsius(),str,32);
+			strcat(str, " C");
+			lcd1.drawstring16x24_size(&lcd1.par,str,15,200,ST77XX_BLUE,BG_colour,8);
+
+			func()->format_string(str,32,"%d%d:%d%d:%d%d",vecT[0], vecT[1], vecT[2], vecT[3], vecT[4], vecT[5]);
+			lcd1.drawstring24x48_size(&lcd1.par,str,15,80,ST77XX_RED,BG_colour,8);
+			lcd1.stop(&lcd1.par);
+
+			lcd1.start(&lcd1.par);
+			func()->format_string(str,32,"%d%d-%d%d-20%d%d",vecD[5], vecD[6], vecD[3], vecD[4], vecD[0], vecD[1]);
+			lcd1.drawstring16x24(&lcd1.par,str,10,240,ST77XX_GREEN,BG_colour);
+
+			lcd1.drawstring12x16_size(&lcd1.par,(char*)WeekDay_String(vecD[2]),10,300,ST77XX_WHITE,BG_colour,10);
+		}
+	}
+}
+
 void rtc_ui_init(void)
 {
     // Enable GPIO Port D Clock via your helper
@@ -141,61 +251,148 @@ void adjust_active_field(EXPLODE_Handler active_press)
     }
 }
 
-int main(void)
+/* ============================================================
+   ADC INITIALIZATION
+   =========================================================== */
+void adc_temp_init_v1(void) {
+    /* 1. Ativar o clock do circuito do ADC no RCC */
+    set_reg(&dev()->sys->rcc->AHB2ENR, RCC_AHB2ENR_ADC12EN);
+
+    /* 2. Sair do modo Deep Power Down (Obrigatório antes de QUALQUER outra ação no ADC) */
+    clear_reg(&dev()->analog->adc1->CR, ADC_CR_DEEPPWD);
+
+    /* 3. Ativar o regulador de tensão interno */
+    set_reg(&dev()->analog->adc1->CR, ADC_CR_ADVREGEN);
+
+    /* 4. Aguardar a estabilização do regulador interno (~20us) */
+    _delay_us(20);
+
+    /* 5. SELECIONAR CLOCK SÍNCRONO (HCLK) NO REGISTO COMUM */
+    // Mudamos o clock APÓS o regulador estar ativo e estável.
+    // Configuramos CKMODE = 01 (HCLK/1 síncrono).
+    uint32_t ccr_val = dev()->analog->adc12_common->CCR;
+    ccr_val &= ~(3 << ADC_CCR_CKMODE_Pos); // Limpa bits antigos
+    ccr_val |= (1 << ADC_CCR_CKMODE_Pos);  // Define HCLK/1
+    set_reg(&dev()->analog->adc12_common->CCR, ccr_val);
+
+    /* 6. Iniciar a calibração do ADC (Obrigatório antes de ligar o ADEN) */
+    set_reg(&dev()->analog->adc1->CR, ADC_CR_ADCAL);
+    while (dev()->analog->adc1->CR & ADC_CR_ADCAL);
+
+    /* 7. Ativar o canal do sensor de temperatura interno */
+    set_reg(&dev()->analog->adc12_common->CCR, dev()->analog->adc12_common->CCR | ADC_CCR_VSENSESEL);
+
+    /* 8. Garantir que o flag ADRDY está limpo antes de ligar */
+    set_reg(&dev()->analog->adc1->ISR, ADC_ISR_ADRDY);
+
+    /* 9. Ligar o ADC e aguardar o flag de pronto */
+    set_reg(&dev()->analog->adc1->CR, ADC_CR_ADEN);
+    while (!(dev()->analog->adc1->ISR & ADC_ISR_ADRDY));
+}
+
+void adc_temp_init(void) {
+    /* 1. Ativar o clock do circuito do ADC no RCC */
+    set_reg(&dev()->sys->rcc->AHB2ENR, RCC_AHB2ENR_ADC12EN);
+
+    /* 2. Sair do modo Deep Power Down do ADC1 */
+    clear_reg(&dev()->analog->adc1->CR, ADC_CR_DEEPPWD);
+
+    /* 3. Ativar o regulador de tensão interno do ADC1 */
+    set_reg(&dev()->analog->adc1->CR, ADC_CR_ADVREGEN);
+
+    /* 4. Aguardar a estabilização do regulador interno (~20us) */
+    _delay_us(20);
+
+    /* 5. Selecionar Clock Síncrono (HCLK/1) no registo comum */
+    uint32_t ccr_val = dev()->analog->adc12_common->CCR;
+    ccr_val &= ~(3 << ADC_CCR_CKMODE_Pos);
+    ccr_val |= (1 << ADC_CCR_CKMODE_Pos);
+    set_reg(&dev()->analog->adc12_common->CCR, ccr_val);
+
+    /* 6. Iniciar a calibração do ADC1 */
+    set_reg(&dev()->analog->adc1->CR, ADC_CR_ADCAL);
+    while (dev()->analog->adc1->CR & ADC_CR_ADCAL);
+
+    /* 7. Ativar o canal do sensor de temperatura interno (Partilhado) */
+    set_reg(&dev()->analog->adc12_common->CCR, dev()->analog->adc12_common->CCR | ADC_CCR_VSENSESEL);
+
+    /* 8. CONFIGURAR O TEMPO DE AMOSTRAGEM (CRÍTICO)
+          O sensor interno do STM32G4 exige um tempo de amostragem de pelo menos 4.9 us.
+          Configuramos o Canal 16 para usar o máximo de ciclos disponível (SMP2 = 111 -> 640.5 ciclos) */
+    uint32_t smpr2_val = dev()->analog->adc1->SMPR2;
+    smpr2_val &= ~(7 << ADC_SMPR2_SMP16_Pos); // Limpa bits do Canal 16
+    smpr2_val |= (7 << ADC_SMPR2_SMP16_Pos);  // Define 640.5 ciclos de clock
+    set_reg(&dev()->analog->adc1->SMPR2, smpr2_val);
+
+    /* 9. CONFIGURAR O SEQUENCIADOR (SQR1)
+          Definimos que vamos fazer apenas 1 conversão (L = 0000) e que o
+          primeiro canal a ser lido (SQ1) é o Canal 16. */
+    uint32_t sqr1_val = dev()->analog->adc1->SQR1;
+    sqr1_val &= ~(ADC_SQR1_L | (0x1F << ADC_SQR1_SQ1_Pos)); // Limpa comprimento e SQ1
+    sqr1_val |= (16 << ADC_SQR1_SQ1_Pos);                   // SQ1 = Canal 16, L = 0 (1 conversão)
+    set_reg(&dev()->analog->adc1->SQR1, sqr1_val);
+
+    /* 10. Garantir que o flag ADRDY está limpo antes de ligar */
+    set_reg(&dev()->analog->adc1->ISR, ADC_ISR_ADRDY);
+
+    /* 11. Ligar o ADC e aguardar o flag de pronto */
+    set_reg(&dev()->analog->adc1->CR, ADC_CR_ADEN);
+    while (!(dev()->analog->adc1->ISR & ADC_ISR_ADRDY));
+}
+
+/* ============================================================
+   RAW ADC READ
+   ============================================================ */
+uint16_t adc_temp_read_raw(void)
 {
-	rcc()->inic();
-	fpu_enable();
-	rtc()->inic();
+    set_reg(
+        &dev()->analog->adc1->CR,
+        ADC_CR_ADSTART
+    );
 
-	char str[32];
-	char vecD[8]; // for calendar date
-	char vecT[8]; // for calendar time
+    while (!(dev()->analog->adc1->ISR & ADC_ISR_EOC));
 
-	GPIO_clock( dev()->gpio->f, 1 );
-	GPIO_hmoder( dev()->gpio->f, 1 << 2, 1 );
-	rtc_ui_init();
+    return (uint16_t)dev()->analog->adc1->DR;
+}
 
-	EXPLODE_Handler seconds = EXPLODE_enable();
+/* ============================================================
+   CALIBRATED TEMPERATURE CONVERSION
+   ============================================================ */
+float adc_temp_to_celsius_v1(uint16_t raw)
+{
+    uint16_t cal1 = *(uint16_t*)0x1FFF75A8;
+    uint16_t cal2 = *(uint16_t*)0x1FFF75CA;
 
-	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
-	(void) lcd1;
+    return 30.0f +
+        ((float)(raw - cal1) * (110.0f - 30.0f)) /
+        (float)(cal2 - cal1);
+}
 
-	lcd1.start(&lcd1.par);
-	lcd1.draw_circle(&lcd1.par,200,80,15,ST77XX_CYAN);
-	lcd1.draw_star5(&lcd1.par,200,80,15,5,ST77XX_GOLD);
-	lcd1.stop(&lcd1.par);
+float adc_temp_to_celsius(uint16_t raw)
+{
+    // Endereços oficiais de calibração do STM32G4 (gravados a 3.0V)
+    uint16_t cal1 = *(volatile uint16_t*)0x1FFF75A8; // Medido a 30 ºC
+    uint16_t cal2 = *(volatile uint16_t*)0x1FFF75CA; // Medido a 130 ºC
 
-	while(1)
-	{
-		if(btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR & BTN_ALL_PINS_MASK)) {
-			select_mode(btn_engine);
-			adjust_active_field(btn_engine);
+    /*
+       Ajuste de VDDA:
+       Se a sua placa usa VDDA = 3.3V, o valor bruto lido deve ser escalado
+       para a referência de fábrica (3.0V). Se a sua placa usar 3.0V exatos,
+       mude o fator para 1.0f.
+    */
+    float vdda_atual = 3.3f;
+    float raw_escalado = (float)raw * (vdda_atual / 3.0f);
 
-			lcd1.start(&lcd1.par);
-			lcd1.drawstring16x24(&lcd1.par,func()->ui16toa(ui_state),10,10,ST77XX_WHITE,BG_colour);
-			lcd1.stop(&lcd1.par);
-		}
+    // Fórmula oficial do RM0440 utilizando 130 ºC para TS_CAL2_TEMP
+    return 30.0f + ((raw_escalado - (float)cal1) * (130.0f - 30.0f)) / (float)(cal2 - cal1);
+}
 
-		/***/
-		rtc()->dr2vec(vecD);
-		rtc()->tr2vec(vecT);
-
-
-		if (seconds.run->update(&seconds.par, vecT[5])) {
-			toggle_hpin(dev()->gpio->f, 1 << 2);
-
-			lcd1.start(&lcd1.par);
-			func()->format_string(str,32,"%d%d-%d%d-20%d%d",vecD[5], vecD[6], vecD[3], vecD[4], vecD[0], vecD[1]);
-			lcd1.drawstring16x24(&lcd1.par,str,10,190,ST77XX_WHITE,BG_colour);
-
-			lcd1.drawstring12x16_size(&lcd1.par,(char*)WeekDay_String(vecD[2]),10,240,ST77XX_WHITE,BG_colour,10);
-
-			func()->format_string(str,32,"%d%d:%d%d:%d%d",vecT[0], vecT[1], vecT[2], vecT[3], vecT[4], vecT[5]);
-			lcd1.drawstring24x48_size(&lcd1.par,str,15,100,ST77XX_RED,BG_colour,8);
-			lcd1.stop(&lcd1.par);
-
-		}
-
-	}
+/* ============================================================
+   HIGH-LEVEL API
+   ============================================================ */
+float adc_temp_read_celsius(void)
+{
+    uint16_t raw = adc_temp_read_raw();
+    return adc_temp_to_celsius(raw);
 }
 

@@ -55,9 +55,9 @@ void STM32GXXX_Prescaler(uint16_t ahbpre, uint8_t ppre1, uint8_t ppre2);
 void STM32GXXX_RTC_ClockSelect(uint8_t rtc);
 
 /*** RCC Procedure & Function Definition ***/
-void rcc_start(void)
+void rcc_start_v1(void)
 {
-	uint8_t multiply = 96; // (plln >= 8 && plln <= 127)
+	uint8_t multiply = 48; // (plln >= 8 && plln <= 127)
 	uint8_t devide = 2;
     /* Enable primary clock source safely */
     STM32GXXX_Rcc_HEnable(H_Clock_Source);
@@ -98,6 +98,53 @@ void rcc_start(void)
     /* (AHB=1, APB1=1, APB2=1) */
     STM32GXXX_Prescaler(1, 1, 1);
     /* SysTick Time Constants */
+    systick_configure();
+}
+
+void rcc_start(void)
+{
+    uint8_t multiply = 48; // VCO = (Entrada / M) * 48
+    uint8_t devide = 2;    // SYSCLK = VCO / 2
+
+    STM32GXXX_Rcc_HEnable(H_Clock_Source);
+    STM32GXXX_Rcc_PLL_Source(H_Clock_Source);
+
+    uint32_t input = get_pll_source();
+
+    /* CORREÇÃO: Alvo de frequência de entrada do VCO = 2 MHz (Válido para HSI 16MHz) */
+    uint32_t pllm = input / 2000000;
+
+    if (pllm < 1)  pllm = 1;
+    if (pllm > 16) pllm = 16;
+
+    /* Garante limites válidos do STM32G4:
+       Se input = 16MHz -> pllm = 8 -> Entrada VCO = 2MHz (Válido: >2.66MHz para algumas revisões, idealmente mire em 4MHz se necessário)
+       VCO_Output = (16 / 8) * 48 = 96 MHz (Válido: entre 96 e 344 MHz)
+       SYSCLK = 96 / 2 = 48 MHz
+    */
+
+    STM32GXXX_PLL_Division((uint8_t)pllm, multiply, 2, 2, devide);
+
+    if (PLL_ON_OFF)
+    {
+        /* Flash latency MUST match final target SYSCLK frequency BEFORE switching */
+        uint32_t vco = (input / pllm) * multiply;
+        uint32_t sysclk = vco / devide;
+
+        RCC_Flash_SetLatency(sysclk);
+
+        /* Ativa o circuito PLL e aguarda estabilização */
+        STM32GXXX_Rcc_PLL_CLK_Enable();
+
+        /* Altera a fonte do sistema para o PLL */
+        STM32GXXX_Rcc_HSelect(RCC_HCLK_PLL);
+    }
+    else
+    {
+        STM32GXXX_Rcc_HSelect(H_Clock_Source);
+    }
+
+    STM32GXXX_Prescaler(1, 1, 1);
     systick_configure();
 }
 
