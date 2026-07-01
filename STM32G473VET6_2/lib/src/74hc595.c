@@ -16,6 +16,15 @@ void HC595_ibyte(hc595_par* par, uint8_t byte);
 void HC595_byte(hc595_par* par, uint8_t byte);
 void HC595_shift_out(hc595_par* par);
 
+static const hc595_run run_setup = {
+	.shift_bit = HC595_shift_bit,
+	.shift_ibyte = HC595_shift_ibyte,
+	.shift_byte = HC595_shift_byte,
+	.ibyte = HC595_ibyte,
+	.byte = HC595_byte,
+	.out = HC595_shift_out
+};
+
 /*** 74HC595 Procedure & Function Definition ***/
 HC595_Handler hc595_enable(volatile IO_var *ddr, volatile IO_var *port, uint8_t datapin, uint8_t clkpin, uint8_t outpin)
 {
@@ -27,13 +36,7 @@ HC595_Handler hc595_enable(volatile IO_var *ddr, volatile IO_var *port, uint8_t 
 			.HC595_clkpin = clkpin,
 			.HC595_outpin = outpin
 		},
-		// V-table
-		.shift_bit = HC595_shift_bit,
-		.shift_ibyte = HC595_shift_ibyte,
-		.shift_byte = HC595_shift_byte,
-		.ibyte = HC595_ibyte,
-		.byte = HC595_byte,
-		.out = HC595_shift_out
+		.run = &run_setup
 	};
 	#if defined (STM32F4XXX)
 		*setup_hc595.par.hc595_DDR &= (IO_var) ~((3 << (datapin * 2)) | (3 << (clkpin * 2)) | (3 << (outpin * 2)));

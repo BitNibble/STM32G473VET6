@@ -950,11 +950,11 @@ void st7789_fill_circle_v2( ST7789_par* par, int x0, int y0, int r, uint16_t col
 	}
 }
 
-void draw_random_circles(ST7789* lcd, uint8_t num){
+void draw_random_circles(ST7789_par* par, uint8_t num) {
 	for(int i = 0; i < num; i++) {
 		// Random position
-		int x = rand() % lcd->par.width;
-		int y = rand() % lcd->par.height;
+		int x = rand() % par->width;
+		int y = rand() % par->height;
 
 		// Random size 1, 2, or 3 pixels
 		int size = 1 + (rand() % 8);
@@ -966,8 +966,8 @@ void draw_random_circles(ST7789* lcd, uint8_t num){
 		else color = ST77XX_ORANGE;
 
 		// Draw the star (use your circle function for size >1, pixel for size==1)
-		if(size == 1) lcd->draw_pixel(&lcd->par, x, y, color);
-		else lcd->fill_circle_v1(&lcd->par, x, y, size, color);
+		if(size == 1) st7789_draw_pixel(par, x, y, color);
+		else st7789_fill_circle_v1(par, x, y, size, color);
 	}
 }
 
@@ -1224,6 +1224,48 @@ void welcome_screen(ST7789_par* par){
     st7789_cs_high(par);
 }
 
+static const ST7789_run run_setup = {
+	.reset           = st7789_reset,
+	.start           = st7789_cs_low,
+	.stop            = st7789_cs_high,
+	.draw_pixel      = st7789_draw_pixel,
+	.fill_screen     = st7789_fill_screen,
+	.drawfont8x12    = st7789_drawfont8x12,
+	.drawstring8x12  = st7789_drawstring8x12,
+	.drawstring8x12_size  = st7789_drawstring8x12_size,
+	.drawfont12x16   = st7789_drawfont12x16,
+	.drawstring12x16 = st7789_drawstring12x16,
+	.drawstring12x16_size = st7789_drawstring12x16_size,
+	.drawfont16x24   = st7789_drawfont16x24,
+	.drawstring16x24 = st7789_drawstring16x24,
+	.drawstring16x24_size = st7789_drawstring16x24_size,
+	.drawfont32x32   = st7789_drawfont32x32,
+	.drawstring32x32_size = st7789_drawstring32x32_size,
+	.drawfont18x32   = st7789_drawfont18x32,
+	.drawstring18x32_size = st7789_drawstring18x32_size,
+	.drawfont48x48   = st7789_drawfont48x48,
+	.drawstring48x48_size = st7789_drawstring48x48_size,
+	.drawfont24x48   = st7789_drawfont24x48,
+	.drawstring24x48_size = st7789_drawstring24x48_size,
+	//.drawfont64x64   = st7789_drawfont64x64,
+	//.drawstring64x64_size = st7789_drawstring64x64_size,
+	.drawfont64x64   = NULL,
+	.drawstring64x64_size = NULL,
+	.draw_line       = st7789_draw_line,
+	.draw_line_eq    = st7789_draw_line_eq,
+	.draw_circle     = st7789_draw_circle,
+	.draw_circle_eq  = st7789_draw_circle_eq,
+	.fill_circle_v1  = st7789_fill_circle_v1,
+	.fill_circle_v2  = st7789_fill_circle_v2,
+	.draw_random_circles = draw_random_circles,
+	.draw_star5      = st7789_draw_star5,
+	.draw_raw_bitmap_fg    = st7789_draw_raw_bitmap_fg,
+	.draw_adjust_bitmap_fg = st7789_draw_adjust_bitmap_fg,
+	.dump_buffer     = st7789_dump_buffer,
+	.dump_image      = st7789_dump_image,
+	.test_pin        = st7789_test_pin
+};
+
 /***** Enable ST7789 handler *****/
 ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t rst_pin, uint16_t *fb) {
     ST7789 st;
@@ -1276,49 +1318,7 @@ ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t r
 
     st.setup.gpio = st7789_setup_gpio;
     st.setup.spi  = st7789_setup_spi;
-
-    // -------------------------
-    // Assign V-table functions
-    // -------------------------
-    st.reset           = st7789_reset;
-    st.start           = st7789_cs_low;
-    st.stop            = st7789_cs_high;
-    st.draw_pixel      = st7789_draw_pixel;
-    st.fill_screen     = st7789_fill_screen;
-    st.drawfont8x12    = st7789_drawfont8x12;
-    st.drawstring8x12  = st7789_drawstring8x12;
-    st.drawstring8x12_size  = st7789_drawstring8x12_size;
-    st.drawfont12x16   = st7789_drawfont12x16;
-    st.drawstring12x16 = st7789_drawstring12x16;
-    st.drawstring12x16_size = st7789_drawstring12x16_size;
-    st.drawfont16x24   = st7789_drawfont16x24;
-    st.drawstring16x24 = st7789_drawstring16x24;
-    st.drawstring16x24_size = st7789_drawstring16x24_size;
-    st.drawfont32x32   = st7789_drawfont32x32;
-    st.drawstring32x32_size = st7789_drawstring32x32_size;
-    st.drawfont18x32   = st7789_drawfont18x32;
-    st.drawstring18x32_size = st7789_drawstring18x32_size;
-    st.drawfont48x48   = st7789_drawfont48x48;
-    st.drawstring48x48_size = st7789_drawstring48x48_size;
-    st.drawfont24x48   = st7789_drawfont24x48;
-    st.drawstring24x48_size = st7789_drawstring24x48_size;
-    //st.drawfont64x64   = st7789_drawfont64x64;
-    //st.drawstring64x64_size = st7789_drawstring64x64_size;
-    st.drawfont64x64   = NULL;
-    st.drawstring64x64_size = NULL;
-    st.draw_line       = st7789_draw_line;
-    st.draw_line_eq    = st7789_draw_line_eq;
-    st.draw_circle     = st7789_draw_circle;
-    st.draw_circle_eq  = st7789_draw_circle_eq;
-    st.fill_circle_v1  = st7789_fill_circle_v1;
-    st.fill_circle_v2  = st7789_fill_circle_v2;
-    st.draw_random_circles = draw_random_circles;
-    st.draw_star5      = st7789_draw_star5;
-    st.draw_raw_bitmap_fg    = st7789_draw_raw_bitmap_fg;
-    st.draw_adjust_bitmap_fg = st7789_draw_adjust_bitmap_fg;
-    st.dump_buffer     = st7789_dump_buffer;
-    st.dump_image      = st7789_dump_image;
-    st.test_pin        = st7789_test_pin;
+    st.run = &run_setup;
 
     if (st.setup.gpio) st.setup.gpio(&st.par);
     if (st.setup.spi)  st.setup.spi(&st.par);

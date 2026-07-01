@@ -51,7 +51,7 @@ USART1_irq	irq = {
 	.idle    = default_idle_irq,
 	.dma_tx = default_dma_tx_irq,
 };
-USART1_run run = {
+static const USART1_run run = {
 	.config             = impl_config,
 	.init               = impl_init,
 	.start_rx           = impl_start_rx,

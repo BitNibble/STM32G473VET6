@@ -24,23 +24,24 @@ typedef struct{
 	volatile IO_var *hc595_DDR;
 	volatile IO_var *hc595_PORT;
 }hc595_par;
-/*** 74HC595 TypeDef ***/
-typedef struct
-{
-	hc595_par par;
-	/******/
+typedef struct{
 	void (*shift_bit)(hc595_par* par, uint8_t state);
 	void (*shift_ibyte)(hc595_par* par, uint8_t byte);
 	void (*shift_byte)(hc595_par* par, uint8_t byte);
 	void (*ibyte)(hc595_par* par, uint8_t byte);
 	void (*byte)(hc595_par* par, uint8_t byte);
 	void (*out)(hc595_par* par);
+}hc595_run;
+/*** 74HC595 TypeDef ***/
+typedef struct
+{
+	hc595_par par;
+	const hc595_run* run;
 }HC595_Handler;
 
 HC595_Handler hc595_enable(volatile IO_var *ddr, volatile IO_var *port, uint8_t datapin, uint8_t clkpin, uint8_t outpin);
 
 #endif
-
 /***EOF***/
 
 /******

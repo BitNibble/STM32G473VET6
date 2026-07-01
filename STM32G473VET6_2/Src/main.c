@@ -73,10 +73,10 @@ int main(void)
 	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
 	(void) lcd1;
 
-	lcd1.start(&lcd1.par);
-	lcd1.draw_circle(&lcd1.par,220,300,15,ST77XX_CYAN);
-	lcd1.draw_star5(&lcd1.par,220,300,15,5,ST77XX_GOLD);
-	lcd1.stop(&lcd1.par);
+	lcd1.run->start(&lcd1.par);
+	lcd1.run->draw_circle(&lcd1.par,220,300,15,ST77XX_CYAN);
+	lcd1.run->draw_star5(&lcd1.par,220,300,15,5,ST77XX_GOLD);
+	lcd1.run->stop(&lcd1.par);
 
 	while(1)
 	{
@@ -86,44 +86,44 @@ int main(void)
 
 			switch(ui_state){
 			case CFG_IDLE:
-				lcd1.start(&lcd1.par);
-				lcd1.drawstring16x24_size(&lcd1.par,"Relogio",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.stop(&lcd1.par);
+				lcd1.run->start(&lcd1.par);
+				lcd1.run->drawstring16x24_size(&lcd1.par,"Relogio",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.run->stop(&lcd1.par);
 				break;
 			case CFG_HOUR:
-				lcd1.start(&lcd1.par);
-				lcd1.drawstring16x24_size(&lcd1.par,"Hora",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.stop(&lcd1.par);
+				lcd1.run->start(&lcd1.par);
+				lcd1.run->drawstring16x24_size(&lcd1.par,"Hora",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.run->stop(&lcd1.par);
 				break;
 			case CFG_MINUTE:
-				lcd1.start(&lcd1.par);
-				lcd1.drawstring16x24_size(&lcd1.par,"Minuto",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.stop(&lcd1.par);
+				lcd1.run->start(&lcd1.par);
+				lcd1.run->drawstring16x24_size(&lcd1.par,"Minuto",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.run->stop(&lcd1.par);
 				break;
 			case CFG_DAY:
-				lcd1.start(&lcd1.par);
-				lcd1.drawstring16x24_size(&lcd1.par,"Dia",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.stop(&lcd1.par);
+				lcd1.run->start(&lcd1.par);
+				lcd1.run->drawstring16x24_size(&lcd1.par,"Dia",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.run->stop(&lcd1.par);
 				break;
 			case CFG_MONTH:
-				lcd1.start(&lcd1.par);
-				lcd1.drawstring16x24_size(&lcd1.par,"Mes",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.stop(&lcd1.par);
+				lcd1.run->start(&lcd1.par);
+				lcd1.run->drawstring16x24_size(&lcd1.par,"Mes",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.run->stop(&lcd1.par);
 				break;
 			case CFG_YEAR:
-				lcd1.start(&lcd1.par);
-				lcd1.drawstring16x24_size(&lcd1.par,"Ano",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.stop(&lcd1.par);
+				lcd1.run->start(&lcd1.par);
+				lcd1.run->drawstring16x24_size(&lcd1.par,"Ano",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.run->stop(&lcd1.par);
 				break;
 			case CFG_WEEKDAY:
-				lcd1.start(&lcd1.par);
-				lcd1.drawstring16x24_size(&lcd1.par,"Semana",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.stop(&lcd1.par);
+				lcd1.run->start(&lcd1.par);
+				lcd1.run->drawstring16x24_size(&lcd1.par,"Semana",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.run->stop(&lcd1.par);
 				break;
 			case CFG_MAX:
-				lcd1.start(&lcd1.par);
-				lcd1.drawstring16x24_size(&lcd1.par,"MAX",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.stop(&lcd1.par);
+				lcd1.run->start(&lcd1.par);
+				lcd1.run->drawstring16x24_size(&lcd1.par,"MAX",10,10,ST77XX_WHITE,BG_colour,7);
+				lcd1.run->stop(&lcd1.par);
 				break;
 			default: break;
 			};
@@ -138,17 +138,17 @@ int main(void)
 
 			func()->float_to_string(adc1_temp_read_celsius(),str,32);
 			strcat(str, " C");
-			lcd1.drawstring16x24_size(&lcd1.par,str,15,200,ST77XX_BLUE,BG_colour,8);
+			lcd1.run->drawstring16x24_size(&lcd1.par,str,15,200,ST77XX_BLUE,BG_colour,8);
 
 			func()->format_string(str,32,"%d%d:%d%d:%d%d",vecT[0], vecT[1], vecT[2], vecT[3], vecT[4], vecT[5]);
-			lcd1.drawstring24x48_size(&lcd1.par,str,15,80,ST77XX_RED,BG_colour,8);
-			lcd1.stop(&lcd1.par);
+			lcd1.run->drawstring24x48_size(&lcd1.par,str,15,80,ST77XX_RED,BG_colour,8);
+			lcd1.run->stop(&lcd1.par);
 
-			lcd1.start(&lcd1.par);
+			lcd1.run->start(&lcd1.par);
 			func()->format_string(str,32,"%d%d-%d%d-20%d%d",vecD[5], vecD[6], vecD[3], vecD[4], vecD[0], vecD[1]);
-			lcd1.drawstring16x24(&lcd1.par,str,10,240,ST77XX_GREEN,BG_colour);
+			lcd1.run->drawstring16x24(&lcd1.par,str,10,240,ST77XX_GREEN,BG_colour);
 
-			lcd1.drawstring12x16_size(&lcd1.par,(char*)WeekDay_String(vecD[2]),10,300,ST77XX_WHITE,BG_colour,10);
+			lcd1.run->drawstring12x16_size(&lcd1.par,(char*)WeekDay_String(vecD[2]),10,300,ST77XX_WHITE,BG_colour,10);
 		}
 	}
 }
@@ -330,7 +330,6 @@ static inline void _adc1_enable(void) {
 	uint32_t timeout = 0x1FFFFF;
 	/* Garantir que o flag ADRDY está limpo antes de ligar */
 	set_reg(&dev()->analog->adc1->ISR, ADC_ISR_ADRDY);
-
 	/* Ligar o ADC e aguardar o flag de pronto */
 	set_reg(&dev()->analog->adc1->CR, ADC_CR_ADEN);
 	while (!(dev()->analog->adc1->ISR & ADC_ISR_ADRDY) && timeout--);

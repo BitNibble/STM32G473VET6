@@ -20,7 +20,7 @@ Comment:
 #else
 	#define IO_var uint8_t
 #endif
-
+/*** File TypeDef ***/
 typedef struct {
 	IO_var XI;
 	IO_var XF;
@@ -30,7 +30,6 @@ typedef struct {
 	IO_var LH;
 	IO_var HL;
 }explode_par;
-
 typedef struct {
 	IO_var (*update)(explode_par* par, IO_var x);
 	IO_var (*hh)(explode_par* par);
@@ -38,7 +37,7 @@ typedef struct {
 	IO_var (*lh)(explode_par* par);
 	IO_var (*hl)(explode_par* par);
 }explode_run;
-
+/*** EXPLODE TypeDef ***/
 typedef struct {
 	explode_par par;
 	const explode_run* run;
