@@ -342,28 +342,28 @@ static inline int _adc1_disable(void)
     // pointer alias for readability
     ADC_TypeDef *adc = dev()->analog->adc1;
     // Stop regular conversion if running
-    if (get_bit_block_value(&adc->CR, ADC_CR_ADSTART_Pos, 1))
+    if (get_block_value(adc->CR, 1, ADC_CR_ADSTART_Pos))
     {
         set_reg(&adc->CR, ADC_CR_ADSTP);
 
         timeout = 0x1FFFFF;
-        while (get_bit_block_value(&adc->CR, ADC_CR_ADSTP_Pos, 1) && (--timeout));
+        while (get_block_value(adc->CR, 1, ADC_CR_ADSTP_Pos) && (--timeout));
         if (timeout == 0) return -1;
     }
     // Stop injected conversion if running
-    if (get_bit_block_value(&adc->CR, ADC_CR_JADSTART_Pos, 1))
+    if (get_block_value(adc->CR, 1, ADC_CR_JADSTART_Pos))
     {
         set_reg(&adc->CR, ADC_CR_JADSTP);
 
         timeout = 0x1FFFFF;
-        while (get_bit_block_value(&adc->CR, ADC_CR_JADSTP_Pos, 1) && (--timeout));
+        while (get_block_value(adc->CR, 1, ADC_CR_JADSTP_Pos) && (--timeout));
         if (timeout == 0) return -2;
     }
     // Request disable
     set_reg(&adc->CR, ADC_CR_ADDIS);
     // Wait until fully disabled
     timeout = 0x1FFFFF;
-    while (get_bit_block_value(&adc->CR, ADC_CR_ADEN_Pos, 1) && (--timeout));
+    while (get_block_value(adc->CR, 1, ADC_CR_ADEN_Pos) && (--timeout));
     if (timeout == 0) return -3;
 
     return 0;
