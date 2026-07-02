@@ -35,10 +35,7 @@ static void RTC_Set_dr(uint32_t value);
 static uint8_t _rtc_bcd2dec(uint8_t num);
 static uint8_t _rtc_dec2bcd(uint8_t num);
 
-static RTC_callback rtc_callbacks = {NULL, NULL, NULL, NULL, NULL};
-
 /*** Interface Method Implementations ***/
-
 static uint8_t RTC_get_year(void) {
     RTC_Wait_sync();
     uint32_t dr = RTC->DR;
@@ -375,6 +372,8 @@ static uint8_t _rtc_bcd2dec(uint8_t num) {
 static uint8_t _rtc_dec2bcd(uint8_t num) {
     return ((num / 10) << 4) | (num % 10);
 }
+
+static RTC_callback rtc_callbacks = {NULL, NULL, NULL, NULL, NULL};
 
 /*** Global Handler Singleton Instance ***/
 static const STM32G473_RTC_Handler rtc_instance = 

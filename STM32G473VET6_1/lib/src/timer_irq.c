@@ -8,7 +8,6 @@ Comment:
 	
 *******************************************************************************/
 #include "timer_irq.h"
-#include "stm32g4xx.h"
 
 /********************************************************************
  * HELPERS
@@ -151,8 +150,8 @@ void TIM1_UP_TIM16_IRQHandler(void) {
         clear_reg(&TIM1->SR, TIM_SR_UIF);
         (void)TIM1->SR; // Compliance bus-cycle synchronization barrier
 
-        if (tim1()->callback->u != NULL) {
-            tim1()->callback->u();
+        if (tim1()->irq->u != NULL) {
+            tim1()->irq->u();
         }
     }
 }
@@ -182,8 +181,8 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void) {
         // Pipeline barrier: read back to guarantee clear cycles
         (void)TIM1->SR;
 
-        if (tim1()->callback->t != NULL) {
-            tim1()->callback->t();
+        if (tim1()->irq->t != NULL) {
+            tim1()->irq->t();
         }
     }
 }
@@ -217,7 +216,7 @@ void TIM1_CC_IRQHandler(void)
 
 void TIM1_CC_IRQHandler(void) {
     uint32_t sr_status = dev()->timer->tim1->SR;
-    tim1_callback* cb_instance = tim1()->callback;
+    tim1_irq* cb_instance = tim1()->irq;
 
     // Channel 1 Capture/Compare flag check
     if (sr_status & TIM_SR_CC1IF) {

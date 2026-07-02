@@ -10,7 +10,6 @@ Comment:
 #ifndef TIMER_IRQ_H
 	#define TIMER_IRQ_H
 
-#include "stm32g473vet6.h"
 #include "stm32gxxx_tim1.h"
 
 /********************************************************************

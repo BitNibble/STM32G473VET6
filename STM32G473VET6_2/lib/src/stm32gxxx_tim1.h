@@ -28,6 +28,11 @@ typedef enum {
 } ic_edge_t;
 
 typedef struct {
+	uint16_t prescaler;
+	uint32_t autoreload;
+} tim1_par;
+
+typedef struct {
 	void (*init_by_ticks)(uint16_t prescaler, uint32_t autoreload);
 	void (*init_by_freq)(uint16_t prescaler, uint32_t target_freq_hz);
 	void (*clock_enable)(void);
@@ -56,11 +61,12 @@ typedef struct {
     void (*cc2)(void);
     void (*cc3)(void);
     void (*cc4)(void);
-} tim1_callback;
+} tim1_irq;
 
 typedef const struct {
+	tim1_par* par;
 	const tim1_run* run;
-    tim1_callback* callback;
+    tim1_irq* irq;
 } TIM1_Handler;
 
 TIM1_Handler* tim1(void);

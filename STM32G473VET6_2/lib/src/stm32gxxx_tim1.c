@@ -6,6 +6,11 @@ Date:     21062026
 **********************************************************************/
 #include "stm32gxxx_tim1.h"
 
+static tim1_par t1_par = { // Default
+	.prescaler = 119,
+	.autoreload = 1999999
+};
+
 static void t1_clk_en(void) {
     set_reg(&dev()->sys->rcc->APB2ENR, RCC_APB2ENR_TIM1EN);
 }
@@ -19,6 +24,8 @@ static void t1_init_by_ticks(uint16_t prescaler, uint32_t autoreload) {
 
     dev()->timer->tim1->PSC = prescaler;
     dev()->timer->tim1->ARR = autoreload;
+    t1_par.prescaler = prescaler;
+    t1_par.autoreload = autoreload;
 
     set_reg(&dev()->timer->tim1->BDTR, TIM_BDTR_MOE);
     set_reg(&dev()->timer->tim1->EGR, TIM_EGR_UG);
@@ -36,6 +43,8 @@ static void t1_init_by_freq(uint16_t prescaler, uint32_t target_freq_hz) {
     uint32_t calculated_arr = (clock_step / target_freq_hz) - 1U;
 
     t1_init_by_ticks(prescaler, calculated_arr);
+    t1_par.prescaler = prescaler;
+    t1_par.autoreload = calculated_arr;
 }
 
 static void t1_nvic_u_en(uint8_t p) {
@@ -177,11 +186,12 @@ static tim1_run t1_run = {
 	.get_capture          = t1_get_capture
 };
 
-static tim1_callback t1_callback = {0};
+static tim1_irq t1_irq = {0};
 
 static const TIM1_Handler t1_instance = {
-	.run      = &t1_run,
-    .callback = &t1_callback
+	.par = &t1_par,
+	.run = &t1_run,
+    .irq = &t1_irq
 };
 
 TIM1_Handler* tim1(void) { 

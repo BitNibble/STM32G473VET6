@@ -98,7 +98,7 @@ int main(void)
 	lcd1.run->stop(&lcd1.par);
 
 	tim1_blink_setup();
-	tim1()->callback->u = tim1_u_callback;
+	tim1()->irq->u = tim1_u_callback;
 
 	while(1)
 	{
