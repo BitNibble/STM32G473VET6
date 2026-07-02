@@ -24,34 +24,34 @@ Comment:
 static double ZNPID_tmp;
 
 /*** File Header ***/
-void ZNPID_set_kc(znpidparameter* par, double kc);
-void ZNPID_set_ki(znpidparameter* par, double ki);
-void ZNPID_set_kd(znpidparameter* par, double kp);
-void ZNPID_set_SP(znpidparameter* par, double setpoint);
-double ZNPID_output(znpidparameter* par, double PV, double timelapse);
-double ZNPID_integral(znpidparameter* par, double PV, double timelapse);
-double ZNPID_derivative(znpidparameter* par, double PV, double timelapse);
+void ZNPID_set_kc(znpid_par* par, double kc);
+void ZNPID_set_ki(znpid_par* par, double ki);
+void ZNPID_set_kd(znpid_par* par, double kp);
+void ZNPID_set_SP(znpid_par* par, double setpoint);
+double ZNPID_output(znpid_par* par, double PV, double timelapse);
+double ZNPID_integral(znpid_par* par, double PV, double timelapse);
+double ZNPID_derivative(znpid_par* par, double PV, double timelapse);
 double ZNPID_delta(double present_value, double past_value);
 double ZNPID_sum(double value_1, double value_2);
 double ZNPID_product(double value_1, double value_2);
-znpidparameter znpid_par_inic(void);
+znpid_par znpid_par_init(void);
 
 /*** Tools ***/
 void znpid_set_reg(volatile uint32_t* reg, uint32_t hbits);
 void znpid_clear_reg(volatile uint32_t* reg, uint32_t hbits);
-uint32_t znpid_get_reg_block(uint32_t reg, uint8_t size_block, uint8_t bit_n);
-uint32_t znpid_get_reg_Msk(uint32_t reg, uint32_t Msk, uint8_t Pos);
-void znpid_write_reg_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data);
-void znpid_write_reg_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data);
-void znpid_set_reg_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data);
-void znpid_set_reg_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data);
+uint32_t znpid_get_block(uint32_t reg, uint8_t size_block, uint8_t bit_n);
+uint32_t znpid_get_Msk(uint32_t reg, uint32_t Msk, uint8_t Pos);
+void znpid_write_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data);
+void znpid_write_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data);
+void znpid_set_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data);
+void znpid_set_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data);
 uint32_t znpid_get_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n);
 void znpid_set_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data);
 
 /*** ZNPID Auxiliar  ***/
-znpidparameter znpid_par_inic(void)
+znpid_par znpid_par_init(void)
 {
-	znpidparameter znpid_par;
+	znpid_par znpid_par;
 	// initialize variables
 	znpid_par.k.c = 1;
 	znpid_par.k.i = 0;
@@ -66,44 +66,46 @@ znpidparameter znpid_par_inic(void)
 	znpid_par.OP = 0;
 	return znpid_par;
 }
+static znpid_run run_setup = {
+	.set_kc = ZNPID_set_kc,
+	.set_ki = ZNPID_set_ki,
+	.set_kd = ZNPID_set_kd,
+	.set_SP = ZNPID_set_SP,
+	.output = ZNPID_output
+};
 /*** ZNPID Procedure & Function Definition ***/
-ZNPID_Handler ZNPIDenable(void)
+ZNPID_Handler ZNPID_enable(void)
 {
 	// LOCAL VARIABLES
-	ZNPID_Handler znpid;
-	// initialize variables
-	znpid.par = znpid_par_inic();
-	// Direccionar apontadores para PROTOTIPOS
-	znpid.set_kc = ZNPID_set_kc;
-	znpid.set_ki = ZNPID_set_ki;
-	znpid.set_kd = ZNPID_set_kd;
-	znpid.set_SP = ZNPID_set_SP;
-	znpid.output = ZNPID_output;
+	ZNPID_Handler znpid = {
+		.par = znpid_par_init(),
+		.run = &run_setup
+	};
 	
 	return znpid;
 }
 
-void ZNPID_set_kc(znpidparameter* par, double kc)
+void ZNPID_set_kc(znpid_par* par, double kc)
 {
 	par->k.c = kc;
 }
 
-void ZNPID_set_ki(znpidparameter* par, double ki)
+void ZNPID_set_ki(znpid_par* par, double ki)
 {
 	par->k.i = ki;
 }
 
-void ZNPID_set_kd(znpidparameter* par, double kd)
+void ZNPID_set_kd(znpid_par* par, double kd)
 {	
 	par->k.d = kd;
 }
 
-void ZNPID_set_SP(znpidparameter* par, double setpoint)
+void ZNPID_set_SP(znpid_par* par, double setpoint)
 {
 	par->SetPoint = setpoint;
 }
 
-double ZNPID_output(znpidparameter* par, double PV, double timelapse)
+double ZNPID_output(znpid_par* par, double PV, double timelapse)
 {
 	double result;
 	par->PV = PV;
@@ -123,14 +125,14 @@ double ZNPID_output(znpidparameter* par, double PV, double timelapse)
 	return result;
 }
 
-double ZNPID_integral(znpidparameter* par, double PV, double timelapse)
+double ZNPID_integral(znpid_par* par, double PV, double timelapse)
 {
 	ZNPID_tmp = ZNPID_product(ZNPID_sum(ZNPID_delta(par->SetPoint, PV), par->aux.Err_past), timelapse);
 	ZNPID_tmp /= 2;
 	return (par->aux.integral += ZNPID_tmp);
 }
 
-double ZNPID_derivative(znpidparameter* par, double PV, double timelapse)
+double ZNPID_derivative(znpid_par* par, double PV, double timelapse)
 {
 	ZNPID_tmp = ZNPID_delta(ZNPID_delta(par->SetPoint, PV), par->aux.Err_past);
 	return (par->aux.derivative = (ZNPID_tmp / timelapse));
@@ -155,27 +157,27 @@ double ZNPID_product(double value_1, double value_2)
 inline void znpid_set_reg(volatile uint32_t* reg, uint32_t hbits){
 	*reg |= hbits;
 }
-inline void clear_reg(volatile uint32_t* reg, uint32_t hbits){
+inline void znpid_clear_reg(volatile uint32_t* reg, uint32_t hbits){
 	*reg &= ~hbits;
 }
-inline uint32_t znpid_get_reg_Msk(uint32_t reg, uint32_t Msk, uint8_t Pos)
+inline uint32_t znpid_get_Msk(uint32_t reg, uint32_t Msk, uint8_t Pos)
 {
 	if(Pos > H_BIT){ Pos = L_BIT; reg = 0; }
 	else{ reg &= Msk; reg = (reg >> Pos); }
 	return reg;
 }
-inline void znpid_write_reg_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data)
+inline void znpid_write_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data)
 {
 	uint32_t value = *reg;
 	if(Pos > H_BIT){ Pos = L_BIT; }
 	else{ data = (data << Pos); data &= Msk; value &= ~(Msk); value |= data; *reg = value; }
 }
-inline void znpid_set_reg_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data)
+inline void znpid_set_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data)
 {
 	if(Pos > H_BIT){ Pos = L_BIT; }
 	else{ data = (data << Pos); data &= Msk; *reg &= ~(Msk); *reg |= data; }
 }
-uint32_t znpid_get_reg_block(uint32_t reg, uint8_t size_block, uint8_t bit_n)
+uint32_t znpid_get_block(uint32_t reg, uint8_t size_block, uint8_t bit_n)
 {
 	if(size_block > N_BITS){ size_block = N_BITS; }
 	if(bit_n > H_BIT){ bit_n = L_BIT; reg = 0; }
@@ -186,7 +188,7 @@ uint32_t znpid_get_reg_block(uint32_t reg, uint8_t size_block, uint8_t bit_n)
 	}
 	return reg;
 }
-void znpid_write_reg_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data)
+void znpid_write_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data)
 {
 	if(size_block > N_BITS){ size_block = N_BITS; }
 	if(bit_n > H_BIT){ bit_n = H_BIT; }
@@ -199,7 +201,7 @@ void znpid_write_reg_block(volatile uint32_t* reg, uint8_t size_block, uint8_t b
 		*reg = value;
 	}
 }
-void znpid_set_reg_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data)
+void znpid_set_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data)
 {
 	if(size_block > N_BITS){ size_block = N_BITS; }
 	if(bit_n > H_BIT){ bit_n = H_BIT; }

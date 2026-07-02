@@ -17,35 +17,37 @@ typedef struct {
 	double c; // constant p
 	double i; // constant i
 	double d; // constant d
-}kparameter;
+}k_par;
 typedef struct {
 	double Err_past; // Last Error reading
 	double dy; // difference error y axis points.
 	double dx; // difference time x axis points.
 	double integral; // progression
 	double derivative; // rate of growth (tangent), or derivative
-}auxparameter;
+}aux_par;
 typedef struct {
-	kparameter k;
-	auxparameter aux;
+	k_par k;
+	aux_par aux;
 	double SetPoint; // desired output
 	double PV; // output feedback
 	double OP; // output signal
-}znpidparameter;
+}znpid_par;
+typedef const struct {
+	void (*set_kc)(znpid_par* par, double kc);
+	void (*set_ki)(znpid_par* par, double ki);
+	void (*set_kd)(znpid_par* par, double kd);
+	void (*set_SP)(znpid_par* par, double setpoint);
+	double (*output)(znpid_par* par, double PV, double timelapse);
+}znpid_run;
 
 /*** ZNPID ***/
 struct znpid{
-	znpidparameter par;
-	/******/
-	void (*set_kc)(znpidparameter* par, double kc);
-	void (*set_ki)(znpidparameter* par, double ki);
-	void (*set_kd)(znpidparameter* par, double kd);
-	void (*set_SP)(znpidparameter* par, double setpoint);
-	double (*output)(znpidparameter* par, double PV, double timelapse);
+	znpid_par par;
+	znpid_run* run;
 };
 typedef struct znpid ZNPID_Handler;
 
-ZNPID_Handler ZNPIDenable(void);
+ZNPID_Handler ZNPID_enable(void);
 
 #endif
 /***EOF***/
