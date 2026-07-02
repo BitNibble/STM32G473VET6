@@ -10,8 +10,8 @@ Date:     23/01/2026
 
 /*** Library ***/
 #include "stm32g473vet6.h"
-#include "armsystick.h"
-#include "st7789_fonts.h"
+#include "arm_systick.h"
+#include "st7789_font.h"
 
 #define ST7789_WIDTH  240
 #define ST7789_HEIGHT 320 // Changed from 240

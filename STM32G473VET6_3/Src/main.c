@@ -3,14 +3,14 @@
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
 ************************************************************************/
-#include "stm32gxxxrcc.h"
-#include "armsystick.h"
+#include "stm32gxxx_rcc.h"
+#include "arm_systick.h"
 #include "stm32gxxx_tim1.h"
 #include "st7789.h"
-#include "armfunction.h"
-#include "stm32gxxxrtc.h"
+#include "function.h"
+#include "stm32gxxx_rtc.h"
 #include "explode.h"
-#include<string.h>
+#include <string.h>
 
 #define BG_colour 0x0000
 

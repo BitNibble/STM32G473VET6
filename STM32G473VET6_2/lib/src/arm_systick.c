@@ -5,7 +5,7 @@ License:  GNU General Public License
 Hardware: STM32-XXX
 Update:   16012024
 *******************************************************************************/
-#include "armsystick.h"
+#include "arm_systick.h"
 #include "stm32g473vet6.h"
 
 /******/

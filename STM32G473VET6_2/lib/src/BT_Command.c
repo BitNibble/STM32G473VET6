@@ -7,7 +7,7 @@ Date:     20102024
 Comment:
 	BT05 and ZS-040
 *******************************************************************************/
-#include "BT_Commands.h"
+#include "BT_Command.h"
 
 #include <stdio.h>
 #include <string.h>

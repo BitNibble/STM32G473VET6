@@ -6,8 +6,8 @@ Hardware: STM32-G473VET6
 Date: 04062026
 *******************************************************************************/
 /*** File Library ***/
-#include "stm32gxxxrcc.h"
-#include "armsystick.h"
+#include "stm32gxxx_rcc.h"
+#include "arm_systick.h"
 
 typedef enum
 {

@@ -5,7 +5,7 @@ License:  GNU General Public License
 Hardware: ST7789
 Date:     23/01/2026
 ************************************************************************/
-#include "st7789_fonts.h"
+#include "st7789_font.h"
 //#include <avr/pgmspace.h>
 
 const uint8_t PROGMEM font8x12[] = {

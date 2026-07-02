@@ -5,7 +5,7 @@ License:  GNU General Public License
 Hardware: STM32G473 (sigleton model)
 Date:     08/06/2026
 *******************************************************************************/
-#include "stm32gxxxusart1.h"
+#include "stm32gxxx_usart1.h"
 #include <stdio.h>
 #include <string.h>
 

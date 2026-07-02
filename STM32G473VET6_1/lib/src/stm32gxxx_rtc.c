@@ -5,7 +5,7 @@ License:  GNU General Public License
 Hardware: STM32G473VET6
 Date:     08/06/2026
 *******************************************************************************/
-#include "stm32gxxxrtc.h"
+#include "stm32gxxx_rtc.h"
 
 /*** Validation Limits ***/
 #define MAX_HOUR              23
