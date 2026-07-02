@@ -35,7 +35,7 @@ typedef struct {
 } RealNum_TypeDef;
 
 /*** PROCEDURE & FUNCTION TypeDef ***/
-typedef struct
+typedef const struct
 {
 	// PROTOTYPES VTABLE
 	/******/
@@ -91,7 +91,7 @@ typedef struct
 	void (*float_to_string)(float value, char* buffer, size_t buffer_size);
 }FUNC_Handler;
 
-const FUNC_Handler* func(void);
+FUNC_Handler* func(void);
 
 #endif
 

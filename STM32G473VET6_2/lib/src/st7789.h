@@ -44,7 +44,7 @@ typedef struct
 	void (*spi)(ST7789_par* par);
 }ST7789_setup;
 
-typedef struct
+typedef const struct
 {
 	void (*reset)(ST7789_par* par);
 	void (*start)(ST7789_par* par);
@@ -92,7 +92,7 @@ typedef struct ST7789
 {
 	ST7789_par par;
 	ST7789_setup setup;
-	const ST7789_run* run;
+	ST7789_run* run;
 }ST7789;
 
 ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t rst_pin, uint16_t *fb);

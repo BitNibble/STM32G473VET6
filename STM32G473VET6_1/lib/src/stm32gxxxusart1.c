@@ -2,7 +2,7 @@
     STM32GXXXUSART1.C
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
-Hardware: STM32G473
+Hardware: STM32G473 (sigleton model)
 Date:     08/06/2026
 *******************************************************************************/
 #include "stm32gxxxusart1.h"
@@ -51,7 +51,7 @@ USART1_irq	irq = {
 	.idle    = default_idle_irq,
 	.dma_tx = default_dma_tx_irq,
 };
-static const USART1_run run = {
+USART1_run run = {
 	.config             = impl_config,
 	.init               = impl_init,
 	.start_rx           = impl_start_rx,
@@ -75,7 +75,7 @@ static USARTG4_Handle handle_instance = {
 };
 
 /* Singleton factory gateway entry point */
-const USARTG4_Handle* usart1(void) {
+USARTG4_Handle* usart1(void) {
     return &handle_instance;
 }
 

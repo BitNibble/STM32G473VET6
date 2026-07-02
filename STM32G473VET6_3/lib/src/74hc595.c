@@ -16,7 +16,7 @@ void HC595_ibyte(hc595_par* par, uint8_t byte);
 void HC595_byte(hc595_par* par, uint8_t byte);
 void HC595_shift_out(hc595_par* par);
 
-static const hc595_run run_setup = {
+static hc595_run run_setup = {
 	.shift_bit = HC595_shift_bit,
 	.shift_ibyte = HC595_shift_ibyte,
 	.shift_byte = HC595_shift_byte,

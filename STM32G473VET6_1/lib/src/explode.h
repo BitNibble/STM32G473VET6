@@ -30,7 +30,7 @@ typedef struct {
 	IO_var LH;
 	IO_var HL;
 }explode_par;
-typedef struct {
+typedef const struct {
 	IO_var (*update)(explode_par* par, IO_var x);
 	IO_var (*hh)(explode_par* par);
 	IO_var (*ll)(explode_par* par);
@@ -40,7 +40,7 @@ typedef struct {
 /*** EXPLODE TypeDef ***/
 typedef struct {
 	explode_par par;
-	const explode_run* run;
+	explode_run* run;
 }EXPLODE_Handler;
 
 EXPLODE_Handler EXPLODE_enable(void);

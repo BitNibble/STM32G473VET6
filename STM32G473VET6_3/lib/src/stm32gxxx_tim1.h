@@ -32,7 +32,7 @@ typedef struct {
 	uint32_t autoreload;
 } tim1_par;
 
-typedef struct {
+typedef const struct {
 	void (*init_by_ticks)(uint16_t prescaler, uint32_t autoreload);
 	void (*init_by_freq)(uint16_t prescaler, uint32_t target_freq_hz);
 	void (*clock_enable)(void);
@@ -65,10 +65,11 @@ typedef struct {
 
 typedef const struct {
 	tim1_par* par;
-	const tim1_run* run;
+	tim1_run* run;
     tim1_irq* irq;
 } TIM1_Handler;
 
 TIM1_Handler* tim1(void);
 
 #endif
+

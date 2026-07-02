@@ -34,7 +34,7 @@ typedef struct {
 	void (*dma_tx)(void);
 } USART1_irq;
 
-typedef struct {
+typedef const struct {
     /* Lifecycle */
 	void (*config)(uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t*  buff_rx, uint8_t*  buff_tx);
     void (*init)(void);
@@ -60,15 +60,16 @@ typedef struct {
 /* =========================================================
    HIGH LEVEL HANDLE (Singleton V-table Interface)
    ========================================================= */
-typedef struct {
+typedef const struct {
 	USART1_par* par;
 	USART1_irq* irq;
-	const USART1_run* run;
+	USART1_run* run;
 } USARTG4_Handle;
 
 /* Public Factory Singleton Accessor */
-const USARTG4_Handle* usart1(void);
+USARTG4_Handle* usart1(void);
 
 void DMA1_CH2_IRQHandler(void);
 
 #endif /* STM32GXXXUSART1_H */
+

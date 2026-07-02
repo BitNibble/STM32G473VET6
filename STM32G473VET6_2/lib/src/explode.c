@@ -16,7 +16,7 @@ IO_var EXPLODE_ll(explode_par* par);
 IO_var EXPLODE_lh(explode_par* par);
 IO_var EXPLODE_hl(explode_par* par);
 
-static const explode_run run_setup = {
+static explode_run run_setup = {
 	.update = EXPLODE_update,
 	.hh = EXPLODE_hh,
 	.ll = EXPLODE_ll,

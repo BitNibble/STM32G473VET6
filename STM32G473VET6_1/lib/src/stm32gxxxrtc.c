@@ -376,7 +376,7 @@ static uint8_t _rtc_dec2bcd(uint8_t num) {
 static RTC_callback rtc_callbacks = {NULL, NULL, NULL, NULL, NULL};
 
 /*** Global Handler Singleton Instance ***/
-static const STM32G473_RTC_Handler rtc_instance = 
+static STM32G473_RTC_Handler rtc_instance =
 {
 	.get_year = RTC_get_year,
 	.get_month = RTC_get_month,
@@ -407,7 +407,7 @@ static const STM32G473_RTC_Handler rtc_instance =
 	.irq_disable = RTC_irq_disable,
 	.callback = &rtc_callbacks
 };
-const STM32G473_RTC_Handler* rtc(void)
+STM32G473_RTC_Handler* rtc(void)
 {
 	return (STM32G473_RTC_Handler*)&rtc_instance;
 }

@@ -188,7 +188,7 @@ static tim1_run t1_run = {
 
 static tim1_irq t1_irq = {0};
 
-static const TIM1_Handler t1_instance = {
+TIM1_Handler t1_instance = {
 	.par = &t1_par,
 	.run = &t1_run,
     .irq = &t1_irq

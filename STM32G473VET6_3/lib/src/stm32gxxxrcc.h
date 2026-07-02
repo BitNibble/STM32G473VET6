@@ -10,7 +10,7 @@ Date: 04062026
 /*** Library ***/
 #include "stm32g473vet6.h"
 // RCC -> PLL
-typedef struct
+typedef const struct
 {
 	void (*division)(uint8_t pllm, uint16_t plln, uint8_t pllp, uint8_t pllq, uint8_t pllr);
 	void (*enable)(void);

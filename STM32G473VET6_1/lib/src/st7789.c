@@ -212,75 +212,6 @@ void st7789_set_raset(ST7789_par* par, uint16_t y0, uint16_t y1)
 }
 
 // Initialization sequence
-/***
-void st7789_init_seq(ST7789_par* par) {
-	st7789_cs_low(par);
-	//st7789_start(par);
-	st7789_cmd(par, ST77XX_SWRESET); // SWRESET
-	st7789_spi_flush(par);
-	st7789_cs_high(par);
-	
-	//_delay_ms(150);
-	st7789_delay_ms(150);
-	
-	st7789_cs_low(par);
-	st7789_cmd(par, ST77XX_SLPOUT); // SLPOUT
-	st7789_spi_flush(par);
-	st7789_cs_high(par);
-	
-	//_delay_ms(120);
-	st7789_delay_ms(120);
-	
-	st7789_cs_low(par);
-	st7789_cmd(par, ST77XX_COLMOD); // COLMOD
-	st7789_data(par, 0x55); // 0x55, 0x05
-	st7789_spi_flush(par);
-	//st7789_stop(par);
-
-	st7789_cs_low(par);
-	st7789_cmd(par, 0x36); // MADCTL
-	st7789_data(par, 0x00); // 0x00, 0x08, 0xC0, 0x60
-	st7789_spi_flush(par);
-	st7789_cs_high(par);
-
-	// CASET
-	st7789_cs_low(par);
-	st7789_set_caset(par, 0x0000, 0x00EF);
-	//st7789_stop(par);
-	
-	// RASET
-	//st7789_start(par);
-	st7789_set_raset(par, 0x0000, 0x00EF); 
-	//st7789_stop(par);
-	
-	//st7789_start(par);
-	st7789_cmd(par, ST77XX_INVON); // INVON
-	st7789_spi_flush(par);
-	//st7789_stop(par);
-
-	//_delay_ms(10);
-	st7789_delay_ms(10);
-
-	//st7789_start(par);
-	st7789_cmd(par, ST77XX_NORON); // NORON
-	st7789_spi_flush(par);
-	//st7789_stop(par);
-	
-	//_delay_ms(10);
-	st7789_delay_ms(10);
-	
-	//st7789_start(par);
-	st7789_cmd(par, ST77XX_DISPON); // DISPON
-	st7789_spi_flush(par);
-	//st7789_stop(par);
-	
-	//_delay_ms(20);
-	st7789_delay_ms(20);
-	st7789_cs_high(par);
-}
-***/
-
-/***/
 void st7789_init_seq(ST7789_par* par) {
     st7789_cs_low(par);
     st7789_cmd(par, ST77XX_SWRESET); // SWRESET
@@ -312,21 +243,25 @@ void st7789_init_seq(ST7789_par* par) {
 
     // --- CASET: COLUMN ADDRESS SET ---
     st7789_cs_low(par);
-    // Columns 0 to 239 (0x00EF) -> 240 pixels wide
-    st7789_set_caset(par, 0x0000, 0x00EF);
-    st7789_cs_high(par); // Toggle CS between window bounds
+    if(ST7789_WIDTH == 240){
+    	st7789_set_caset(par, 0x0000, 0x00EF);
+    }else{
+    	st7789_set_caset(par, 0x0000, 0x001EF);
+    }
+    st7789_cs_high(par);
 
     // --- RASET: ROW ADDRESS SET (CRITICAL CHANGE) ---
     st7789_cs_low(par);
-    // Changed from 0x00EF (239) to 0x013F (319) -> 320 pixels high
-    st7789_set_raset(par, 0x0000, 0x013F);
+    if(ST7789_HEIGHT == 240){
+    	st7789_set_raset(par, 0x0000, 0x003F);
+    }else{
+    	st7789_set_raset(par, 0x0000, 0x0013F);
+    }
     st7789_cs_high(par);
 
     // --- COLOR INVERSION ---
     st7789_cs_low(par);
-    // Note: Most standard 2.8" panels require INVOFF (0x20).
-    // If your colors are inverted/photonegative, change this command to 0x20.
-    st7789_cmd(par, ST77XX_INVOFF);
+    st7789_cmd(par, ST77XX_INVON);
     st7789_spi_flush(par);
     st7789_cs_high(par);
 
@@ -1224,7 +1159,7 @@ void welcome_screen(ST7789_par* par){
     st7789_cs_high(par);
 }
 
-static const ST7789_run run_setup = {
+static ST7789_run run_setup = {
 	.reset           = st7789_reset,
 	.start           = st7789_cs_low,
 	.stop            = st7789_cs_high,

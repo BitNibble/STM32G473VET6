@@ -65,243 +65,243 @@ typedef union{
 /******************************************************************
  * CORE
  ******************************************************************/
-typedef struct {
-    NVIC_Type* const nvic;
-    SCB_Type* const scb;
-    SysTick_Type* const systick;
-    DWT_Type* const dwt;
-    ITM_Type* const itm;
-    TPI_Type* const tpi;
-    MPU_Type* const mpu;
-    CoreDebug_Type* const coredebug;
+typedef const struct {
+    NVIC_Type* nvic;
+    SCB_Type* scb;
+    SysTick_Type* systick;
+    DWT_Type* dwt;
+    ITM_Type* itm;
+    TPI_Type* tpi;
+    MPU_Type* mpu;
+    CoreDebug_Type* coredebug;
 } CORE_Block;
 
-typedef struct {
-    RCC_TypeDef* const rcc;
-    FLASH_TypeDef* const flash;
-    PWR_TypeDef* const pwr;
-    SYSCFG_TypeDef* const syscfg;
-    CRS_TypeDef* const crs;
+typedef const struct {
+    RCC_TypeDef* rcc;
+    FLASH_TypeDef* flash;
+    PWR_TypeDef* pwr;
+    SYSCFG_TypeDef* syscfg;
+    CRS_TypeDef* crs;
 } SYSTEM_Block;
 
-typedef struct {
-    GPIO_TypeDef* const a;
-    GPIO_TypeDef* const b;
-    GPIO_TypeDef* const c;
+typedef const struct {
+    GPIO_TypeDef* a;
+    GPIO_TypeDef* b;
+    GPIO_TypeDef* c;
 #ifdef GPIOD
-    GPIO_TypeDef* const d;
+    GPIO_TypeDef* d;
 #endif
 #ifdef GPIOE
-    GPIO_TypeDef* const e;
+    GPIO_TypeDef* e;
 #endif
 #ifdef GPIOF
-    GPIO_TypeDef* const f;
+    GPIO_TypeDef* f;
 #endif
 #ifdef GPIOG
-    GPIO_TypeDef* const g;
+    GPIO_TypeDef* g;
 #endif
 #ifdef GPIOH
-    GPIO_TypeDef* const h;
+    GPIO_TypeDef* h;
 #endif
 } GPIO_Block;
 
-typedef struct {
+typedef const struct {
 	/* Advanced */
-	TIM_TypeDef* const tim1;
+	TIM_TypeDef* tim1;
 #ifdef TIM8
-	TIM_TypeDef* const tim8;
+	TIM_TypeDef* tim8;
 #endif
 #ifdef TIM20
-	TIM_TypeDef* const tim20;
+	TIM_TypeDef* tim20;
 #endif
 
 	/* General purpose */
-	TIM_TypeDef* const tim2;
-	TIM_TypeDef* const tim3;
+	TIM_TypeDef* tim2;
+	TIM_TypeDef* tim3;
 #ifdef TIM4
-	TIM_TypeDef* const tim4;
+	TIM_TypeDef* tim4;
 #endif
 #ifdef TIM5
-	TIM_TypeDef* const tim5;
+	TIM_TypeDef* tim5;
 #endif
 
 	/* Basic */
-	TIM_TypeDef* const tim6;
-	TIM_TypeDef* const tim7;
+	TIM_TypeDef* tim6;
+	TIM_TypeDef* tim7;
 
 	/* Lite */
-	TIM_TypeDef* const tim15;
-	TIM_TypeDef* const tim16;
-	TIM_TypeDef* const tim17;
+	TIM_TypeDef* tim15;
+	TIM_TypeDef* tim16;
+	TIM_TypeDef* tim17;
 } TIM_Block;
 
-typedef struct {
-    DMA_TypeDef* const dma1;
-    DMA_Channel_TypeDef* const dma1_ch1;
-    DMA_Channel_TypeDef* const dma1_ch2;
-    DMA_Channel_TypeDef* const dma1_ch3;
-    DMA_Channel_TypeDef* const dma1_ch4;
-    DMA_Channel_TypeDef* const dma1_ch5;
-    DMA_Channel_TypeDef* const dma1_ch6;
+typedef const struct {
+    DMA_TypeDef* dma1;
+    DMA_Channel_TypeDef* dma1_ch1;
+    DMA_Channel_TypeDef* dma1_ch2;
+    DMA_Channel_TypeDef* dma1_ch3;
+    DMA_Channel_TypeDef* dma1_ch4;
+    DMA_Channel_TypeDef* dma1_ch5;
+    DMA_Channel_TypeDef* dma1_ch6;
 #ifdef DMA1_Channel7
-    DMA_Channel_TypeDef* const dma1_ch7;
+    DMA_Channel_TypeDef* dma1_ch7;
 #endif
 
 #ifdef DMA2
-    DMA_TypeDef* const dma2;
-    DMA_Channel_TypeDef* const dma2_ch1;
-    DMA_Channel_TypeDef* const dma2_ch2;
-    DMA_Channel_TypeDef* const dma2_ch3;
-    DMA_Channel_TypeDef* const dma2_ch4;
-    DMA_Channel_TypeDef* const dma2_ch5;
-    DMA_Channel_TypeDef* const dma2_ch6;
+    DMA_TypeDef*  dma2;
+    DMA_Channel_TypeDef* dma2_ch1;
+    DMA_Channel_TypeDef* dma2_ch2;
+    DMA_Channel_TypeDef* dma2_ch3;
+    DMA_Channel_TypeDef* dma2_ch4;
+    DMA_Channel_TypeDef* dma2_ch5;
+    DMA_Channel_TypeDef* dma2_ch6;
 #ifdef DMA2_Channel7
-    DMA_Channel_TypeDef* const dma2_ch7;
+    DMA_Channel_TypeDef* dma2_ch7;
 #endif
 #endif
 
-    DMAMUX_Channel_TypeDef* const dmamux1;
-    DMAMUX_Channel_TypeDef* const dmamux1_ch1;
-    DMAMUX_Channel_TypeDef* const dmamux1_ch2;
-    DMAMUX_Channel_TypeDef* const dmamux1_ch3;
-    DMAMUX_Channel_TypeDef* const dmamux1_ch4;
-    DMAMUX_Channel_TypeDef* const dmamux1_ch5;
-    DMAMUX_Channel_TypeDef* const dmamux1_ch6;
+    DMAMUX_Channel_TypeDef* dmamux1;
+    DMAMUX_Channel_TypeDef* dmamux1_ch1;
+    DMAMUX_Channel_TypeDef* dmamux1_ch2;
+    DMAMUX_Channel_TypeDef* dmamux1_ch3;
+    DMAMUX_Channel_TypeDef* dmamux1_ch4;
+    DMAMUX_Channel_TypeDef* dmamux1_ch5;
+    DMAMUX_Channel_TypeDef* dmamux1_ch6;
 #ifdef DMAMUX1_Channel7
-    DMAMUX_Channel_TypeDef* const dmamux1_ch7;
+    DMAMUX_Channel_TypeDef* dmamux1_ch7;
 #endif
 } DMA_Block;
 
-typedef struct {
-    ADC_TypeDef* const adc1;
+typedef const struct {
+    ADC_TypeDef* adc1;
 #ifdef ADC2
-    ADC_TypeDef* const adc2;
+    ADC_TypeDef* adc2;
 #endif
 #ifdef ADC3
-    ADC_TypeDef* const adc3;
+    ADC_TypeDef* adc3;
 #endif
 #ifdef ADC4
-    ADC_TypeDef* const adc4;
+    ADC_TypeDef* adc4;
 #endif
 #ifdef ADC5
-    ADC_TypeDef* const adc5;
+    ADC_TypeDef* adc5;
 #endif
 
-    ADC_Common_TypeDef* const adc12_common;
+    ADC_Common_TypeDef* adc12_common;
 #ifdef ADC345_COMMON
-    ADC_Common_TypeDef* const adc345_common;
+    ADC_Common_TypeDef* adc345_common;
 #endif
 
-    DAC_TypeDef* const dac1;
+    DAC_TypeDef* dac1;
 #ifdef DAC2
-    DAC_TypeDef* const dac2;
+    DAC_TypeDef* dac2;
 #endif
 #ifdef DAC3
-    DAC_TypeDef* const dac3;
+    DAC_TypeDef* dac3;
 #endif
 #ifdef DAC4
-    DAC_TypeDef* const dac4;
+    DAC_TypeDef* dac4;
 #endif
-    COMP_TypeDef* const comp;
-    OPAMP_TypeDef* const opamp;
+    COMP_TypeDef* comp;
+    OPAMP_TypeDef* opamp;
 } ANALOG_Block;
 
-typedef struct {
-    USART_TypeDef* const usart1;
-    USART_TypeDef* const usart2;
+typedef const struct {
+    USART_TypeDef* usart1;
+    USART_TypeDef* usart2;
 #ifdef USART3
-    USART_TypeDef* const usart3;
+    USART_TypeDef* usart3;
 #endif
 #ifdef UART4
-    USART_TypeDef* const uart4;
+    USART_TypeDef* uart4;
 #endif
 #ifdef UART5
-    USART_TypeDef* const uart5;
+    USART_TypeDef* uart5;
 #endif
-    USART_TypeDef* const lpuart1;
+    USART_TypeDef* lpuart1;
 
-    SPI_TypeDef* const spi1;
-    SPI_TypeDef* const spi2;
+    SPI_TypeDef* spi1;
+    SPI_TypeDef* spi2;
 #ifdef SPI3
-    SPI_TypeDef* const spi3;
+    SPI_TypeDef* spi3;
 #endif
 #ifdef SPI4
-    SPI_TypeDef* const spi4;
+    SPI_TypeDef* spi4;
 #endif
 
-    I2C_TypeDef* const i2c1;
-    I2C_TypeDef* const i2c2;
+    I2C_TypeDef* i2c1;
+    I2C_TypeDef* i2c2;
 #ifdef I2C3
-    I2C_TypeDef* const i2c3;
+    I2C_TypeDef* i2c3;
 #endif
 #ifdef I2C4
-    I2C_TypeDef* const i2c4;
+    I2C_TypeDef* i2c4;
 #endif
 
 #ifdef FDCAN1
-    FDCAN_GlobalTypeDef* const fdcan1;
+    FDCAN_GlobalTypeDef* fdcan1;
 #endif
 #ifdef FDCAN2
-    FDCAN_GlobalTypeDef* const fdcan2;
+    FDCAN_GlobalTypeDef* fdcan2;
 #endif
 #ifdef FDCAN3
-    FDCAN_GlobalTypeDef* const fdcan3;
+    FDCAN_GlobalTypeDef* fdcan3;
 #endif
 
 #ifdef SAI1
-    SAI_TypeDef* const sai1;
+    SAI_TypeDef* sai1;
 #endif
 
 #ifdef QUADSPI
-    QUADSPI_TypeDef* const qspi;
+    QUADSPI_TypeDef* qspi;
 #endif
 } COMM_Block;
 
-typedef struct {
+typedef const struct {
 #ifdef USB
-    USB_TypeDef* const usb_fs;
+    USB_TypeDef* usb_fs;
 #endif
 #ifdef RNG
-    RNG_TypeDef* const rng;
+    RNG_TypeDef* rng;
 #endif
 } EXT_Block;
 
-typedef struct {
-    IWDG_TypeDef* const iwdg;
-    WWDG_TypeDef* const wwdg;
+typedef const struct {
+    IWDG_TypeDef* iwdg;
+    WWDG_TypeDef* wwdg;
 } WD_Block;
 
-typedef struct {
-    CRC_TypeDef* const crc;
+typedef const struct {
+    CRC_TypeDef* crc;
 #ifdef FMC_BANK1
-    FMC_Bank1_TypeDef* const fmc;
+    FMC_Bank1_TypeDef* fmc;
 #endif
 } MEMORY_Block;
 
-typedef struct {
-    EXTI_TypeDef* const exti;
-    DMAMUX_Channel_TypeDef* const dmamux1;
-    DMAMUX_RequestGen_TypeDef* const dmamux_rg;
+typedef const struct {
+    EXTI_TypeDef* exti;
+    DMAMUX_Channel_TypeDef* dmamux1;
+    DMAMUX_RequestGen_TypeDef* dmamux_rg;
 } EVENT_Block;
 
 /******************************************************************
  * DEVICE STRUCTURE
  ******************************************************************/
-typedef struct {
-	CORE_Block* const core;
-	SYSTEM_Block* const sys;
-	GPIO_Block* const gpio;
-	TIM_Block* const timer;
-	DMA_Block* const dma;
-	ANALOG_Block* const analog;
-	COMM_Block* const comm;
-	EXT_Block* const ext;
-	WD_Block* const wd;
-	MEMORY_Block* const memory;
-	EVENT_Block* const event;
+typedef const struct {
+	CORE_Block* core;
+	SYSTEM_Block* sys;
+	GPIO_Block* gpio;
+	TIM_Block* timer;
+	DMA_Block* dma;
+	ANALOG_Block* analog;
+	COMM_Block* comm;
+	EXT_Block* ext;
+	WD_Block* wd;
+	MEMORY_Block* memory;
+	EVENT_Block* event;
 } STM32_DEVICE;
 
-const STM32_DEVICE* dev(void);
+STM32_DEVICE* dev(void);
 
 /************************** CLOCK QUERY ****************************/
 uint32_t get_pll_source(void);

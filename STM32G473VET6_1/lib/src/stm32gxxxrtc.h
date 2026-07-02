@@ -78,7 +78,7 @@ typedef const struct
 } STM32G473_RTC_Handler;
 
 /*** Global Accessor ***/
-const STM32G473_RTC_Handler* rtc(void);
+STM32G473_RTC_Handler* rtc(void);
 
 const char* WeekDay_String(uint8_t weekday_n);
 
