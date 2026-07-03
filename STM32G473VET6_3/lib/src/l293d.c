@@ -57,6 +57,26 @@ L293D_Handler l293d_enable(volatile IO_var *ddr, volatile IO_var *port, uint8_t 
     GPIO_af(l293d.par.TIM_GPIO, 6, l293d.par.tim_af); // AF2 -> TIM3_CH1
     GPIO_af(l293d.par.TIM_GPIO, 7, l293d.par.tim_af); // AF2 -> TIM3_CH2
 
+    GPIO_hospeed(l293d.par.TIM_GPIO, (1 << 6) | (1 << 7), GPIO_SPEED_FREQ_HIGH);
+
+    // Enable TIM3 Clock
+    RCC->APB1ENR1 |= RCC_APB1ENR1_TIM3EN;
+    // Set Frequency timing parameters
+    l293d.par.TIM->PSC = 0;
+    l293d.par.TIM->ARR = 2181;
+    // Configure Channel 1 (PA6) and Channel 2 (PA7) in PWM Mode 1
+    // CCMR1 bits 4:6 for CH1, bits 12:14 for CH2. Also enable preload registers (bit 3 and 11).
+    l293d.par.TIM->CCMR1 &= ~(TIM_CCMR1_OC1M | TIM_CCMR1_OC2M);
+    l293d.par.TIM->CCMR1 |= (6 << TIM_CCMR1_OC1M_Pos) | TIM_CCMR1_OC1PE;
+    l293d.par.TIM->CCMR1 |= (6 << TIM_CCMR1_OC2M_Pos) | TIM_CCMR1_OC2PE;
+    // Set initial duty cycle to 50% (Example: 2181 / 2 = 1090)
+    l293d.par.TIM->CCR1 = 1090;
+    l293d.par.TIM->CCR2 = 1090;
+    // Enable outputs in Capture/Compare Enable Register
+    l293d.par.TIM->CCER |= (TIM_CCER_CC1E | TIM_CCER_CC2E);
+    // Enable the main counter
+    l293d.par.TIM->CR1 |= TIM_CR1_CEN;
+
     return l293d;
 }
 
@@ -70,13 +90,19 @@ void l293d_dis(L293D_par *par) {
 void l293d_forward(L293D_par *par) {
 	*par->PORT |= (1 << par->pin1);
 	*par->PORT &= ~(1 << par->pin2);
+	par->TIM->CCR1 = 1090;
+	par->TIM->CCR2 = par->TIM->ARR + ONE;
 }
 void l293d_reverse(L293D_par *par) {
 	*par->PORT &= ~(1 << par->pin1);
 	*par->PORT |= (1 << par->pin2);
+	par->TIM->CCR1 = par->TIM->ARR + ONE;
+	par->TIM->CCR2 = 1090;
 }
 void l293d_stop(L293D_par *par) {
 	*par->PORT &= ~((1 << par->pin1) | (1 << par->pin2));
+	par->TIM->CCR1 = ZERO;
+	par->TIM->CCR2 = ZERO;
 }
 
 /***
