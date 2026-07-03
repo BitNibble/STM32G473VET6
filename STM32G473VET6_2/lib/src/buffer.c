@@ -11,36 +11,37 @@ Comment:
 #include "buffer.h"
 
 /*** File Header ***/
-void BUFF_push(bufferparameter* par, BUFF_var data);
-BUFF_var* BUFF_raw(bufferparameter* par);
-void BUFF_flush(bufferparameter* par);
-bufferparameter buff_par_inic( uint8_t size_buff, BUFF_var* buff );
+void BUFF_push(buffer_par* par, BUFF_var data);
+BUFF_var* BUFF_raw(buffer_par* par);
+void BUFF_flush(buffer_par* par);
+static buffer_par buff_par_inic( uint8_t size_buff, BUFF_var* buff );
 
 /*** BUFF Auxiliar ***/
-bufferparameter buff_par_inic( uint8_t size_buff, BUFF_var* buff )
+static buffer_par buff_par_inic( uint8_t size_buff, BUFF_var* buff )
 {
-	bufferparameter buff_par;
-	// inic VAR
-	buff_par.orig = buff;
-	buff_par.head = buff;
-	buff_par.end = buff + ( size_buff ); // generic
+	buffer_par buff_par = {
+		.orig = buff,
+		.head = buff,
+		.end = buff + ( size_buff )
+	};
 	return buff_par;
 }
+static buffer_run run_setup = {
+	.push = BUFF_push,
+	.raw = BUFF_raw,
+	.flush = BUFF_flush
+};
 /*** BUFF Procedure & Function Definition ***/
 BUFF_Handler BUFF_enable( uint8_t size_buff, BUFF_var* buff )
 {
-	// OBJECT STRUCT
-	BUFF_Handler ret;
-	// inic VAR
-	ret.par = buff_par_inic( size_buff, buff );
-	// function pointers
-	ret.push = BUFF_push;
-	ret.raw = BUFF_raw;
-	ret.flush = BUFF_flush;
-	return ret; // return copy
+	BUFF_Handler ret = {
+		.par = buff_par_inic( size_buff, buff ),
+		.run = &run_setup
+	};
+	return ret;
 }
 
-void BUFF_push( bufferparameter* par, BUFF_var data ){
+void BUFF_push( buffer_par* par, BUFF_var data ){
 	BUFF_var* head; BUFF_var* next;
 	head = par->head;
 	if(data){
@@ -56,11 +57,11 @@ void BUFF_push( bufferparameter* par, BUFF_var data ){
 	}
 }
 
-BUFF_var* BUFF_raw( bufferparameter* par ){
+BUFF_var* BUFF_raw( buffer_par* par ){
 		return par->orig;
 }
 
-void BUFF_flush( bufferparameter* par ){
+void BUFF_flush( buffer_par* par ){
 	BUFF_var* head;
 	head = par->orig;
 	par->head = head;

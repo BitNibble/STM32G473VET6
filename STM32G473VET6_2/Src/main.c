@@ -45,9 +45,9 @@ void adjust_active_field(EXPLODE_Handler active_press);
 
 int main(void)
 {
-	rcc()->inic();
+	rcc()->run->inic();
 	fpu_enable();
-	rtc()->inic();
+	rtc()->run->inic();
 
 	char str[32];
 	char vecD[8]; // for calendar date
@@ -121,8 +121,8 @@ int main(void)
 		}
 
 		/***/
-		rtc()->dr2vec(vecD);
-		rtc()->tr2vec(vecT);
+		rtc()->run->dr2vec(vecD);
+		rtc()->run->tr2vec(vecT);
 
 		if (seconds.run->update(&seconds.par, vecT[5])) {
 			toggle_hpin(dev()->gpio->f, 1 << 2);
@@ -175,34 +175,34 @@ void adjust_active_field(EXPLODE_Handler active_press)
     if (active_press.par.HL & BTN_UP_PIN) {
         switch (ui_state) {
             case CFG_HOUR:
-            	t_hr = rtc()->get_hour();
+            	t_hr = rtc()->run->get_hour();
             	t_hr   = LIMIT_INC(t_hr,   23, 0);
-            	rtc()->set_hour(t_hr);
+            	rtc()->run->set_hour(t_hr);
             	break;
             case CFG_MINUTE:
-            	t_min = rtc()->get_minute();
+            	t_min = rtc()->run->get_minute();
             	t_min  = LIMIT_INC(t_min,  59, 0);
-            	rtc()->set_minute(t_min);
+            	rtc()->run->set_minute(t_min);
             	break;
             case CFG_DAY:
-            	t_day = rtc()->get_day();
+            	t_day = rtc()->run->get_day();
             	t_day  = LIMIT_INC(t_day,  31, 1);
-            	rtc()->set_day(t_day);
+            	rtc()->run->set_day(t_day);
             	break;
             case CFG_MONTH:
-            	t_mth = rtc()->get_month();
+            	t_mth = rtc()->run->get_month();
             	t_mth  = LIMIT_INC(t_mth,  12, 1);
-            	rtc()->set_month(t_mth);
+            	rtc()->run->set_month(t_mth);
             	break;
             case CFG_YEAR:
-            	t_yr = rtc()->get_year();
+            	t_yr = rtc()->run->get_year();
             	t_yr   = LIMIT_INC(t_yr,   99, 0);
-            	rtc()->set_year(t_yr);
+            	rtc()->run->set_year(t_yr);
             	break;
             case CFG_WEEKDAY:
-            	t_wday = rtc()->get_weekday();
+            	t_wday = rtc()->run->get_weekday();
             	t_wday = LIMIT_INC(t_wday,  7, 1);
-            	rtc()->set_weekday(t_wday);
+            	rtc()->run->set_weekday(t_wday);
             	break;
             default: break;
         }
@@ -210,34 +210,34 @@ void adjust_active_field(EXPLODE_Handler active_press)
     else if (active_press.par.HL & BTN_DOWN_PIN) {
         switch (ui_state) {
             case CFG_HOUR:
-            	t_hr = rtc()->get_hour();
+            	t_hr = rtc()->run->get_hour();
             	t_hr   = LIMIT_DEC(t_hr,   23, 0);
-            	rtc()->set_hour(t_hr);
+            	rtc()->run->set_hour(t_hr);
             	break;
             case CFG_MINUTE:
-            	t_min = rtc()->get_minute();
+            	t_min = rtc()->run->get_minute();
             	t_min  = LIMIT_DEC(t_min,  59, 0);
-            	rtc()->set_minute(t_min);
+            	rtc()->run->set_minute(t_min);
             	break;
             case CFG_DAY:
-            	t_day = rtc()->get_day();
+            	t_day = rtc()->run->get_day();
             	t_day  = LIMIT_DEC(t_day,  31, 1);
-            	rtc()->set_day(t_day);
+            	rtc()->run->set_day(t_day);
             	break;
             case CFG_MONTH:
-            	t_mth = rtc()->get_month();
+            	t_mth = rtc()->run->get_month();
             	t_mth  = LIMIT_DEC(t_mth,  12, 1);
-            	rtc()->set_month(t_mth);
+            	rtc()->run->set_month(t_mth);
             	break;
             case CFG_YEAR:
-            	t_yr = rtc()->get_year();
+            	t_yr = rtc()->run->get_year();
             	t_yr   = LIMIT_DEC(t_yr,   99, 0);
-            	rtc()->set_year(t_yr);
+            	rtc()->run->set_year(t_yr);
             	break;
             case CFG_WEEKDAY:
-            	t_wday = rtc()->get_weekday();
+            	t_wday = rtc()->run->get_weekday();
             	t_wday = LIMIT_DEC(t_wday,  7, 1);
-            	rtc()->set_weekday(t_wday);
+            	rtc()->run->set_weekday(t_wday);
             	break;
             default: break;
         }

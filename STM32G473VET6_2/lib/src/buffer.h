@@ -19,15 +19,17 @@ typedef struct {
 	BUFF_var* orig;
 	BUFF_var* head;
 	BUFF_var* end;
-}bufferparameter;
-
+}buffer_par;
+typedef const struct {
+	void (*push)(buffer_par* par, BUFF_var data);
+	BUFF_var* (*raw)(buffer_par* par);
+	void (*flush)(buffer_par* par);
+}buffer_run;
 /*** BUFFER TypeDef ***/
 struct buffer
 {
-	bufferparameter par;
-	void (*push)(bufferparameter* par, BUFF_var data);
-	BUFF_var* (*raw)(bufferparameter* par);
-	void (*flush)(bufferparameter* par);
+	buffer_par par;
+	buffer_run* run;
 };
 typedef struct buffer BUFF_Handler;
 

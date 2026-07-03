@@ -481,10 +481,7 @@ static STM32GXXX_RCC_PLL STM32GXXX_rcc_pll_setup = {
 	.division = STM32GXXX_PLL_Division,
 	.enable = STM32GXXX_Rcc_PLL_CLK_Enable
 };
-/*** HANDLER ***/
-static STM32GXXX_RCC_HANDLER STM32GXXX_rcc_setup = {
-	.pll = &STM32GXXX_rcc_pll_setup,
-
+static STM32GXXX_RCC_run STM32GXXX_rcc_run_setup = {
 	.inic = rcc_start,
 	.henable = STM32GXXX_Rcc_HEnable,
 	.hselect = STM32GXXX_Rcc_HSelect,
@@ -492,8 +489,16 @@ static STM32GXXX_RCC_HANDLER STM32GXXX_rcc_setup = {
 	.lselect = STM32GXXX_Rcc_LSelect,
 	.prescaler = STM32GXXX_Prescaler
 };
+/*** HANDLER ***/
+static STM32GXXX_RCC_HANDLER STM32GXXX_rcc_setup = {
+	.pll = &STM32GXXX_rcc_pll_setup,
+	.run = &STM32GXXX_rcc_run_setup
+
+};
 
 STM32GXXX_RCC_HANDLER* rcc(void){ return &STM32GXXX_rcc_setup; };
+
+/*** EOF ***/
 
 /******
 1º Sequence
@@ -505,6 +510,4 @@ STM32GXXX_RCC_HANDLER* rcc(void){ return &STM32GXXX_rcc_setup; };
 3º Pointer and Variable
 4º Casting
 ******/
-
-/*** EOF ***/
 

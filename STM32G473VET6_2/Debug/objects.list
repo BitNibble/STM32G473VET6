@@ -17,5 +17,7 @@
 "./lib/src/stm32gxxx_tim1.o"
 "./lib/src/stm32gxxx_usart1.o"
 "./lib/src/stm32xtool.o"
+"./lib/src/template_instance.o"
+"./lib/src/template_singleton.o"
 "./lib/src/timer_irq.o"
 "./lib/src/znpid.o"

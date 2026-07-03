@@ -372,12 +372,7 @@ static uint8_t _rtc_bcd2dec(uint8_t num) {
 static uint8_t _rtc_dec2bcd(uint8_t num) {
     return ((num / 10) << 4) | (num % 10);
 }
-
-static RTC_callback rtc_callbacks = {NULL, NULL, NULL, NULL, NULL};
-
-/*** Global Handler Singleton Instance ***/
-static STM32G473_RTC_Handler rtc_instance =
-{
+static RTC_run run_setup = {
 	.get_year = RTC_get_year,
 	.get_month = RTC_get_month,
 	.get_weekday = RTC_get_weekday,
@@ -405,7 +400,15 @@ static STM32G473_RTC_Handler rtc_instance =
 	.nvic = RTC_nvic_config,
 	.irq_enable = RTC_irq_enable,
 	.irq_disable = RTC_irq_disable,
-	.callback = &rtc_callbacks
+};
+
+static RTC_callback callback_setup = {NULL, NULL, NULL, NULL, NULL};
+
+/*** Global Handler Singleton Instance ***/
+static STM32G473_RTC_Handler rtc_instance =
+{
+	.run = &run_setup,
+	.callback = &callback_setup
 };
 STM32G473_RTC_Handler* rtc(void)
 {

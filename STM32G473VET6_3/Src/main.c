@@ -20,9 +20,9 @@ License:  GNU General Public License
 
 int main(void)
 {
-	rcc()->inic();
+	rcc()->run->inic();
 	fpu_enable();
-	rtc()->inic();
+	rtc()->run->inic();
     /* Loop forever */
 	for(;;);
 }

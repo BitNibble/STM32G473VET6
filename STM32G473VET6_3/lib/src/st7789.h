@@ -2,7 +2,7 @@
 	ST7789
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
-Hardware: ST7789 on stm32f411ceu6
+Hardware: ST7789
 Date:     23/01/2026
 ************************************************************************/
 #ifndef ST7789_H

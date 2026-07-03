@@ -876,7 +876,7 @@ static FUNC_Handler func_setup = {
 	.string_to_uint = string_to_uint,
 	.int_to_hex_string = int_to_hex_string,
 	.float_to_string = float_to_string
-	};
+};
 
 FUNC_Handler* func(void){ return &func_setup; }
 

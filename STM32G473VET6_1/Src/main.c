@@ -58,9 +58,9 @@ void application_init(void)
 
 int main(void)
 {
-	rcc()->inic();
+	rcc()->run->inic();
 	fpu_enable();
-	rtc()->inic();
+	rtc()->run->inic();
 
 	//char str[32];
 	//char vecD[8]; // for calendar date
@@ -112,14 +112,14 @@ int main(void)
 		//func()->format_string(str,32,"%u", 60);
 		//ptr = function_ui16toa(60);
 		//ptr = func()->ui16toa(60);
-		ptr = func()->ui16toa(rtc()->get_second());
+		ptr = func()->ui16toa(rtc()->run->get_second());
 		lcd1.run->drawstring16x24_size(&lcd1.par,ptr,10,200,ST77XX_RED,BG_colour,2);
 		//lcd1.drawstring16x24(&lcd1.par,"hello",10,200,ST77XX_RED,ST77XX_GREEN);
 		lcd1.run->stop(&lcd1.par);
 
 		/***
-		rtc()->dr2vec(vecD);
-		rtc()->tr2vec(vecT);
+		rtc()->run->dr2vec(vecD);
+		rtc()->run->tr2vec(vecT);
 
 		lcd1.run->start(&lcd1.par);
 		func()->format_string(str,32,"%d%d-%d%d-20%d%d",vecD[5], vecD[6], vecD[3], vecD[4], vecD[0], vecD[1]);

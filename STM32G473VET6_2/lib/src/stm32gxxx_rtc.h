@@ -43,9 +43,7 @@ typedef struct {
     void (*Overrun)(void);
 } RTC_callback;
 
-/*** RTC TypeDef ***/
-typedef const struct
-{
+typedef const struct {
 	uint8_t (*get_year)(void);
 	uint8_t (*get_month)(void);
 	uint8_t (*get_weekday)(void);
@@ -74,6 +72,12 @@ typedef const struct
 	void (*nvic)(uint8_t config);
 	void (*irq_enable)(uint8_t type);
 	void (*irq_disable)(uint8_t type);
+} RTC_run;
+
+/*** RTC TypeDef ***/
+typedef const struct
+{
+	RTC_run* run;
 	RTC_callback* callback;
 } STM32G473_RTC_Handler;
 

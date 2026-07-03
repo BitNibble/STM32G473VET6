@@ -232,7 +232,7 @@ static EVENT_Block event = {
 /******************************************************************
  * DEVICE INSTANCE
  ******************************************************************/
-static const STM32_DEVICE device = {
+static STM32_DEVICE device = {
     .core   = &core,
     .sys = &sys,
     .gpio   = &gpio,
@@ -249,7 +249,7 @@ static const STM32_DEVICE device = {
 /******************************************************************
  * ACCESS
  ******************************************************************/
-const STM32_DEVICE* dev(void)
+STM32_DEVICE* dev(void)
 {
     return &device;
 }
