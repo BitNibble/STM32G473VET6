@@ -36,7 +36,7 @@ typedef struct {
 
 typedef const struct {
     /* Lifecycle */
-	void (*config)(uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t*  buff_rx, uint8_t*  buff_tx);
+	void (*config)(USART1_par par);
     void (*init)(void);
     void (*start_rx)(void);
 

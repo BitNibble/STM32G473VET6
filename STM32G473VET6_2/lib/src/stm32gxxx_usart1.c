@@ -15,7 +15,7 @@ Date:     08/06/2026
 static uint8_t u1_rx_raw[USART1_RX_SIZE + ONE] = {0}; // overflow safety
 static uint8_t u1_tx_raw[USART1_TX_SIZE] = {0};
 
-static void impl_config(uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t* buff_rx, uint8_t* buff_tx);
+static void impl_config(USART1_par par_setup);
 static void impl_init(void);
 static void impl_start_rx(void);
 static uint16_t impl_read(uint8_t *out);
@@ -33,7 +33,7 @@ static uint16_t impl_rx_available(void);
 static void default_idle_irq(void);
 static void default_dma_tx_irq(void);
 
-USART1_par par = {
+static USART1_par par_setup = {
 	.wordlength     = 8,
 	.stopbit        = 0,
 	.samplingmode   = 16,
@@ -47,11 +47,11 @@ USART1_par par = {
 	.buff_rx        = u1_rx_raw,
 	.buff_tx        = u1_tx_raw
 };
-USART1_irq	irq = {
+static USART1_irq	irq_setup = {
 	.idle    = default_idle_irq,
 	.dma_tx = default_dma_tx_irq,
 };
-USART1_run run = {
+static USART1_run run_setup = {
 	.config             = impl_config,
 	.init               = impl_init,
 	.start_rx           = impl_start_rx,
@@ -69,9 +69,9 @@ USART1_run run = {
 
 /* V-Table initialization mapping back to public struct blueprint */
 static USARTG4_Handle handle_instance = {
-		.par = &par,
-		.irq = &irq,
-		.run = &run
+		.par = &par_setup,
+		.irq = &irq_setup,
+		.run = &run_setup
 };
 
 /* Singleton factory gateway entry point */
@@ -86,13 +86,10 @@ static inline uint16_t _rx_dma_write_snapshot(void) {
     return USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
 }
 
-static void impl_config(uint8_t wordlength, uint8_t stopbit, uint8_t samplingmode, uint32_t baudrate, uint8_t* buff_rx, uint8_t* buff_tx) {
-    // Assign configuration parameters
-    par.wordlength   = wordlength;
-    par.stopbit      = stopbit;
-    par.samplingmode = samplingmode;
-    par.baudrate     = baudrate;
-
+static void impl_config(USART1_par par) {
+	par.buff_rx = u1_rx_raw;
+	par.buff_tx = u1_tx_raw;
+	par_setup = par;
     volatile uint32_t* cr1_reg = &(dev()->comm->usart1->CR1);
     volatile uint32_t* cr2_reg = &(dev()->comm->usart1->CR2);
 
@@ -100,7 +97,7 @@ static void impl_config(uint8_t wordlength, uint8_t stopbit, uint8_t samplingmod
     uint32_t m0_val = 0;
     uint32_t m1_val = 0;
 
-    switch(wordlength) {
+    switch(par_setup.wordlength) {
         case 7:  // 7-bit data
             m0_val = 0;
             m1_val = 1;
@@ -120,11 +117,11 @@ static void impl_config(uint8_t wordlength, uint8_t stopbit, uint8_t samplingmod
 
     // Setup Stop Bits (CR2->STOP[1:0])
     // Expected input values standard mapping: 00: 1 Stop bit, 01: 0.5 Stop bit, 10: 2 Stop bits, 11: 1.5 Stop bits
-    write_field_value(cr2_reg, USART_CR2_STOP_Msk, USART_CR2_STOP_Pos, stopbit);
+    write_field_value(cr2_reg, USART_CR2_STOP_Msk, USART_CR2_STOP_Pos, par_setup.stopbit);
 
     // Setup Sampling Mode (CR1->OVER8)
     // 0: Oversampling by 16, 1: Oversampling by 8
-    if(samplingmode == 8) {
+    if(par_setup.samplingmode == 8) {
     	write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ONE);
     } else {
     	write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ZERO);
@@ -135,24 +132,20 @@ static void impl_config(uint8_t wordlength, uint8_t stopbit, uint8_t samplingmod
     uint32_t brr_calculated_val = ZERO;
 
     // Calculate BRR using direct floor division (as expected by STM32 hardware)
-    if (par.samplingmode == 8) {
+    if (par_setup.samplingmode == 8) {
     	// Oversampling by 8
     	// Hardware expects: (2 * pclk) / baudrate
-    	uint32_t usartdiv = (2 * pclk) / par.baudrate;
+    	uint32_t usartdiv = (2 * pclk) / par_setup.baudrate;
     	// Shift logic to fit USARTDIV into BRR register fields when OVER8 = 1
     	brr_calculated_val = (usartdiv & 0xFFF0) | ((usartdiv & 0x0007) >> 1);
     }
     else {
     	// Oversampling by 16 (Standard Mode)
-    	brr_calculated_val = pclk / par.baudrate;
+    	brr_calculated_val = pclk / par_setup.baudrate;
     }
 
     // Write calculated value to the USART1 BRR Register
     write_field_value(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
-
-    // Secure buffer assignments
-    if (!isPtrNull(buff_rx)) par.buff_rx = buff_rx;
-    if (!isPtrNull(buff_tx)) par.buff_tx = buff_tx;
 }
 
 static void impl_init(void) {
@@ -183,7 +176,7 @@ static void impl_init(void) {
     // Configure DMA RX Channel (Circular mode)
     clear_reg(&(dev()->dma->dma1_ch1->CCR), DMA_CCR_EN);
     dev()->dma->dma1_ch1->CPAR  = (uint32_t)&(dev()->comm->usart1->RDR);
-    dev()->dma->dma1_ch1->CMAR  = (uint32_t)par.buff_rx;
+    dev()->dma->dma1_ch1->CMAR  = (uint32_t)par_setup.buff_rx;
     dev()->dma->dma1_ch1->CNDTR = USART1_RX_SIZE;
     set_reg(&(dev()->dma->dma1_ch1->CCR), DMA_CCR_MINC | DMA_CCR_CIRC | DMA_CCR_PL_0);
 
@@ -197,7 +190,7 @@ static void impl_init(void) {
     clear_reg(&(dev()->comm->usart1->CR1), USART_CR1_UE);
 
     uint32_t pclk = get_pclk2();
-    uint32_t brr_calculated_val = pclk / par.baudrate;
+    uint32_t brr_calculated_val = pclk / par_setup.baudrate;
     write_field_value(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
 
 
@@ -213,44 +206,44 @@ static void impl_init(void) {
 }
 
 static void impl_start_rx(void) {
-    par.rx_read_index  = ZERO;
-    par.rx_write_index = ZERO;
+    par_setup.rx_read_index  = ZERO;
+    par_setup.rx_write_index = ZERO;
     set_reg(&(dev()->dma->dma1_ch1->CCR), DMA_CCR_EN);
 }
 
 static uint16_t impl_read(uint8_t *out) {
     if (isPtrNull(out)) return ZERO;
 
-    par.rx_write_index = _rx_dma_write_snapshot();
+    par_setup.rx_write_index = _rx_dma_write_snapshot();
 
-    if (par.rx_read_index == par.rx_write_index) {
+    if (par_setup.rx_read_index == par_setup.rx_write_index) {
         return ZERO;
     }
 
-    *out = par.buff_rx[par.rx_read_index];
-    uint16_t next = par.rx_read_index + ONE;
+    *out = par_setup.buff_rx[par_setup.rx_read_index];
+    uint16_t next = par_setup.rx_read_index + ONE;
     if (next >= USART1_RX_SIZE) {
         next = ZERO;
     }
-    par.rx_read_index = next;
+    par_setup.rx_read_index = next;
     return ONE;
 }
 
 static char impl_read_char(void) {
-    par.rx_write_index = _rx_dma_write_snapshot();
+    par_setup.rx_write_index = _rx_dma_write_snapshot();
 
-    if (par.rx_read_index == par.rx_write_index) {
+    if (par_setup.rx_read_index == par_setup.rx_write_index) {
         return ZERO;
     }
 
-    char tmp = par.buff_rx[par.rx_read_index];
-    uint16_t next = par.rx_read_index + 1;
+    char tmp = par_setup.buff_rx[par_setup.rx_read_index];
+    uint16_t next = par_setup.rx_read_index + 1;
 
     if (next >= USART1_RX_SIZE) {
         next = ZERO;
     }
 
-    par.rx_read_index = next;
+    par_setup.rx_read_index = next;
     return tmp;
 }
 
@@ -274,7 +267,7 @@ static uint16_t impl_read_str_size(char* str, uint16_t max_len) {
         return ZERO;
     }
 
-    while (par.rx_read_index != par.rx_write_index && i < (max_len - ONE)) {
+    while (par_setup.rx_read_index != par_setup.rx_write_index && i < (max_len - ONE)) {
         str[i++] = impl_read_char();
     }
 
@@ -283,63 +276,63 @@ static uint16_t impl_read_str_size(char* str, uint16_t max_len) {
 }
 
 static void impl_send(const uint8_t *data, uint16_t len) {
-    if (isPtrNull((void*)data) || len == ZERO || len > USART1_TX_SIZE || par.tx_busy) {
+    if (isPtrNull((void*)data) || len == ZERO || len > USART1_TX_SIZE || par_setup.tx_busy) {
         return;
     }
 
-    par.tx_busy = ONE;
-    memcpy(par.buff_tx, data, len);
+    par_setup.tx_busy = ONE;
+    memcpy(par_setup.buff_tx, data, len);
 
     clear_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
-    dev()->dma->dma1_ch2->CMAR  = (uint32_t)par.buff_tx;
+    dev()->dma->dma1_ch2->CMAR  = (uint32_t)par_setup.buff_tx;
     dev()->dma->dma1_ch2->CNDTR = len;
     set_reg(&(dev()->dma->dma1_ch2->CCR), DMA_CCR_EN); /* FIXED: This was commented out!*/
 }
 
 static uint8_t impl_tx_ready(void) {
     if (!(dev()->dma->dma1_ch2->CCR & DMA_CCR_EN)) {
-        par.tx_busy = ZERO;
+        par_setup.tx_busy = ZERO;
     }
-    return !par.tx_busy;
+    return !par_setup.tx_busy;
 }
 
 /* ============================================================================
    MEMORY INSPECTION TRACKING HELPER UTILITIES
    ============================================================================ */
 static uint16_t impl_get_rx_left(void) {
-	par.rx_left = dev()->dma->dma1_ch1->CNDTR;
-    return par.rx_left;
+	par_setup.rx_left = dev()->dma->dma1_ch1->CNDTR;
+    return par_setup.rx_left;
 }
 
 static uint16_t impl_get_rx_read_index(void) {
-    return par.rx_read_index;
+    return par_setup.rx_read_index;
 }
 
 static inline uint16_t impl_get_rx_write_index(void) {
-	par.rx_write_index = _rx_dma_write_snapshot();
-	return par.rx_write_index;
+	par_setup.rx_write_index = _rx_dma_write_snapshot();
+	return par_setup.rx_write_index;
 }
 
 static uint16_t impl_rx_available(void) {
-    par.rx_write_index = _rx_dma_write_snapshot();
+    par_setup.rx_write_index = _rx_dma_write_snapshot();
 
     uint16_t available;
 
-    if (par.rx_write_index >= par.rx_read_index) {
-        available = par.rx_write_index - par.rx_read_index;
+    if (par_setup.rx_write_index >= par_setup.rx_read_index) {
+        available = par_setup.rx_write_index - par_setup.rx_read_index;
     } else {
-        available = (USART1_RX_SIZE - par.rx_read_index) + par.rx_write_index;
+        available = (USART1_RX_SIZE - par_setup.rx_read_index) + par_setup.rx_write_index;
     }
 
     // Determine the next position the DMA will write to
-    uint16_t next_write = par.rx_write_index + 1;
+    uint16_t next_write = par_setup.rx_write_index + 1;
     if (next_write >= USART1_RX_SIZE) {
         next_write = ZERO;
     }
 
     // If the next hardware write point hits our read index, it's completely full
-    if (next_write == par.rx_read_index) {
-        par.rx_overflow = ONE;
+    if (next_write == par_setup.rx_read_index) {
+        par_setup.rx_overflow = ONE;
     }
 
     return available;
@@ -358,8 +351,8 @@ static void default_idle_irq(void) {
 
     if (isr & USART_ISR_IDLE) {
         dev()->comm->usart1->ICR = USART_ICR_IDLECF;
-        par.rx_write_index = _rx_dma_write_snapshot();
-        par.rx_available = impl_rx_available();
+        par_setup.rx_write_index = _rx_dma_write_snapshot();
+        par_setup.rx_available = impl_rx_available();
     }
 }
 
@@ -371,7 +364,7 @@ static void default_dma_tx_irq(void) {
         // Clear the Channel 2 Transfer Complete flag using your native helper/register
         dev()->dma->dma1->IFCR = DMA_IFCR_CTCIF2;
 
-        par.tx_busy = ZERO; // Release the lock so next transfers can happen
+        par_setup.tx_busy = ZERO; // Release the lock so next transfers can happen
     }
 }
 
