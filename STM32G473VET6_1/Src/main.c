@@ -40,7 +40,7 @@ void application_init(void)
     // 1. Fire up the clock gating blocks through the accessors
     GPIO_clock(dev()->gpio->a, 1);
     // 2. Multi-pin batch setup: Mode = Alternate Function (0x02)
-    GPIO_hmoder(dev()->gpio->a, tim1_pins, 2);
+    GPIO_hmoder(dev()->gpio->a, tim1_pins, MODE_AF);
     // 3. Speed selection: Very High Speed (0x03) for crisp PWM edges
     GPIO_hospeed(dev()->gpio->a, tim1_pins, 3);
     // 4. Batch assign Alternate Function 6 (AF6 = TIM1) across your target array
@@ -67,7 +67,7 @@ int main(void)
 	//char vecT[8]; // for calendar time
 
 	GPIO_clock( dev()->gpio->f, 1 );
-	GPIO_hmoder( dev()->gpio->f, 1 << 2, 1 );
+	GPIO_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
 
 	//clear_pin(dev()->gpio->f, 1 << 2);
 

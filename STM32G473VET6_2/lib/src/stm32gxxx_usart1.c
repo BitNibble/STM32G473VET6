@@ -86,66 +86,86 @@ static inline uint16_t _rx_dma_write_snapshot(void) {
     return USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
 }
 
+/******/
+static void impl_set_wordlength(uint8_t wordlength) {
+	volatile uint32_t* cr1_reg = &(dev()->comm->usart1->CR1);
+	// Setup Word Length (Split across CR1->M1 and CR1->M0)
+	uint32_t m0_val = 0;
+	uint32_t m1_val = 0;
+
+	switch(wordlength) {
+		case 7:  // 7-bit data
+			m0_val = 0;
+			m1_val = 1;
+			break;
+		case 9:  // 9-bit data
+			m0_val = 1;
+			m1_val = 0;
+			break;
+		case 8:  // 8-bit data (Default)
+		default:
+			m0_val = 0;
+			m1_val = 0;
+			break;
+	}
+	write_field_value(cr1_reg, USART_CR1_M0_Msk, USART_CR1_M0_Pos, m0_val);
+	write_field_value(cr1_reg, USART_CR1_M1_Msk, USART_CR1_M1_Pos, m1_val);
+}
+
+static void impl_set_stopbit(uint8_t stopbit) {
+	volatile uint32_t* cr2_reg = &(dev()->comm->usart1->CR2);
+	write_field_value(cr2_reg, USART_CR2_STOP_Msk, USART_CR2_STOP_Pos, stopbit);
+}
+
+static void impl_set_samplingmode(uint8_t samplingmode) {
+	volatile uint32_t* cr1_reg = &(dev()->comm->usart1->CR1);
+	if(samplingmode == 8) {
+	    write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ONE);
+	} else {
+		write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ZERO);
+	}
+}
+
+static uint8_t impl_get_samplingmode(void) {
+	if(get_field_value(dev()->comm->usart1->CR1, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos)){
+		return 8;
+	} else {
+		return 16;
+	}
+}
+
+static void impl_set_baudrate(uint32_t baudrate) {
+	uint32_t pclk = get_pclk2();
+	uint32_t brr_calculated_val = ZERO;
+	// Calculate BRR using direct floor division (as expected by STM32 hardware)
+	if (impl_get_samplingmode() == 8) {
+		// Oversampling by 8
+		// Hardware expects: (2 * pclk) / baudrate
+		uint32_t usartdiv = (2 * pclk) / baudrate;
+		// Shift logic to fit USARTDIV into BRR register fields when OVER8 = 1
+		brr_calculated_val = (usartdiv & 0xFFF0) | ((usartdiv & 0x0007) >> 1);
+	} else {
+		// Oversampling by 16 (Standard Mode)
+		brr_calculated_val = pclk / baudrate;
+	}
+	// Write calculated value to the USART1 BRR Register
+	write_field_value(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
+}
+
 static void impl_config(USART1_par par) {
 	par.buff_rx = u1_rx_raw;
 	par.buff_tx = u1_tx_raw;
 	par_setup = par;
-    volatile uint32_t* cr1_reg = &(dev()->comm->usart1->CR1);
-    volatile uint32_t* cr2_reg = &(dev()->comm->usart1->CR2);
-
     // Setup Word Length (Split across CR1->M1 and CR1->M0)
-    uint32_t m0_val = 0;
-    uint32_t m1_val = 0;
-
-    switch(par_setup.wordlength) {
-        case 7:  // 7-bit data
-            m0_val = 0;
-            m1_val = 1;
-            break;
-        case 9:  // 9-bit data
-            m0_val = 1;
-            m1_val = 0;
-            break;
-        case 8:  // 8-bit data (Default)
-        default:
-            m0_val = 0;
-            m1_val = 0;
-            break;
-    }
-    write_field_value(cr1_reg, USART_CR1_M0_Msk, USART_CR1_M0_Pos, m0_val);
-    write_field_value(cr1_reg, USART_CR1_M1_Msk, USART_CR1_M1_Pos, m1_val);
-
+    impl_set_wordlength(par_setup.wordlength);
     // Setup Stop Bits (CR2->STOP[1:0])
     // Expected input values standard mapping: 00: 1 Stop bit, 01: 0.5 Stop bit, 10: 2 Stop bits, 11: 1.5 Stop bits
-    write_field_value(cr2_reg, USART_CR2_STOP_Msk, USART_CR2_STOP_Pos, par_setup.stopbit);
-
+    impl_set_stopbit(par_setup.stopbit);
     // Setup Sampling Mode (CR1->OVER8)
     // 0: Oversampling by 16, 1: Oversampling by 8
-    if(par_setup.samplingmode == 8) {
-    	write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ONE);
-    } else {
-    	write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ZERO);
-    }
-
+    impl_set_samplingmode(par_setup.samplingmode);
     // Fetch the peripheral clock frequency
-    uint32_t pclk = get_pclk2();
-    uint32_t brr_calculated_val = ZERO;
-
-    // Calculate BRR using direct floor division (as expected by STM32 hardware)
-    if (par_setup.samplingmode == 8) {
-    	// Oversampling by 8
-    	// Hardware expects: (2 * pclk) / baudrate
-    	uint32_t usartdiv = (2 * pclk) / par_setup.baudrate;
-    	// Shift logic to fit USARTDIV into BRR register fields when OVER8 = 1
-    	brr_calculated_val = (usartdiv & 0xFFF0) | ((usartdiv & 0x0007) >> 1);
-    }
-    else {
-    	// Oversampling by 16 (Standard Mode)
-    	brr_calculated_val = pclk / par_setup.baudrate;
-    }
-
-    // Write calculated value to the USART1 BRR Register
-    write_field_value(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
+    impl_set_baudrate(par_setup.baudrate);
 }
 
 static void impl_init(void) {
@@ -189,10 +209,7 @@ static void impl_init(void) {
     // Set USART registers using dynamic system clock reading helper
     clear_reg(&(dev()->comm->usart1->CR1), USART_CR1_UE);
 
-    uint32_t pclk = get_pclk2();
-    uint32_t brr_calculated_val = pclk / par_setup.baudrate;
-    write_field_value(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
-
+    impl_set_baudrate(par_setup.baudrate);
 
     set_reg(&(dev()->comm->usart1->CR1), USART_CR1_TE | USART_CR1_RE | USART_CR1_IDLEIE);
     set_reg(&(dev()->comm->usart1->CR3), USART_CR3_DMAT | USART_CR3_DMAR);
