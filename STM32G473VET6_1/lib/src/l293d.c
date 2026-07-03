@@ -69,9 +69,9 @@ L293D_Handler l293d_enable(volatile IO_var *ddr, volatile IO_var *port, uint8_t 
     l293d.par.TIM->CCMR1 &= ~(TIM_CCMR1_OC1M | TIM_CCMR1_OC2M);
     l293d.par.TIM->CCMR1 |= (6 << TIM_CCMR1_OC1M_Pos) | TIM_CCMR1_OC1PE;
     l293d.par.TIM->CCMR1 |= (6 << TIM_CCMR1_OC2M_Pos) | TIM_CCMR1_OC2PE;
-    // Set initial duty cycle to 50% (Example: 2181 / 2 = 1090)
-    l293d.par.TIM->CCR1 = 1090;
-    l293d.par.TIM->CCR2 = 1090;
+    // Initialize to +V reference brake state (Both HIGH = completely stopped)
+    l293d.par.TIM->CCR1 = l293d.par.TIM->ARR + ONE;
+    l293d.par.TIM->CCR2 = l293d.par.TIM->ARR + ONE;
     // Enable outputs in Capture/Compare Enable Register
     l293d.par.TIM->CCER |= (TIM_CCER_CC1E | TIM_CCER_CC2E);
     // Enable the main counter
@@ -90,19 +90,56 @@ void l293d_dis(L293D_par *par) {
 void l293d_forward(L293D_par *par) {
 	*par->PORT |= (1 << par->pin1);
 	*par->PORT &= ~(1 << par->pin2);
-	par->TIM->CCR1 = 1090;
-	par->TIM->CCR2 = par->TIM->ARR + ONE;
 }
 void l293d_reverse(L293D_par *par) {
 	*par->PORT &= ~(1 << par->pin1);
 	*par->PORT |= (1 << par->pin2);
-	par->TIM->CCR1 = par->TIM->ARR + ONE;
-	par->TIM->CCR2 = 1090;
 }
 void l293d_stop(L293D_par *par) {
 	*par->PORT &= ~((1 << par->pin1) | (1 << par->pin2));
-	par->TIM->CCR1 = ZERO;
-	par->TIM->CCR2 = ZERO;
+}
+
+// Fixed-speed shortcuts map directly onto the valid PWM timing logic
+void _l293d_forward(L293D_par *par) {
+	par->TIM->CCR2 = par->TIM->ARR + ONE;
+	par->TIM->CCR1 = 0; // ARR - ARR = 0 (100% full speed duty cycle)
+}
+
+void _l293d_reverse(L293D_par *par) {
+	par->TIM->CCR1 = par->TIM->ARR + ONE;
+	par->TIM->CCR2 = 0; // ARR - ARR = 0 (100% full speed duty cycle)
+}
+
+// Forward with variable speed (0 to ARR) using +V reference locking
+void l293d_pwm_forward(L293D_par *par, uint16_t speed) {
+    if (speed > par->TIM->ARR) {
+        speed = par->TIM->ARR; // Clamp safety
+    }
+    par->TIM->CCR2 = par->TIM->ARR + ONE;  // Lock CH2 HIGH (+V reference) [1]
+    par->TIM->CCR1 = par->TIM->ARR - speed; // Invert duty cycle so higher speed = more LOW time [1]
+}
+
+// Reverse with variable speed (0 to ARR) using +V reference locking
+void l293d_pwm_reverse(L293D_par *par, uint16_t speed) {
+    if (speed > par->TIM->ARR) {
+        speed = par->TIM->ARR; // Clamp safety
+    }
+    par->TIM->CCR1 = par->TIM->ARR + ONE;  // Lock CH1 HIGH (+V reference) [1]
+    par->TIM->CCR2 = par->TIM->ARR - speed; // Invert duty cycle so higher speed = more LOW time [1]
+}
+
+// PWM Stop using +V reference locking (Fast Hardware Brake)
+void l293d_pwm_stop(L293D_par *par) {
+    par->TIM->CCR1 = par->TIM->ARR + ONE;  // Lock CH1 HIGH (+V reference) [1]
+    par->TIM->CCR2 = par->TIM->ARR + ONE;  // Lock CH2 HIGH (+V reference) [1]
+}
+
+void l293d_pwm_stop_coast(L293D_par *par) {
+    // 1. Turn off the H-bridge outputs entirely (Motor freewheels/coasts)
+    *par->PORT &= ~(1 << par->en_pin);
+    // 2. Safely clear the timers
+    par->TIM->CCR1 = 0;
+    par->TIM->CCR2 = 0;
 }
 
 /***
