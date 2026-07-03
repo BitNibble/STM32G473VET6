@@ -2,6 +2,12 @@
 	MAIN
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
+	ST8879
+SCL - PC10
+SDA - PC12
+RST - PC9
+DC - PC8
+CS - PC7
 ************************************************************************/
 #include "stm32gxxx_rcc.h"
 #include "arm_systick.h"

@@ -2,6 +2,19 @@
 	MAIN
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
+
+Button1 - PD8
+Button2 - PD9
+Button3 - PD10
+Button4 - PD11
+Button5 - PD12
+Button6 - PD13
+	ST8879V
+SCL - PC10
+SDA - PC12
+RST - PC9
+DC - PC8
+CS - PC7
 ************************************************************************/
 #include "stm32gxxx_rcc.h"
 #include "arm_systick.h"

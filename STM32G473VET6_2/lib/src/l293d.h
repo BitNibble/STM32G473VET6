@@ -14,7 +14,7 @@ Date:     12082025
 #include <inttypes.h>
 
 /*** Constant and Macro ***/
-#if defined (STM32G4)
+#if defined(STM32F4) || defined(STM32G4)
     #define IO_var uint32_t
 #else
     #define IO_var uint8_t
@@ -24,7 +24,9 @@ Date:     12082025
 typedef struct {
     volatile IO_var *DDR;
     volatile IO_var *PORT;
+    GPIO_TypeDef *TIM_GPIO;
     TIM_TypeDef *TIM;
+    uint8_t tim_af;
     uint8_t pin1;
     uint8_t pin2;
     uint8_t en_pin;
