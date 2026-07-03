@@ -8,10 +8,16 @@ Date: 02072026
 #include "stm32gxxx_adc1.h"
 #include "arm_systick.h"
 
+/*** adc1 PARAMETER ***/
+static adc1_par par_setup= {
+	.var_1 = 0,
+	.var_2 = 0
+};
+
 /* ============================================================
    ADC INITIALIZATION
    =========================================================== */
-inline void _adc1_init(void) {
+static inline void _adc1_init(void) {
 	/* Sair do modo Deep Power Down do ADC1 */
 	clear_reg(&dev()->analog->adc1->CR, ADC_CR_DEEPPWD);
 	/* Ativar o regulador de tensão interno do ADC1 */
@@ -20,7 +26,7 @@ inline void _adc1_init(void) {
 	_delay_us(20);
 }
 
-inline void _adc1_enable(void) {
+static inline void _adc1_enable(void) {
 	uint32_t timeout = 0x1FFFFF;
 	/* Garantir que o flag ADRDY está limpo antes de ligar */
 	set_reg(&dev()->analog->adc1->ISR, ADC_ISR_ADRDY);
@@ -29,7 +35,7 @@ inline void _adc1_enable(void) {
 	while (!(dev()->analog->adc1->ISR & ADC_ISR_ADRDY) && timeout--);
 }
 
-inline int _adc1_disable(void)
+static inline int _adc1_disable(void)
 {
     uint32_t timeout;
     // pointer alias for readability
@@ -62,7 +68,7 @@ inline int _adc1_disable(void)
     return 0;
 }
 
-inline void _adc1_cal_single(void) {
+static inline void _adc1_cal_single(void) {
 	uint32_t timeout = 0x1FFFFF;
 	_adc1_init();
 	/* Iniciar a calibração do ADC1 */
@@ -74,7 +80,7 @@ inline void _adc1_cal_single(void) {
 	while ((dev()->analog->adc1->CR & ADC_CR_ADCAL) && timeout--);
 }
 
-inline void _adc1_cal_differential(void) {
+static inline void _adc1_cal_differential(void) {
 	uint32_t timeout = 0x1FFFFF;
 	_adc1_init();
 	/* Iniciar a calibração do ADC1 */
@@ -86,7 +92,7 @@ inline void _adc1_cal_differential(void) {
 	while ((dev()->analog->adc1->CR & ADC_CR_ADCAL) && timeout--);
 }
 
-void adc1_temp_init(void) {
+static void adc1_temp_init(void) {
 	/* Ativar o clock do circuito do ADC12 no RCC */
 	set_reg(&dev()->sys->rcc->AHB2ENR, RCC_AHB2ENR_ADC12EN);
 
@@ -113,7 +119,7 @@ void adc1_temp_init(void) {
 /* ============================================================
    RAW ADC READ
    ============================================================ */
-uint16_t adc1_temp_read_raw(void)
+static uint16_t adc1_temp_read_raw(void)
 {
 	uint32_t timeout = 0x1FFFFF;
     set_reg(
@@ -129,7 +135,7 @@ uint16_t adc1_temp_read_raw(void)
 /* ============================================================
    CALIBRATED TEMPERATURE CONVERSION
    ============================================================ */
-float adc1_temp_to_celsius(uint16_t raw)
+static float adc1_temp_to_celsius(uint16_t raw)
 {
     // Endereços oficiais de calibração do STM32G4 (gravados a 3.0V)
     uint16_t cal1 = *(volatile uint16_t*)0x1FFF75A8; // Medido a 30 ºC
@@ -149,7 +155,7 @@ float adc1_temp_to_celsius(uint16_t raw)
 /* ============================================================
    HIGH-LEVEL API
    ============================================================ */
-float adc1_temp_read_celsius(void)
+static float adc1_temp_read_celsius(void)
 {
     uint16_t raw = adc1_temp_read_raw();
     return adc1_temp_to_celsius(raw);
@@ -230,6 +236,32 @@ static inline int adc_safe_disable(ADC_TypeDef *adc)
     while (adc_is_enabled(adc) && (--timeout));
     return (timeout == 0) ? -3 : 0;
 }
+
+/*** adc1 CALLBACK ***/
+static adc1_irq irq_setup = {
+	.callback_1 = NULL,
+	.callback_2 = NULL
+};
+/*** adc1 V-TABLE ***/
+static adc1_run run_setup = {
+	._init =_adc1_init,
+	._cal_single =_adc1_cal_single,
+	._cal_differential =_adc1_cal_differential,
+	._enable =_adc1_enable,
+	._disable =_adc1_disable,
+	.temp_init =adc1_temp_init,
+	.temp_read_raw =adc1_temp_read_raw,
+	.temp_to_celsius =adc1_temp_to_celsius,
+	.temp_read_celsius =adc1_temp_read_celsius
+};
+/*** adc1 HANDLER ***/
+adc1_handler adc1_setup = {
+	.par = &par_setup,
+	.irq = &irq_setup,
+	.run = &run_setup
+};
+/*** ACCESSOR FUNCTION ***/
+adc1_handler* adc1(void){return &adc1_setup;}
 
 /*** EOF ***/
 

@@ -57,7 +57,7 @@ int main(void)
 	GPIO_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
 	rtc_ui_init();
 
-	adc1_temp_init();
+	adc1()->run->temp_init();
 
 	EXPLODE_Handler seconds = EXPLODE_enable();
 
@@ -127,7 +127,7 @@ int main(void)
 		if (seconds.run->update(&seconds.par, vecT[5])) {
 			toggle_hpin(dev()->gpio->f, 1 << 2);
 
-			func()->float_to_string(adc1_temp_read_celsius(),str,32);
+			func()->float_to_string(adc1()->run->temp_read_celsius(),str,32);
 			strcat(str, " C");
 			lcd1.run->drawstring16x24_size(&lcd1.par,str,15,200,ST77XX_BLUE,BG_colour,8);
 
