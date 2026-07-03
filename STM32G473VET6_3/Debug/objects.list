@@ -8,6 +8,7 @@
 "./lib/src/buffer.o"
 "./lib/src/explode.o"
 "./lib/src/function.o"
+"./lib/src/l293d.o"
 "./lib/src/st7789.o"
 "./lib/src/st7789_font.o"
 "./lib/src/stm32g473vet6.o"
