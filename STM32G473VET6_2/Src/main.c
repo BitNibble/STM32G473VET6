@@ -15,6 +15,10 @@ SDA - PC12
 RST - PC9
 DC - PC8
 CS - PC7
+	L293D
+IN1 M - PA6
+IN1 M - PA7
+EN - PD0
 ************************************************************************/
 #include "stm32gxxx_rcc.h"
 #include "arm_systick.h"
@@ -24,6 +28,7 @@ CS - PC7
 #include "stm32gxxx_rtc.h"
 #include "explode.h"
 #include "stm32gxxx_adc1.h"
+#include "l293d.h"
 #include <string.h>
 
 #define BG_colour 0x0000
@@ -36,7 +41,8 @@ CS - PC7
 #define BTN_MODE_PIN         (1UL << 8)   // PD8
 #define BTN_UP_PIN           (1UL << 9)   // PD9
 #define BTN_DOWN_PIN         (1UL << 10)  // PD10
-#define BTN_SAVE_PIN         (1UL << 11)  // PD11
+#define BTN_FW_PIN           (1UL << 11)  // PD11
+#define BTN_ST_PIN           (1UL << 12)  // PD12
 
 typedef enum {
     CFG_IDLE = 0,
@@ -76,6 +82,8 @@ int main(void)
 
 	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
 	(void) lcd1;
+
+	L293D_Handler drive = l293d_enable(GPIOE, ZERO);
 
 	lcd1.run->start(&lcd1.par);
 	lcd1.run->draw_circle(&lcd1.par,220,300,15,ST77XX_CYAN);
@@ -131,6 +139,14 @@ int main(void)
 				break;
 			default: break;
 			};
+		}
+
+		if(btn_engine.par.HL & BTN_FW_PIN) {
+			if(toggle(0)){
+				drive.run->pwm_forward(&drive.par,1000);
+			}else{
+				drive.run->stop(&drive.par);
+			}
 		}
 
 		/***/

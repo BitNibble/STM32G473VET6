@@ -13,9 +13,11 @@ Update:   15/11/2025
 #include <math.h>
 
 /*** Define and Macro ***/
-#define FTDELAY_SIZE 255
-unsigned int ft_Delay_Lock[FTDELAY_SIZE + ONE] = {0};
-volatile unsigned int ftCounter[FTDELAY_SIZE + ONE] = {0};
+#define FTDELAY_SIZE 256
+#define TOGGLE_SIZE 16
+static unsigned int ft_Delay_Lock[FTDELAY_SIZE + ONE] = {0};
+static volatile unsigned int ftCounter[FTDELAY_SIZE + ONE] = {0};
+static volatile uint8_t toggle_flag[TOGGLE_SIZE + ONE] = {0};
 /*** Local ***/
 uint32_t _size_to_block(uint32_t size_block);
 uint32_t _block_to_size(uint32_t block);
@@ -108,6 +110,16 @@ void set_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos
 }
 
 /****************************************/
+inline uint8_t toggle(uint8_t n) {
+	if (n < TOGGLE_SIZE){
+		uint8_t mask = ONE;
+		toggle_flag[n] &= mask;
+		toggle_flag[n] ^= mask;
+		return toggle_flag[n];
+	} else {
+		return ZERO;
+	}
+}
 /*** NULL Check ***/
 int isPtrNull(void* ptr) {
     return ptr ? 0 : 1; // Returns 1 if NULL, 0 otherwise
