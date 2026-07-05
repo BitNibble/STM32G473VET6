@@ -10,12 +10,11 @@ Comment:
 #ifndef _EXPLODE_H_
 	#define _EXPLODE_H_
 
+/*** Library ***/
 #include <stdint.h>
 #include <inttypes.h>
-
-#define STM32F4XXX
-
-#ifdef STM32F4XXX
+/*** Global Constant & Macro ***/
+#if defined (STM32F4) || defined (STM32G4)
 	#define IO_var uint32_t
 #else
 	#define IO_var uint8_t

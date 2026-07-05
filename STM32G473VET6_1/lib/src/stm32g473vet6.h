@@ -8,6 +8,7 @@ Date:     04062026
 #ifndef STM32G4XX_FAMILY_H
 #define STM32G4XX_FAMILY_H
 
+/*** Library ***/
 #include <stm32g4xx.h>
 #include "custom_hal_def.h"
 #include "stm32xtool.h"

@@ -6,12 +6,10 @@ License:  GNU General Public License
 #ifndef _74HC595_H_
 	#define _74HC595_H_
 
-/*** File Library ***/
+/*** Library ***/
 #include <inttypes.h>
 /*** Global Constant & Macro ***/
-#define STM32F4XXX
-
-#ifdef STM32F4XXX
+#if defined (STM32F4) || defined (STM32G4)
 	#define IO_var uint32_t
 #else
 	#define IO_var uint8_t

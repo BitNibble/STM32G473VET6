@@ -10,6 +10,7 @@ CH2 - PA7 -PWM Reverse
 **********************************************************************/
 #include "l293d.h"
 #include <stddef.h>
+#include "arm_systick.h"
 
 /*** Function ***/
 void l293d_en(L293D_par *par) {
@@ -21,17 +22,20 @@ void l293d_dis(L293D_par *par) {
 
 // Fixed-speed shortcuts map directly onto the valid PWM timing logic
 void l293d_forward(L293D_par *par) {
+	l293d_en(par);
 	par->TIM->CCR2 = par->TIM->ARR + ONE;
 	par->TIM->CCR1 = 0; // ARR - ARR = 0 (100% full speed duty cycle)
 }
 
 void l293d_reverse(L293D_par *par) {
+	l293d_en(par);
 	par->TIM->CCR1 = par->TIM->ARR + ONE;
 	par->TIM->CCR2 = 0; // ARR - ARR = 0 (100% full speed duty cycle)
 }
 
 // Forward with variable speed (0 to ARR) using +V reference locking
 void l293d_pwm_forward(L293D_par *par, uint16_t speed) {
+	l293d_en(par);
     if (speed > par->TIM->ARR) {
         speed = par->TIM->ARR; // Clamp safety
     }
@@ -41,6 +45,7 @@ void l293d_pwm_forward(L293D_par *par, uint16_t speed) {
 
 // Reverse with variable speed (0 to ARR) using +V reference locking
 void l293d_pwm_reverse(L293D_par *par, uint16_t speed) {
+	l293d_en(par);
     if (speed > par->TIM->ARR) {
         speed = par->TIM->ARR; // Clamp safety
     }
@@ -52,11 +57,14 @@ void l293d_pwm_reverse(L293D_par *par, uint16_t speed) {
 void l293d_pwm_stop(L293D_par *par) {
     par->TIM->CCR1 = par->TIM->ARR + ONE;  // Lock CH1 HIGH (+V reference) [1]
     par->TIM->CCR2 = par->TIM->ARR + ONE;  // Lock CH2 HIGH (+V reference) [1]
+    _delay_ms(500);
+    l293d_dis(par);
+
 }
 
 void l293d_pwm_stop_coast(L293D_par *par) {
     // 1. Turn off the H-bridge outputs entirely (Motor freewheels/coasts)
-    par->EN_GPIO->ODR &= ~(1 << par->en_pin);
+    l293d_dis(par);
     // 2. Safely clear the timers
     par->TIM->CCR1 = 0;
     par->TIM->CCR2 = 0;
