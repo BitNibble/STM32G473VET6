@@ -5,8 +5,8 @@ License:  GNU General Public License
 Hardware: STM32G473VET6
 Date:     04/07/2026
 	TIM3
-CH1 - PA6 -PWM Forward
-CH2 - PA7 -PWM Reverse
+CH1 - PA6 - M1.1 PWM Forward
+CH2 - PA7 - M1.2 PWM Reverse
 **********************************************************************/
 #ifndef L293D_H
 	#define L293D_H
@@ -22,6 +22,8 @@ typedef struct {
     GPIO_TypeDef *TIM_GPIO;
     TIM_TypeDef *TIM;
     uint8_t tim_af;
+    uint16_t tim_psc;
+    uint16_t tim_arr;
     uint8_t en_pin;
 } L293D_par;
 /*** V-table ***/

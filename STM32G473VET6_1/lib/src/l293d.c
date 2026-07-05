@@ -5,8 +5,8 @@ License:  GNU General Public License
 Hardware: STM32G473VET6
 Date    04/07/2026
 	TIM3
-CH1 - PA6 -PWM Forward
-CH2 - PA7 -PWM Reverse
+CH1 - PA6 - M1.1 PWM Forward
+CH2 - PA7 - M1.2 PWM Reverse
 **********************************************************************/
 #include "l293d.h"
 #include <stddef.h>
@@ -59,7 +59,6 @@ void l293d_pwm_stop(L293D_par *par) {
     par->TIM->CCR2 = par->TIM->ARR + ONE;  // Lock CH2 HIGH (+V reference) [1]
     _delay_ms(500);
     l293d_dis(par);
-
 }
 
 void l293d_pwm_stop_coast(L293D_par *par) {
@@ -91,6 +90,8 @@ L293D_Handler l293d_enable(GPIO_TypeDef *port, uint8_t en_pin) {
 			.TIM_GPIO = GPIOA,
 			.TIM = TIM3,
 			.tim_af = 2,
+			.tim_psc = 0,
+			.tim_arr = 2181,
             .en_pin = en_pin
         },
 		.run = &run_setup
@@ -110,8 +111,8 @@ L293D_Handler l293d_enable(GPIO_TypeDef *port, uint8_t en_pin) {
     // Enable TIM3 Clock
     RCC->APB1ENR1 |= RCC_APB1ENR1_TIM3EN;
     // Set Frequency timing parameters
-    l293d.par.TIM->PSC = 0;
-    l293d.par.TIM->ARR = 2181;
+    l293d.par.TIM->PSC = l293d.par.tim_psc;
+    l293d.par.TIM->ARR = l293d.par.tim_arr;
     // Configure Channel 1 (PA6) and Channel 2 (PA7) in PWM Mode 1
     // CCMR1 bits 4:6 for CH1, bits 12:14 for CH2. Also enable preload registers (bit 3 and 11).
     l293d.par.TIM->CCMR1 &= ~(TIM_CCMR1_OC1M | TIM_CCMR1_OC2M);

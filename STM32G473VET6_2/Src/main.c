@@ -16,9 +16,9 @@ RST - PC9
 DC - PC8
 CS - PC7
 	L293D
-IN1 M - PA6
-IN1 M - PA7
-EN - PD0
+IN1 M1.1 - PA6
+IN2 M1.2 - PA7
+EN - PE0
 ************************************************************************/
 #include "stm32gxxx_rcc.h"
 #include "arm_systick.h"
@@ -42,7 +42,8 @@ EN - PD0
 #define BTN_UP_PIN           (1UL << 9)   // PD9
 #define BTN_DOWN_PIN         (1UL << 10)  // PD10
 #define BTN_FW_PIN           (1UL << 11)  // PD11
-#define BTN_ST_PIN           (1UL << 12)  // PD12
+#define BTN_RV_PIN           (1UL << 12)  // PD12
+#define BTN_SP_PIN           (1UL << 13)  // PD13
 
 typedef enum {
     CFG_IDLE = 0,
@@ -61,6 +62,7 @@ static EXPLODE_Handler btn_engine;
 void rtc_ui_init(void);
 void select_mode(EXPLODE_Handler active_press);
 void adjust_active_field(EXPLODE_Handler active_press);
+void increment(uint16_t* value, uint16_t min, uint16_t max);
 
 int main(void)
 {
@@ -71,6 +73,7 @@ int main(void)
 	char str[32];
 	char vecD[8]; // for calendar date
 	char vecT[8]; // for calendar time
+	uint16_t speed = 530;
 
 	GPIO_clock( dev()->gpio->f, 1 );
 	GPIO_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
@@ -143,10 +146,26 @@ int main(void)
 
 		if(btn_engine.par.HL & BTN_FW_PIN) {
 			if(toggle(0)){
-				drive.run->pwm_forward(&drive.par,1000);
+				drive.run->pwm_forward(&drive.par,speed);
 			}else{
 				drive.run->stop(&drive.par);
 			}
+		}
+
+		if(btn_engine.par.HL & BTN_RV_PIN) {
+			if(toggle(0)){
+				drive.run->pwm_reverse(&drive.par,speed);
+			}else{
+				drive.run->stop(&drive.par);
+			}
+		}
+
+		if(btn_engine.par.LL & BTN_SP_PIN) {
+			increment(&speed, 530, drive.par.tim_arr);
+			lcd1.run->start(&lcd1.par);
+			func()->format_string(str,32,"speed: %d",speed);
+			lcd1.run->drawstring12x16_size(&lcd1.par,str,15,170,ST77XX_ORANGE,BG_colour,14);
+			lcd1.run->stop(&lcd1.par);
 		}
 
 		/***/
@@ -156,19 +175,21 @@ int main(void)
 		if (seconds.run->update(&seconds.par, vecT[5])) {
 			toggle_hpin(dev()->gpio->f, 1 << 2);
 
+			lcd1.run->start(&lcd1.par);
+
+			func()->format_string(str,32,"%d%d:%d%d:%d%d",vecT[0], vecT[1], vecT[2], vecT[3], vecT[4], vecT[5]);
+			lcd1.run->drawstring24x48_size(&lcd1.par,str,15,80,ST77XX_RED,BG_colour,8);
+
 			func()->float_to_string(adc1()->run->temp_read_celsius(),str,32);
 			strcat(str, " C");
 			lcd1.run->drawstring16x24_size(&lcd1.par,str,15,200,ST77XX_BLUE,BG_colour,8);
 
-			func()->format_string(str,32,"%d%d:%d%d:%d%d",vecT[0], vecT[1], vecT[2], vecT[3], vecT[4], vecT[5]);
-			lcd1.run->drawstring24x48_size(&lcd1.par,str,15,80,ST77XX_RED,BG_colour,8);
-			lcd1.run->stop(&lcd1.par);
-
-			lcd1.run->start(&lcd1.par);
 			func()->format_string(str,32,"%d%d-%d%d-20%d%d",vecD[5], vecD[6], vecD[3], vecD[4], vecD[0], vecD[1]);
 			lcd1.run->drawstring16x24(&lcd1.par,str,10,240,ST77XX_GREEN,BG_colour);
 
 			lcd1.run->drawstring12x16_size(&lcd1.par,(char*)WeekDay_String(vecD[2]),10,300,ST77XX_WHITE,BG_colour,10);
+
+			lcd1.run->stop(&lcd1.par);
 		}
 	}
 }
@@ -273,3 +294,8 @@ void adjust_active_field(EXPLODE_Handler active_press)
     }
 }
 
+void increment(uint16_t* value, uint16_t min, uint16_t max) {
+	*value+=1;
+	//(void)value;
+	if(*value > max){*value = min;}else if(*value < min){*value=min;}
+}
