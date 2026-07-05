@@ -721,6 +721,7 @@ inline void clear_pin(GPIO_TypeDef* reg, uint8_t pin) {
     // Directly shift 1UL to its final destination in the upper BRy half (pin + 16)
     reg->BSRR = (1UL << (pin + WORD_BITS));
 }
+/*******************************************************************/
 
 /************************** FPU ENABLE *****************************/
 inline void fpu_enable(void)

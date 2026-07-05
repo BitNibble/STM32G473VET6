@@ -44,6 +44,7 @@ uint32_t get_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t
 void write_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 void set_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 /****************************************/
+void increment(uint16_t* value, uint16_t min, uint16_t max);
 uint8_t toggle(uint8_t n);
 /*** NULL Check ***/
 int isPtrNull(void* ptr);

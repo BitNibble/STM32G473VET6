@@ -110,6 +110,11 @@ void set_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos
 }
 
 /****************************************/
+inline void increment(uint16_t* value, uint16_t min, uint16_t max) {
+	*value+=1;
+	//(void)value;
+	if(*value > max){*value = min;}else if(*value < min){*value=min;}
+}
 inline uint8_t toggle(uint8_t n) {
 	if (n < TOGGLE_SIZE){
 		uint8_t mask = ONE;

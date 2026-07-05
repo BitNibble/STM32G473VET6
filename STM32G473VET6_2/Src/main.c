@@ -62,7 +62,6 @@ static EXPLODE_Handler btn_engine;
 void rtc_ui_init(void);
 void select_mode(EXPLODE_Handler active_press);
 void adjust_active_field(EXPLODE_Handler active_press);
-void increment(uint16_t* value, uint16_t min, uint16_t max);
 
 int main(void)
 {
@@ -294,8 +293,3 @@ void adjust_active_field(EXPLODE_Handler active_press)
     }
 }
 
-void increment(uint16_t* value, uint16_t min, uint16_t max) {
-	*value+=1;
-	//(void)value;
-	if(*value > max){*value = min;}else if(*value < min){*value=min;}
-}

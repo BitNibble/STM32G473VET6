@@ -348,6 +348,8 @@ void toggle_hpin(GPIO_TypeDef* reg, uint16_t hpin);
 void set_pin(GPIO_TypeDef* reg, uint8_t pin);
 void clear_pin(GPIO_TypeDef* reg, uint8_t pin);
 
+/*******************************************************************/
+
 /************************** FPU ENABLE *****************************/
 void fpu_enable(void);
 
