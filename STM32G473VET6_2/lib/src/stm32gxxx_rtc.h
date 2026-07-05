@@ -58,7 +58,9 @@ typedef const struct {
 	void (*set_hour)(uint8_t hour);
 	void (*set_minute)(uint8_t minute);
 	void (*set_second)(uint8_t second);
+	uint32_t (*dr)(void);
 	void (*dr2vec)(char* rtc_vect);
+	uint32_t (*tr)(void);
 	void (*tr2vec)(char* rtc_vect);
 	void (*bkp_write)(uint8_t registerIndex, uint32_t data);
 	uint32_t (*bkp_read)(uint8_t registerIndex);

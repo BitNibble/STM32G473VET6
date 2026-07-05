@@ -144,9 +144,14 @@ static void RTC_set_second(uint8_t second) {
     RTC_Set_tr(tr);
 }
 
-void RTC_dr2vec(char* rtc_vect)
+static uint32_t RTC_dr(void)
 {
-    uint32_t dr = RTC->DR;   // read date register directly
+	return RTC->DR;
+}
+
+static void RTC_dr2vec(char* rtc_vect)
+{
+    uint32_t dr = RTC->DR;
 
     // YT
     rtc_vect[0] = _rtc_bcd2dec((dr >> RTC_DR_YT_Pos) & 0x0F);
@@ -164,9 +169,14 @@ void RTC_dr2vec(char* rtc_vect)
     rtc_vect[6] = _rtc_bcd2dec(dr & RTC_DR_DU);
 }
 
-void RTC_tr2vec(char* rtc_vect)
+static uint32_t RTC_tr(void)
 {
-    uint32_t tr = RTC->TR;   // read TR unconditionally
+	return RTC->TR;
+}
+
+static void RTC_tr2vec(char* rtc_vect)
+{
+    uint32_t tr = RTC->TR;
 
     // ht
     rtc_vect[0] = _rtc_bcd2dec((tr >> RTC_TR_HT_Pos) & 0x03);
@@ -387,7 +397,9 @@ static RTC_run run_setup = {
 	.set_hour = RTC_set_hour,
 	.set_minute = RTC_set_minute,
 	.set_second = RTC_set_second,
+	.dr = RTC_dr,
 	.dr2vec = RTC_dr2vec,
+	.tr = RTC_tr,
 	.tr2vec = RTC_tr2vec,
 	.bkp_write = bkp_write,
 	.bkp_read = bkp_read,

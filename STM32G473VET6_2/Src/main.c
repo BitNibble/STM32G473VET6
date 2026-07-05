@@ -80,7 +80,8 @@ int main(void)
 
 	adc1()->run->temp_init();
 
-	EXPLODE_Handler seconds = EXPLODE_enable();
+	EXPLODE_Handler tr = EXPLODE_enable();
+	EXPLODE_Handler dr = EXPLODE_enable();
 
 	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
 	(void) lcd1;
@@ -168,10 +169,10 @@ int main(void)
 		}
 
 		/***/
-		rtc()->run->dr2vec(vecD);
-		rtc()->run->tr2vec(vecT);
+		if (tr.run->update(&tr.par, rtc()->run->tr()) || dr.run->update(&dr.par, rtc()->run->dr())) {
+			rtc()->run->dr2vec(vecD);
+			rtc()->run->tr2vec(vecT);
 
-		if (seconds.run->update(&seconds.par, vecT[5])) {
 			toggle_hpin(dev()->gpio->f, 1 << 2);
 
 			lcd1.run->start(&lcd1.par);
@@ -255,8 +256,7 @@ void adjust_active_field(EXPLODE_Handler active_press)
             	break;
             default: break;
         }
-    }
-    else if (active_press.par.HL & BTN_DOWN_PIN) {
+    } else if (active_press.par.HL & BTN_DOWN_PIN) {
         switch (ui_state) {
             case CFG_HOUR:
             	t_hr = rtc()->run->get_hour();
