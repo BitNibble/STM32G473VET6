@@ -15,9 +15,9 @@ Update:   15/11/2025
 /*** Define and Macro ***/
 #define FTDELAY_SIZE 256
 #define TOGGLE_SIZE 16
-static unsigned int ft_Delay_Lock[FTDELAY_SIZE + ONE] = {0};
-static volatile unsigned int ftCounter[FTDELAY_SIZE + ONE] = {0};
-static volatile uint8_t toggle_flag[TOGGLE_SIZE + ONE] = {0};
+static unsigned int ft_Delay_Lock[FTDELAY_SIZE] = {0};
+static volatile unsigned int ftCounter[FTDELAY_SIZE] = {0};
+static volatile uint8_t toggle_flag[TOGGLE_SIZE] = {0};
 /*** Local ***/
 uint32_t _size_to_block(uint32_t size_block);
 uint32_t _block_to_size(uint32_t block);
@@ -117,9 +117,8 @@ inline void increment(uint16_t* value, uint16_t min, uint16_t max) {
 }
 inline uint8_t toggle(uint8_t n) {
 	if (n < TOGGLE_SIZE){
-		uint8_t mask = ONE;
-		toggle_flag[n] &= mask;
-		toggle_flag[n] ^= mask;
+		toggle_flag[n] &= ONE;
+		toggle_flag[n] ^= ONE;
 		return toggle_flag[n];
 	} else {
 		return ZERO;
@@ -148,18 +147,17 @@ float CalculateTemperature(uint16_t adc_value) {
 /*** Fall Threw Delay ***/
 int ftdelayCycles(uint8_t lock_ID, unsigned int n_cycle, void (*execute)(void)) {
     int ret = 0;
-    if (lock_ID > FTDELAY_SIZE) return 0; // safety check
+    if (lock_ID >= FTDELAY_SIZE) return ZERO; // safety check
 
     if (ft_Delay_Lock[lock_ID] != lock_ID) {
         ft_Delay_Lock[lock_ID] = lock_ID;
         ftCounter[lock_ID] = (n_cycle > 0U) ? (n_cycle - 1U) : 0;
-        if(execute){ execute (); }
     } else {
         if (ftCounter[lock_ID] > 0U) {
         	ftCounter[lock_ID]--;
             // still counting down, do nothing
         } else {
-            ft_Delay_Lock[lock_ID] = 0U;
+        	if(execute){ execute (); }
             ret = 1; // delay expired
         }
     }
@@ -167,9 +165,8 @@ int ftdelayCycles(uint8_t lock_ID, unsigned int n_cycle, void (*execute)(void)) 
 }
 
 void ftdelayReset(uint8_t ID) {
-    if (ID > FTDELAY_SIZE) return; // safety check
+    if (ID >= FTDELAY_SIZE) return; // safety check
     ft_Delay_Lock[ID] = 0U;
-    ftCounter[ID] = 0U;
 }
 
 /*** EOF ***/

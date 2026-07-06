@@ -58,10 +58,13 @@ typedef enum {
 
 static ui_state_t ui_state = CFG_IDLE;
 static EXPLODE_Handler btn_engine;
+static L293D_Handler drive;
+static uint16_t speed;
 
 void rtc_ui_init(void);
 void select_mode(EXPLODE_Handler active_press);
 void adjust_active_field(EXPLODE_Handler active_press);
+void inc(void);
 
 int main(void)
 {
@@ -72,7 +75,7 @@ int main(void)
 	char str[32];
 	char vecD[8]; // for calendar date
 	char vecT[8]; // for calendar time
-	uint16_t speed = 530;
+	speed = 530;
 
 	GPIO_clock( dev()->gpio->f, 1 );
 	GPIO_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
@@ -86,7 +89,7 @@ int main(void)
 	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
 	(void) lcd1;
 
-	L293D_Handler drive = l293d_enable(GPIOE, ZERO);
+	drive = l293d_enable(GPIOE, ZERO);
 
 	lcd1.run->start(&lcd1.par);
 	lcd1.run->draw_circle(&lcd1.par,220,300,15,ST77XX_CYAN);
@@ -161,11 +164,13 @@ int main(void)
 		}
 
 		if(btn_engine.par.LL & BTN_SP_PIN) {
-			increment(&speed, 530, drive.par.tim_arr);
-			lcd1.run->start(&lcd1.par);
-			func()->format_string(str,32,"speed: %d",speed);
-			lcd1.run->drawstring12x16_size(&lcd1.par,str,15,170,ST77XX_ORANGE,BG_colour,14);
-			lcd1.run->stop(&lcd1.par);
+			if(ftdelayCycles(1,2500,inc)){
+				lcd1.run->start(&lcd1.par);
+				func()->format_string(str,32,"speed: %d",speed);
+				lcd1.run->drawstring12x16_size(&lcd1.par,str,15,170,ST77XX_ORANGE,BG_colour,14);
+				lcd1.run->stop(&lcd1.par);
+				ftdelayReset(1);
+			}
 		}
 
 		/***/
@@ -293,3 +298,6 @@ void adjust_active_field(EXPLODE_Handler active_press)
     }
 }
 
+void inc(void) {
+	increment(&speed, 530, drive.par.tim_arr);
+}
