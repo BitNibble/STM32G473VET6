@@ -15,6 +15,21 @@ Date:     08/06/2026
 static uint8_t u1_rx_raw[USART1_RX_SIZE + ONE] = {0}; // overflow safety
 static uint8_t u1_tx_raw[USART1_TX_SIZE] = {0};
 
+static USART1_par par_setup = {
+	.wordlength     = 8,
+	.stopbit        = 0,
+	.samplingmode   = 16,
+	.baudrate       = 38400,
+	.rx_left 		= 0,
+	.rx_read_index  = 0,
+	.rx_write_index = 0,
+	.rx_available   = 0,
+	.rx_overflow    = 0,
+	.tx_busy        = 0,
+	.buff_rx        = u1_rx_raw,
+	.buff_tx        = u1_tx_raw
+};
+
 static void impl_config(USART1_par par_setup);
 static void impl_init(void);
 static void impl_start_rx(void);
@@ -33,20 +48,6 @@ static uint16_t impl_rx_available(void);
 static void default_idle_irq(void);
 static void default_dma_tx_irq(void);
 
-static USART1_par par_setup = {
-	.wordlength     = 8,
-	.stopbit        = 0,
-	.samplingmode   = 16,
-	.baudrate       = 38400,
-	.rx_left 		= 0,
-	.rx_read_index  = 0,
-	.rx_write_index = 0,
-	.rx_available   = 0,
-	.rx_overflow    = 0,
-	.tx_busy        = 0,
-	.buff_rx        = u1_rx_raw,
-	.buff_tx        = u1_tx_raw
-};
 static USART1_irq	irq_setup = {
 	.idle    = default_idle_irq,
 	.dma_tx = default_dma_tx_irq,
