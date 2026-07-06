@@ -7,6 +7,8 @@ Date:     02/07/2026
 ************************************************************************/
 #include "template_instance.h"
 
+/*** Procedure & Function Definition ***/
+
 /*** INSTANCE GET PARAMETER ***/
 static instance_get_par get_par_setup = {
 	.var_1 = NULL,

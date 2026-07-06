@@ -28,6 +28,20 @@ typedef struct {
 	uint8_t*  buff_tx;
 } USART1_par;
 
+typedef const struct {
+	uint8_t (*wordlength)(void);
+	uint8_t (*stopbit)(void);
+	uint8_t (*samplingmode)(void);
+	uint32_t (*baudrate)(void);
+} USART1_get_par;
+
+typedef const struct {
+	void (*wordlength)(uint8_t value);
+	void (*stopbit)(uint8_t value);
+	void (*samplingmode)(uint8_t value);
+	void (*baudrate)(uint32_t value);
+} USART1_set_par;
+
 typedef struct {
 	/* Hardware Interrupt Entry hooks */
 	void (*idle)(void);

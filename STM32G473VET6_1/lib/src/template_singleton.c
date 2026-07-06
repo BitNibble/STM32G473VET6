@@ -7,6 +7,8 @@ Date:     02/07/2026
 ************************************************************************/
 #include "template_singleton.h"
 
+/*** Procedure & Function Definition ***/
+
 /*** SINGLETON PARAMETER ***/
 static singleton_par par_setup= {
 	.var_1 = 0,
