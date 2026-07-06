@@ -164,7 +164,7 @@ int main(void)
 		}
 
 		if(btn_engine.par.LL & BTN_SP_PIN) {
-			if(ftdelayCycles(1,2500,inc)){
+			if(ftdelayCycles(1,2500,NULL,inc)){
 				lcd1.run->start(&lcd1.par);
 				func()->format_string(str,32,"speed: %d",speed);
 				lcd1.run->drawstring12x16_size(&lcd1.par,str,15,170,ST77XX_ORANGE,BG_colour,14);

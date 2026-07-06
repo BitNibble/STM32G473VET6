@@ -145,19 +145,20 @@ float CalculateTemperature(uint16_t adc_value) {
 }
 
 /*** Fall Threw Delay ***/
-int ftdelayCycles(uint8_t lock_ID, unsigned int n_cycle, void (*execute)(void)) {
+int ftdelayCycles(uint8_t lock_ID, unsigned int n_cycle, void (*init)(void), void (*term)(void)) {
     int ret = 0;
     if (lock_ID >= FTDELAY_SIZE) return ZERO; // safety check
 
     if (ft_Delay_Lock[lock_ID] != lock_ID) {
         ft_Delay_Lock[lock_ID] = lock_ID;
         ftCounter[lock_ID] = (n_cycle > 0U) ? (n_cycle - 1U) : 0;
+        if(init){ init (); }
     } else {
         if (ftCounter[lock_ID] > 0U) {
         	ftCounter[lock_ID]--;
             // still counting down, do nothing
         } else {
-        	if(execute){ execute (); }
+        	if(term){ term (); }
             ret = 1; // delay expired
         }
     }
