@@ -16,6 +16,16 @@ typedef struct {
 	uint8_t var_1;
 	uint8_t var_2;
 }instance_par;
+/*** INSTANCE GET PARAMETER ***/
+typedef const struct {
+	uint8_t (*var_1)(void);
+	uint8_t (*var_2)(void);
+}instance_get_par;
+/*** INSTANCE SET PARAMETER ***/
+typedef const struct {
+	void (*var_1)(uint8_t value);
+	void (*var_2)(uint8_t value);
+}instance_set_par;
 /*** INSTANCE CALLBACK ***/
 typedef struct {
  void (*callback_1)(void);
@@ -32,6 +42,8 @@ typedef const struct {
 /*** INSTANCE HANDLER ***/
 typedef struct {
 	instance_par par;
+	instance_get_par* get_par;
+	instance_set_par* set_par;
 	instance_irq irq;
 	instance_run* run;
 }instance_handler;

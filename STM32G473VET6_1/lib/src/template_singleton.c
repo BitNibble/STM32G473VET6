@@ -12,6 +12,16 @@ static singleton_par par_setup= {
 	.var_1 = 0,
 	.var_2 = 0
 };
+/*** SINGLETON GET PARAMETER ***/
+static singleton_get_par get_par_setup = {
+	.var_1 = NULL,
+	.var_2 = NULL
+};
+/*** SINGLETON SET PARAMETER ***/
+static singleton_set_par set_par_setup = {
+	.var_1 = NULL,
+	.var_2 = NULL
+};
 /*** SINGLETON CALLBACK ***/
 static singleton_irq irq_setup = {
 	.callback_1 = NULL,
@@ -29,6 +39,8 @@ static singleton_run run_setup = {
 /*** SINGLETON HANDLER ***/
 singleton_handler singleton_setup = {
 	.par = &par_setup,
+	.get_par = &get_par_setup,
+	.set_par = &set_par_setup,
 	.irq = &irq_setup,
 	.run = &run_setup
 };

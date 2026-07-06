@@ -16,6 +16,16 @@ typedef struct {
 	uint8_t var_1;
 	uint8_t var_2;
 }singleton_par;
+/*** SINGLETON GET PARAMETER ***/
+typedef const struct {
+	uint8_t (*var_1)(void);
+	uint8_t (*var_2)(void);
+}singleton_get_par;
+/*** SINGLETON SET PARAMETER ***/
+typedef const struct {
+	void (*var_1)(uint8_t value);
+	void (*var_2)(uint8_t value);
+}singleton_set_par;
 /*** SINGLETON CALLBACK ***/
 typedef struct {
  void (*callback_1)(void);
@@ -33,6 +43,8 @@ typedef const struct {
 /*** SINGLETON HANDLER ***/
 typedef const struct {
 	singleton_par* par;
+	singleton_get_par* get_par;
+	singleton_set_par* set_par;
 	singleton_irq* irq;
 	singleton_run* run;
 }singleton_handler;

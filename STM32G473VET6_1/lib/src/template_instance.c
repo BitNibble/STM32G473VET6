@@ -7,6 +7,16 @@ Date:     02/07/2026
 ************************************************************************/
 #include "template_instance.h"
 
+/*** INSTANCE GET PARAMETER ***/
+static instance_get_par get_par_setup = {
+	.var_1 = NULL,
+	.var_2 = NULL
+};
+/*** INSTANCE SET PARAMETER ***/
+static instance_set_par set_par_setup = {
+	.var_1 = NULL,
+	.var_2 = NULL
+};
 /*** INSTANCE CALLBACK ***/
 static instance_irq irq_default = {
 	.callback_1 = NULL,
@@ -26,6 +36,8 @@ instance_handler instance_enable(instance_par par) {
 	/*** INSTANCE HANDLER ***/
 	instance_handler instance_setup = {
 		.par = par,
+		.get_par = &get_par_setup,
+		.set_par = &set_par_setup,
 		.irq = irq_default,
 		.run = &run_setup
 	};
