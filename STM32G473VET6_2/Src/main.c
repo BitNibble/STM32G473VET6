@@ -56,6 +56,18 @@ typedef enum {
     CFG_MAX
 } ui_state_t;
 
+static const char *state_name[] =
+{
+    "Relogio",
+    "Hora",
+    "Minuto",
+    "Dia",
+    "Mes",
+    "Ano",
+    "Semana",
+    "MAX"
+};
+
 static ui_state_t ui_state = CFG_IDLE;
 static EXPLODE_Handler btn_engine;
 static L293D_Handler drive;
@@ -64,7 +76,7 @@ static uint16_t speed;
 void rtc_ui_init(void);
 void select_mode(EXPLODE_Handler active_press);
 void adjust_active_field(EXPLODE_Handler active_press);
-void inc(void);
+void speed_inc(void);
 
 int main(void)
 {
@@ -102,49 +114,9 @@ int main(void)
 			select_mode(btn_engine);
 			adjust_active_field(btn_engine);
 
-			switch(ui_state){
-			case CFG_IDLE:
-				lcd1.run->start(&lcd1.par);
-				lcd1.run->drawstring16x24_size(&lcd1.par,"Relogio",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.run->stop(&lcd1.par);
-				break;
-			case CFG_HOUR:
-				lcd1.run->start(&lcd1.par);
-				lcd1.run->drawstring16x24_size(&lcd1.par,"Hora",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.run->stop(&lcd1.par);
-				break;
-			case CFG_MINUTE:
-				lcd1.run->start(&lcd1.par);
-				lcd1.run->drawstring16x24_size(&lcd1.par,"Minuto",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.run->stop(&lcd1.par);
-				break;
-			case CFG_DAY:
-				lcd1.run->start(&lcd1.par);
-				lcd1.run->drawstring16x24_size(&lcd1.par,"Dia",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.run->stop(&lcd1.par);
-				break;
-			case CFG_MONTH:
-				lcd1.run->start(&lcd1.par);
-				lcd1.run->drawstring16x24_size(&lcd1.par,"Mes",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.run->stop(&lcd1.par);
-				break;
-			case CFG_YEAR:
-				lcd1.run->start(&lcd1.par);
-				lcd1.run->drawstring16x24_size(&lcd1.par,"Ano",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.run->stop(&lcd1.par);
-				break;
-			case CFG_WEEKDAY:
-				lcd1.run->start(&lcd1.par);
-				lcd1.run->drawstring16x24_size(&lcd1.par,"Semana",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.run->stop(&lcd1.par);
-				break;
-			case CFG_MAX:
-				lcd1.run->start(&lcd1.par);
-				lcd1.run->drawstring16x24_size(&lcd1.par,"MAX",10,10,ST77XX_WHITE,BG_colour,7);
-				lcd1.run->stop(&lcd1.par);
-				break;
-			default: break;
-			};
+			lcd1.run->start(&lcd1.par);
+			lcd1.run->drawstring16x24_size( &lcd1.par, (char*)state_name[ui_state], 10, 10, ST77XX_WHITE, BG_colour, 7);
+			lcd1.run->stop(&lcd1.par);
 		}
 
 		if(btn_engine.par.HL & BTN_FW_PIN) {
@@ -164,7 +136,7 @@ int main(void)
 		}
 
 		if(btn_engine.par.LL & BTN_SP_PIN) {
-			if(ftdelayCycles(1,2500,NULL,inc)){
+			if(ftdelayCycles(1,2500,NULL,speed_inc)){
 				lcd1.run->start(&lcd1.par);
 				func()->format_string(str,32,"speed: %d",speed);
 				lcd1.run->drawstring12x16_size(&lcd1.par,str,15,170,ST77XX_ORANGE,BG_colour,14);
@@ -298,6 +270,6 @@ void adjust_active_field(EXPLODE_Handler active_press)
     }
 }
 
-void inc(void) {
+void speed_inc(void) {
 	increment(&speed, 530, drive.par.tim_arr);
 }
