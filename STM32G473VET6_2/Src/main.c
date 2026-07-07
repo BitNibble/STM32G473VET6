@@ -88,6 +88,7 @@ int main(void)
 	char vecD[8]; // for calendar date
 	char vecT[8]; // for calendar time
 	speed = 530;
+	uint16_t idle_colour = 0x0000;
 
 	dev()->run->gpio_clock( dev()->gpio->f, 1 );
 	dev()->run->gpio_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
@@ -149,6 +150,11 @@ int main(void)
 		if (tr.run->update(&tr.par, rtc()->get_par->tr()) || dr.run->update(&dr.par, rtc()->get_par->dr())) {
 			rtc()->run->dr2vec(vecD);
 			rtc()->run->tr2vec(vecT);
+			if(!ui_state) {
+				lcd1.run->start(&lcd1.par);
+				lcd1.run->drawstring16x24_size( &lcd1.par, (char*)state_name[ui_state], 10, 10, idle_colour++, BG_colour, 7);
+				lcd1.run->stop(&lcd1.par);
+			}
 
 			dev()->run->toggle_hpin(dev()->gpio->f, 1 << 2);
 

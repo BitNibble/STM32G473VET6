@@ -1159,6 +1159,7 @@ void welcome_screen(ST7789_par* par){
     st7789_cs_high(par);
 }
 
+/*** ST7789 V-TABLE ***/
 static ST7789_run run_setup = {
 	.reset           = st7789_reset,
 	.start           = st7789_cs_low,
@@ -1201,9 +1202,10 @@ static ST7789_run run_setup = {
 	.test_pin        = st7789_test_pin
 };
 
-/***** Enable ST7789 handler *****/
+/*** ST7789 INITIALIZE ***/
 ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t rst_pin, uint16_t *fb) {
-    ST7789 st;
+	/*** ST7789 HANDLER ***/
+	ST7789 st;
 
     // -------------------------
     // Fill fixed parameters

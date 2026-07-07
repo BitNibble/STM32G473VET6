@@ -16,11 +16,10 @@ Date:     23/01/2026
 #define ST7789_WIDTH  240
 #define ST7789_HEIGHT 320 // Changed from 240
 
-
 /*** Define & Macro ***/
 // RGB to RGB656
 #define ST7789_RGB565(r,g,b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3))
-
+/*** ST7789 PARAMETER ***/
 typedef struct
 {
 	GPIO_TypeDef*  sda_gpio;
@@ -37,13 +36,12 @@ typedef struct
 	uint16_t height;
 	uint16_t *fb;
 }ST7789_par;
-
 typedef struct
 {
 	void (*gpio)(ST7789_par* par);
 	void (*spi)(ST7789_par* par);
 }ST7789_setup;
-
+/*** ST7789 V-TABLE ***/
 typedef const struct
 {
 	void (*reset)(ST7789_par* par);
@@ -86,15 +84,14 @@ typedef const struct
 	void (*dump_image)(ST7789_par* par, uint16_t x0, uint16_t y0, const uint16_t *img, uint16_t w, uint16_t h, uint16_t transparent);
 	void (*test_pin)(ST7789_par* par, uint8_t pin);
 }ST7789_run;
-
-/*** Handler ***/
+/*** ST7789 HANDLER ***/
 typedef struct ST7789
 {
 	ST7789_par par;
 	ST7789_setup setup;
 	ST7789_run* run;
 }ST7789;
-
+/*** ST7789 INITIALIZE ***/
 ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t rst_pin, uint16_t *fb);
 
 uint16_t _pad_width8(uint16_t width);
