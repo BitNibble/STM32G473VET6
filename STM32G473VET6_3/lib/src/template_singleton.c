@@ -25,11 +25,6 @@ static singleton_set_par set_par_setup = {
 	.var_1 = NULL,
 	.var_2 = NULL
 };
-/*** SINGLETON CALLBACK ***/
-static singleton_irq irq_setup = {
-	.callback_1 = NULL,
-	.callback_2 = NULL
-};
 /*** SINGLETON V-TABLE ***/
 static singleton_run run_setup = {
 	.config = NULL,
@@ -39,6 +34,11 @@ static singleton_run run_setup = {
 	.func_1 = NULL,
 	.func_2 = NULL
 };
+/*** SINGLETON CALLBACK ***/
+static singleton_irq irq_setup = {
+	.callback_1 = NULL,
+	.callback_2 = NULL
+};
 /*** SINGLETON HANDLER ***/
 singleton_handler singleton_setup = {
 	.par = &par_setup,
@@ -47,7 +47,7 @@ singleton_handler singleton_setup = {
 	.irq = &irq_setup,
 	.run = &run_setup
 };
-/*** ACCESSOR FUNCTION ***/
+/*** SINGLETON ACCESSOR FUNCTION ***/
 singleton_handler* singleton(void){return &singleton_setup;}
 
 /*** EOF ***/

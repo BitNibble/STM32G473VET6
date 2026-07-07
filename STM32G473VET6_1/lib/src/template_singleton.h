@@ -26,11 +26,6 @@ typedef const struct {
 	void (*var_1)(uint8_t value);
 	void (*var_2)(uint8_t value);
 }singleton_set_par;
-/*** SINGLETON CALLBACK ***/
-typedef struct {
- void (*callback_1)(void);
- void (*callback_2)(void);
-}singleton_irq;
 /*** SINGLETON V-TABLE ***/
 typedef const struct {
 	void (*config)(singleton_par par);
@@ -40,6 +35,11 @@ typedef const struct {
 	void (*func_1)(uint32_t a);
 	void (*func_2)(uint32_t a,uint32_t b);
 }singleton_run;
+/*** SINGLETON CALLBACK ***/
+typedef struct {
+ void (*callback_1)(void);
+ void (*callback_2)(void);
+}singleton_irq;
 /*** SINGLETON HANDLER ***/
 typedef const struct {
 	singleton_par* par;
@@ -48,8 +48,9 @@ typedef const struct {
 	singleton_irq* irq;
 	singleton_run* run;
 }singleton_handler;
-/*** ACCESSOR FUNCTION ***/
+/*** SINGLETON ACCESSOR FUNCTION ***/
 singleton_handler* singleton(void);
 #endif
+
 /*** EOF ***/
 

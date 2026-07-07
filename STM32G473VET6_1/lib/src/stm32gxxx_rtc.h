@@ -35,36 +35,35 @@ typedef enum {
 	RTC_IRQ_TS,
 } RTC_IRQ_config;
 
-typedef struct {
-    void (*Alarm)(void);
-    void (*WakeUp)(void);
-    void (*TimeStamp)(void);
-    void (*Tamper)(void);
-    void (*Overrun)(void);
-} RTC_callback;
-
+/*** RTC GET PARAMETER ***/
 typedef const struct {
-	uint8_t (*get_year)(void);
-	uint8_t (*get_month)(void);
-	uint8_t (*get_weekday)(void);
-	uint8_t (*get_day)(void);
-	uint8_t (*get_hour)(void);
-	uint8_t (*get_minute)(void);
-	uint8_t (*get_second)(void);
-	void (*set_day)(uint8_t day);
-	void (*set_month)(uint8_t month);
-	void (*set_weekday)(uint8_t weekday);
-	void (*set_year)(uint8_t year);
-	void (*set_hour)(uint8_t hour);
-	void (*set_minute)(uint8_t minute);
-	void (*set_second)(uint8_t second);
+	uint8_t (*year)(void);
+	uint8_t (*month)(void);
+	uint8_t (*weekday)(void);
+	uint8_t (*day)(void);
+	uint8_t (*hour)(void);
+	uint8_t (*minute)(void);
+	uint8_t (*second)(void);
+	uint16_t (*ss)(void);
 	uint32_t (*dr)(void);
-	void (*dr2vec)(char* rtc_vect);
 	uint32_t (*tr)(void);
+}RTC_get_par;
+/*** RTC SET PARAMETER ***/
+typedef const struct {
+	void (*day)(uint8_t day);
+	void (*month)(uint8_t month);
+	void (*weekday)(uint8_t weekday);
+	void (*year)(uint8_t year);
+	void (*hour)(uint8_t hour);
+	void (*minute)(uint8_t minute);
+	void (*second)(uint8_t second);
+}RTC_set_par;
+/*** RTC V-TABLE ***/
+typedef const struct {
+	void (*dr2vec)(char* rtc_vect);
 	void (*tr2vec)(char* rtc_vect);
 	void (*bkp_write)(uint8_t registerIndex, uint32_t data);
 	uint32_t (*bkp_read)(uint8_t registerIndex);
-	uint16_t (*get_ss)(void);
 	/*** Clock and Nvic ***/
 	void (*pwr_clock_enable)(void);
 	void (*pwr_clock_disable)(void);
@@ -75,15 +74,23 @@ typedef const struct {
 	void (*irq_enable)(uint8_t type);
 	void (*irq_disable)(uint8_t type);
 } RTC_run;
-
-/*** RTC TypeDef ***/
+/*** RTC CALLBACK ***/
+typedef struct {
+    void (*Alarm)(void);
+    void (*WakeUp)(void);
+    void (*TimeStamp)(void);
+    void (*Tamper)(void);
+    void (*Overrun)(void);
+} RTC_callback;
+/*** RTC HANDLER ***/
 typedef const struct
 {
+	RTC_get_par* get_par;
+	RTC_set_par* set_par;
 	RTC_run* run;
 	RTC_callback* callback;
 } STM32G473_RTC_Handler;
-
-/*** Global Accessor ***/
+/*** RTC ACCESSOR FUNCTION ***/
 STM32G473_RTC_Handler* rtc(void);
 
 const char* WeekDay_String(uint8_t weekday_n);

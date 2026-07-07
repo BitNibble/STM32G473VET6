@@ -146,7 +146,7 @@ int main(void)
 		}
 
 		/***/
-		if (tr.run->update(&tr.par, rtc()->run->tr()) || dr.run->update(&dr.par, rtc()->run->dr())) {
+		if (tr.run->update(&tr.par, rtc()->get_par->tr()) || dr.run->update(&dr.par, rtc()->get_par->dr())) {
 			rtc()->run->dr2vec(vecD);
 			rtc()->run->tr2vec(vecT);
 
@@ -202,68 +202,68 @@ void adjust_active_field(EXPLODE_Handler active_press)
     if (active_press.par.HL & BTN_UP_PIN) {
         switch (ui_state) {
             case CFG_HOUR:
-            	t_hr = rtc()->run->get_hour();
+            	t_hr = rtc()->get_par->hour();
             	t_hr   = LIMIT_INC(t_hr,   23, 0);
-            	rtc()->run->set_hour(t_hr);
+            	rtc()->set_par->hour(t_hr);
             	break;
             case CFG_MINUTE:
-            	t_min = rtc()->run->get_minute();
+            	t_min = rtc()->get_par->minute();
             	t_min  = LIMIT_INC(t_min,  59, 0);
-            	rtc()->run->set_minute(t_min);
+            	rtc()->set_par->minute(t_min);
             	break;
             case CFG_DAY:
-            	t_day = rtc()->run->get_day();
+            	t_day = rtc()->get_par->day();
             	t_day  = LIMIT_INC(t_day,  31, 1);
-            	rtc()->run->set_day(t_day);
+            	rtc()->set_par->day(t_day);
             	break;
             case CFG_MONTH:
-            	t_mth = rtc()->run->get_month();
+            	t_mth = rtc()->get_par->month();
             	t_mth  = LIMIT_INC(t_mth,  12, 1);
-            	rtc()->run->set_month(t_mth);
+            	rtc()->set_par->month(t_mth);
             	break;
             case CFG_YEAR:
-            	t_yr = rtc()->run->get_year();
+            	t_yr = rtc()->get_par->year();
             	t_yr   = LIMIT_INC(t_yr,   99, 0);
-            	rtc()->run->set_year(t_yr);
+            	rtc()->set_par->year(t_yr);
             	break;
             case CFG_WEEKDAY:
-            	t_wday = rtc()->run->get_weekday();
+            	t_wday = rtc()->get_par->weekday();
             	t_wday = LIMIT_INC(t_wday,  7, 1);
-            	rtc()->run->set_weekday(t_wday);
+            	rtc()->set_par->weekday(t_wday);
             	break;
             default: break;
         }
     } else if (active_press.par.HL & BTN_DOWN_PIN) {
         switch (ui_state) {
             case CFG_HOUR:
-            	t_hr = rtc()->run->get_hour();
+            	t_hr = rtc()->get_par->hour();
             	t_hr   = LIMIT_DEC(t_hr,   23, 0);
-            	rtc()->run->set_hour(t_hr);
+            	rtc()->set_par->hour(t_hr);
             	break;
             case CFG_MINUTE:
-            	t_min = rtc()->run->get_minute();
+            	t_min = rtc()->get_par->minute();
             	t_min  = LIMIT_DEC(t_min,  59, 0);
-            	rtc()->run->set_minute(t_min);
+            	rtc()->set_par->minute(t_min);
             	break;
             case CFG_DAY:
-            	t_day = rtc()->run->get_day();
+            	t_day = rtc()->get_par->day();
             	t_day  = LIMIT_DEC(t_day,  31, 1);
-            	rtc()->run->set_day(t_day);
+            	rtc()->set_par->day(t_day);
             	break;
             case CFG_MONTH:
-            	t_mth = rtc()->run->get_month();
+            	t_mth = rtc()->get_par->month();
             	t_mth  = LIMIT_DEC(t_mth,  12, 1);
-            	rtc()->run->set_month(t_mth);
+            	rtc()->set_par->month(t_mth);
             	break;
             case CFG_YEAR:
-            	t_yr = rtc()->run->get_year();
+            	t_yr = rtc()->get_par->year();
             	t_yr   = LIMIT_DEC(t_yr,   99, 0);
-            	rtc()->run->set_year(t_yr);
+            	rtc()->set_par->year(t_yr);
             	break;
             case CFG_WEEKDAY:
-            	t_wday = rtc()->run->get_weekday();
+            	t_wday = rtc()->get_par->weekday();
             	t_wday = LIMIT_DEC(t_wday,  7, 1);
-            	rtc()->run->set_weekday(t_wday);
+            	rtc()->set_par->weekday(t_wday);
             	break;
             default: break;
         }

@@ -19,11 +19,6 @@ static instance_set_par set_par_setup = {
 	.var_1 = NULL,
 	.var_2 = NULL
 };
-/*** INSTANCE CALLBACK ***/
-static instance_irq irq_default = {
-	.callback_1 = NULL,
-	.callback_2 = NULL
-};
 /*** INSTANCE V-TABLE ***/
 static instance_run run_setup = {
 	.config = NULL,
@@ -32,7 +27,11 @@ static instance_run run_setup = {
 	.func_1 = NULL,
 	.func_2 = NULL
 };
-
+/*** INSTANCE CALLBACK ***/
+static instance_irq irq_default = {
+	.callback_1 = NULL,
+	.callback_2 = NULL
+};
 /*** INSTANCE INITIALIZE ***/
 instance_handler instance_enable(instance_par par) {
 	/*** INSTANCE HANDLER ***/
@@ -43,7 +42,6 @@ instance_handler instance_enable(instance_par par) {
 		.irq = irq_default,
 		.run = &run_setup
 	};
-
 	return instance_setup;
 }
 

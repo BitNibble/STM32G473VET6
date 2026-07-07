@@ -118,7 +118,7 @@ int main(void)
 		//func()->format_string(str,32,"%u", 60);
 		//ptr = function_ui16toa(60);
 		//ptr = func()->ui16toa(60);
-		ptr = func()->ui16toa(rtc()->run->get_second());
+		ptr = func()->ui16toa(rtc()->get_par->second());
 		lcd1.run->drawstring16x24_size(&lcd1.par,ptr,10,200,ST77XX_RED,BG_colour,2);
 		//lcd1.drawstring16x24(&lcd1.par,"hello",10,200,ST77XX_RED,ST77XX_GREEN);
 		lcd1.run->stop(&lcd1.par);

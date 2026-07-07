@@ -26,11 +26,6 @@ typedef const struct {
 	void (*var_1)(instance_par* par, uint8_t value);
 	void (*var_2)(instance_par* par, uint8_t value);
 }instance_set_par;
-/*** INSTANCE CALLBACK ***/
-typedef struct {
- void (*callback_1)(void);
- void (*callback_2)(void);
-}instance_irq;
 /*** INSTANCE V-TABLE ***/
 typedef const struct {
 	void (*config)(instance_par* self, instance_par par);
@@ -39,6 +34,11 @@ typedef const struct {
 	void (*func_1)(instance_par* par,uint32_t a);
 	void (*func_2)(instance_par* par,uint32_t a,uint32_t b);
 }instance_run;
+/*** INSTANCE CALLBACK ***/
+typedef struct {
+ void (*callback_1)(void);
+ void (*callback_2)(void);
+}instance_irq;
 /*** INSTANCE HANDLER ***/
 typedef struct {
 	instance_par par;
@@ -50,5 +50,6 @@ typedef struct {
 /*** INSTANCE INITIALIZE ***/
 instance_handler instance_enable(instance_par par);
 #endif
+
 /*** EOF ***/
 

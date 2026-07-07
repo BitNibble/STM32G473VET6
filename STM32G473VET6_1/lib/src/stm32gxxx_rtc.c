@@ -35,7 +35,8 @@ static void RTC_Set_dr(uint32_t value);
 static uint8_t _rtc_bcd2dec(uint8_t num);
 static uint8_t _rtc_dec2bcd(uint8_t num);
 
-/*** Interface Method Implementations ***/
+/*** Procedure & Function Definition ***/
+
 static uint8_t RTC_get_year(void) {
     RTC_Wait_sync();
     uint32_t dr = RTC->DR;
@@ -382,28 +383,36 @@ static uint8_t _rtc_bcd2dec(uint8_t num) {
 static uint8_t _rtc_dec2bcd(uint8_t num) {
     return ((num / 10) << 4) | (num % 10);
 }
-static RTC_run run_setup = {
-	.get_year = RTC_get_year,
-	.get_month = RTC_get_month,
-	.get_weekday = RTC_get_weekday,
-	.get_day = RTC_get_day,
-	.get_hour = RTC_get_hour,
-	.get_minute = RTC_get_minute,
-	.get_second = RTC_get_second,
-	.set_day = RTC_set_day,
-	.set_month = RTC_set_month,
-	.set_weekday = RTC_set_weekday,
-	.set_year = RTC_set_year,
-	.set_hour = RTC_set_hour,
-	.set_minute = RTC_set_minute,
-	.set_second = RTC_set_second,
+
+/*** RTC GET PARAMETER ***/
+static RTC_get_par get_par_setup = {
+	.year = RTC_get_year,
+	.month = RTC_get_month,
+	.weekday = RTC_get_weekday,
+	.day = RTC_get_day,
+	.hour = RTC_get_hour,
+	.minute = RTC_get_minute,
+	.second = RTC_get_second,
+	.ss = RTC_get_ss,
 	.dr = RTC_dr,
+	.tr = RTC_tr
+};
+/*** RTC SET PARAMETER ***/
+static RTC_set_par set_par_setup = {
+	.year = RTC_set_year,
+	.month = RTC_set_month,
+	.weekday = RTC_set_weekday,
+	.day = RTC_set_day,
+	.hour = RTC_set_hour,
+	.minute = RTC_set_minute,
+	.second = RTC_set_second
+};
+/*** RTC V-TABLE ***/
+static RTC_run run_setup = {
 	.dr2vec = RTC_dr2vec,
-	.tr = RTC_tr,
 	.tr2vec = RTC_tr2vec,
 	.bkp_write = bkp_write,
 	.bkp_read = bkp_read,
-	.get_ss = RTC_get_ss,
 	.pwr_clock_enable = pwr_clock_enable,
 	.pwr_clock_disable = pwr_clock_disable,
 	.clock_enable = RTC_clock_enable,
@@ -413,19 +422,18 @@ static RTC_run run_setup = {
 	.irq_enable = RTC_irq_enable,
 	.irq_disable = RTC_irq_disable,
 };
-
+/*** RTC CALLBACK ***/
 static RTC_callback callback_setup = {NULL, NULL, NULL, NULL, NULL};
-
-/*** Global Handler Singleton Instance ***/
+/*** RTC HANDLER ***/
 static STM32G473_RTC_Handler rtc_instance =
 {
+	.get_par = &get_par_setup,
+	.set_par = &set_par_setup,
 	.run = &run_setup,
 	.callback = &callback_setup
 };
-STM32G473_RTC_Handler* rtc(void)
-{
-	return (STM32G473_RTC_Handler*)&rtc_instance;
-}
+/*** RTC ACCESSOR FUNCTION ***/
+STM32G473_RTC_Handler* rtc(void) { return (STM32G473_RTC_Handler*)&rtc_instance; }
 
 const char* WeekDay_String(uint8_t weekday_n)
 {
