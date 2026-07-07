@@ -13,6 +13,7 @@ Date:     08/06/2026
 #define USART1_RX_SIZE 512
 #define USART1_TX_SIZE 256
 
+/*** USART1 PARAMETER ***/
 typedef struct {
 	uint8_t wordlength;
 	uint8_t stopbit;
@@ -28,6 +29,7 @@ typedef struct {
 	uint8_t*  buff_tx;
 } USART1_par;
 
+/*** USART1 GET PARAMETER ***/
 typedef const struct {
 	uint8_t (*wordlength)(void);
 	uint8_t (*stopbit)(void);
@@ -35,6 +37,7 @@ typedef const struct {
 	uint32_t (*baudrate)(void);
 } USART1_get_par;
 
+/*** USART1 SET PARAMETER ***/
 typedef const struct {
 	void (*wordlength)(uint8_t value);
 	void (*stopbit)(uint8_t value);
@@ -42,12 +45,14 @@ typedef const struct {
 	void (*baudrate)(uint32_t value);
 } USART1_set_par;
 
+/*** USART1 CALLBACK ***/
 typedef struct {
 	/* Hardware Interrupt Entry hooks */
 	void (*idle)(void);
 	void (*dma_tx)(void);
 } USART1_irq;
 
+/*** USART1 V-TABLE ***/
 typedef const struct {
     /* Lifecycle */
 	void (*config)(USART1_par par);
@@ -71,16 +76,14 @@ typedef const struct {
     uint16_t (*rx_available)(void);
 } USART1_run;
 
-/* =========================================================
-   HIGH LEVEL HANDLE (Singleton V-table Interface)
-   ========================================================= */
+/*** USART1 HANDLER ***/
 typedef const struct {
 	USART1_par* par;
 	USART1_irq* irq;
 	USART1_run* run;
 } USARTG4_Handle;
 
-/* Public Factory Singleton Accessor */
+/*** USART1 ACCESSOR FUNCTION ***/
 USARTG4_Handle* usart1(void);
 
 void DMA1_CH2_IRQHandler(void);

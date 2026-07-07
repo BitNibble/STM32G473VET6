@@ -15,6 +15,7 @@ Date:     08/06/2026
 static uint8_t u1_rx_raw[USART1_RX_SIZE + ONE] = {0}; // overflow safety
 static uint8_t u1_tx_raw[USART1_TX_SIZE] = {0};
 
+/*** USART1 PARAMETER ***/
 static USART1_par par_setup = {
 	.wordlength     = 8,
 	.stopbit        = 0,
@@ -48,10 +49,12 @@ static uint16_t impl_rx_available(void);
 static void default_idle_irq(void);
 static void default_dma_tx_irq(void);
 
+/*** USART1 CALLBACK ***/
 static USART1_irq	irq_setup = {
 	.idle    = default_idle_irq,
 	.dma_tx = default_dma_tx_irq,
 };
+/*** USART1 V-TABLE ***/
 static USART1_run run_setup = {
 	.config             = impl_config,
 	.init               = impl_init,
@@ -68,17 +71,15 @@ static USART1_run run_setup = {
 	.rx_available       = impl_rx_available
 };
 
-/* V-Table initialization mapping back to public struct blueprint */
+/*** USART1 HANDLER ***/
 static USARTG4_Handle handle_instance = {
 		.par = &par_setup,
 		.irq = &irq_setup,
 		.run = &run_setup
 };
 
-/* Singleton factory gateway entry point */
-USARTG4_Handle* usart1(void) {
-    return &handle_instance;
-}
+/*** USART1 ACCESSOR FUNCTION ***/
+USARTG4_Handle* usart1(void) { return &handle_instance; }
 
 /* ============================================================================
    DRIVER CODE IMPLEMENTATIONS
@@ -386,7 +387,7 @@ static void default_dma_tx_irq(void) {
     }
 }
 
-/*** INTERRUPT ***/
+/*** USART1 INTERRUPT ***/
 void USART1_IRQHandler(void) {
 	USART1_irq* req = usart1()->irq;
 	//clear_pin( dev()->gpio->f, 2 );

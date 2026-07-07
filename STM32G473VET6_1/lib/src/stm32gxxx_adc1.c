@@ -8,12 +8,13 @@ Date: 02072026
 #include "stm32gxxx_adc1.h"
 #include "arm_systick.h"
 
-/*** adc1 PARAMETER ***/
+/*** ADC1 PARAMETER ***/
 static adc1_par par_setup= {
 	.var_1 = 0,
 	.var_2 = 0
 };
 
+/*** Procedure & Function Definition ***/
 /* ============================================================
    ADC INITIALIZATION
    =========================================================== */
@@ -237,12 +238,12 @@ static inline int adc_safe_disable(ADC_TypeDef *adc)
     return (timeout == 0) ? -3 : 0;
 }
 
-/*** adc1 CALLBACK ***/
+/*** ADC1 CALLBACK ***/
 static adc1_irq irq_setup = {
 	.callback_1 = NULL,
 	.callback_2 = NULL
 };
-/*** adc1 V-TABLE ***/
+/*** ADC1 V-TABLE ***/
 static adc1_run run_setup = {
 	._init =_adc1_init,
 	._cal_single =_adc1_cal_single,
@@ -254,13 +255,13 @@ static adc1_run run_setup = {
 	.temp_to_celsius =adc1_temp_to_celsius,
 	.temp_read_celsius =adc1_temp_read_celsius
 };
-/*** adc1 HANDLER ***/
+/*** ADC1 HANDLER ***/
 adc1_handler adc1_setup = {
 	.par = &par_setup,
 	.irq = &irq_setup,
 	.run = &run_setup
 };
-/*** ACCESSOR FUNCTION ***/
+/*** ADC1 ACCESSOR FUNCTION ***/
 adc1_handler* adc1(void){return &adc1_setup;}
 
 /*** EOF ***/

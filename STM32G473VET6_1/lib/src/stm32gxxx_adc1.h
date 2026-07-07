@@ -12,17 +12,17 @@ Date: 02072026
 #include "stm32g473vet6.h"
 #include "stm32xtool.h"
 
-/*** adc1 PARAMETER ***/
+/*** ADC1 PARAMETER ***/
 typedef struct {
 	uint8_t var_1;
 	uint8_t var_2;
 }adc1_par;
-/*** adc1 CALLBACK ***/
+/*** ADC1 CALLBACK ***/
 typedef struct {
  void (*callback_1)(void);
  void (*callback_2)(void);
 }adc1_irq;
-/*** adc1 V-TABLE ***/
+/*** ADC1 V-TABLE ***/
 typedef const struct {
 	void (*_init)(void);
 	void (*_cal_single)(void);
@@ -34,13 +34,13 @@ typedef const struct {
 	float (*temp_to_celsius)(uint16_t raw);
 	float (*temp_read_celsius)(void);
 }adc1_run;
-/*** adc1 HANDLER ***/
+/*** ADC1 HANDLER ***/
 typedef const struct {
 	adc1_par* par;
 	adc1_irq* irq;
 	adc1_run* run;
 }adc1_handler;
-/*** ACCESSOR FUNCTION ***/
+/*** ADC1 ACCESSOR FUNCTION ***/
 adc1_handler* adc1(void);
 
 #endif
