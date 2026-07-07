@@ -21,7 +21,7 @@ License:  GNU General Public License
 int main(void)
 {
 	rcc()->run->inic();
-	fpu_enable();
+	dev()->run->fpu_enable();
 	rtc()->run->inic();
     /* Loop forever */
 	for(;;);

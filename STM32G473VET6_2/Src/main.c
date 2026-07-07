@@ -81,7 +81,7 @@ void speed_inc(void);
 int main(void)
 {
 	rcc()->run->inic();
-	fpu_enable();
+	dev()->run->fpu_enable();
 	rtc()->run->inic();
 
 	char str[32];

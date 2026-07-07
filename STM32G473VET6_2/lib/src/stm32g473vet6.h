@@ -324,6 +324,7 @@ typedef const struct {
 	void (*toggle_hpin)(GPIO_TypeDef* reg, uint16_t hpin);
 	void (*set_pin)(GPIO_TypeDef* reg, uint8_t pin);
 	void (*clear_pin)(GPIO_TypeDef* reg, uint8_t pin);
+	void (*fpu_enable)(void);
 }DEV_run;
 /*** DEV HANDLER ***/
 typedef const struct {
@@ -346,8 +347,6 @@ STM32_DEVICE* dev(void);
 
 /************************* Generic UTILS ***************************/
 U_word writeHLbyte(uint16_t v);
-/************************** FPU ENABLE *****************************/
-void fpu_enable(void);
 
 #endif
 

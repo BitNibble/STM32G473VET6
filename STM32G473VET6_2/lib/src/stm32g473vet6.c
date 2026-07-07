@@ -694,7 +694,7 @@ U_word writeHLbyte(uint16_t v)
     return w;
 }
 /************************** FPU ENABLE *****************************/
-inline void fpu_enable(void)
+static inline void fpu_enable(void)
 {
     /* Enable full access to CP10 and CP11 (FPU) */
     core.scb->CPACR |= (0xFU << 20);
@@ -745,7 +745,8 @@ static DEV_run run_setup = {
 	.clear_hpin = CLEAR_hpin,
 	.toggle_hpin = TOGGLE_hpin,
 	.set_pin = SET_pin,
-	.clear_pin = CLEAR_pin
+	.clear_pin = CLEAR_pin,
+	.fpu_enable = fpu_enable
 };
 /*** DEV HANDLER ***/
 static STM32_DEVICE device = {
