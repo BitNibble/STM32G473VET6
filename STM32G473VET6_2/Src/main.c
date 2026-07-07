@@ -89,8 +89,8 @@ int main(void)
 	char vecT[8]; // for calendar time
 	speed = 530;
 
-	GPIO_clock( dev()->gpio->f, 1 );
-	GPIO_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
+	dev()->run->gpio_clock( dev()->gpio->f, 1 );
+	dev()->run->gpio_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
 	rtc_ui_init();
 
 	adc1()->run->temp_init();
@@ -150,7 +150,7 @@ int main(void)
 			rtc()->run->dr2vec(vecD);
 			rtc()->run->tr2vec(vecT);
 
-			toggle_hpin(dev()->gpio->f, 1 << 2);
+			dev()->run->toggle_hpin(dev()->gpio->f, 1 << 2);
 
 			lcd1.run->start(&lcd1.par);
 
@@ -174,11 +174,11 @@ int main(void)
 void rtc_ui_init(void)
 {
     // Enable GPIO Port D Clock via your helper
-    GPIO_clock(dev()->gpio->d, 1);
+	dev()->run->gpio_clock(dev()->gpio->d, 1);
     // Batch set PD8-PD13 to Input Mode (0)
-    GPIO_hmoder(dev()->gpio->d, BTN_ALL_PINS_MASK, 0);
+	dev()->run->gpio_hmoder(dev()->gpio->d, BTN_ALL_PINS_MASK, 0);
     // Batch set PD8-PD13 to internal Pull-Up (1)
-    GPIO_hpupd(dev()->gpio->d, BTN_ALL_PINS_MASK, 1);
+    dev()->run->gpio_hpupd(dev()->gpio->d, BTN_ALL_PINS_MASK, 1);
     // Initialize the edge detector tracking instance
     btn_engine = EXPLODE_enable();
 }

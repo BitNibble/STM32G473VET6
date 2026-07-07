@@ -36,7 +36,7 @@ static void t1_init_by_ticks(uint16_t prescaler, uint32_t autoreload) {
 
 static void t1_init_by_freq(uint16_t prescaler, uint32_t target_freq_hz) {
     // Query your dynamic clock system architecture to get exact bus metrics
-    uint32_t tim_input_clk = get_timclk2();
+    uint32_t tim_input_clk = dev()->get_par->timclk2();
 
     // Formula calculation logic layout: ARR = (TIM_CLK / ((PSC + 1) * Target_Freq)) - 1
     uint32_t clock_step = tim_input_clk / (prescaler + 1U);

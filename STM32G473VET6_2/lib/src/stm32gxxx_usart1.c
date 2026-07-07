@@ -136,7 +136,7 @@ static uint8_t impl_get_samplingmode(void) {
 }
 
 static void impl_set_baudrate(uint32_t baudrate) {
-	uint32_t pclk = get_pclk2();
+	uint32_t pclk = dev()->get_par->pclk2();
 	uint32_t brr_calculated_val = ZERO;
 	// Calculate BRR using direct floor division (as expected by STM32 hardware)
 	if (impl_get_samplingmode() == 8) {
@@ -171,24 +171,24 @@ static void impl_config(USART1_par par) {
 
 static void impl_init(void) {
     // Gating Clocks via Native GPIO and Clock System tree APIs
-    GPIO_clock(dev()->gpio->a, ONE);
+	dev()->run->gpio_clock(dev()->gpio->a, ONE);
     set_reg(&(dev()->sys->rcc->AHB1ENR), RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMAMUX1EN);
     set_reg(&(dev()->sys->rcc->APB2ENR), RCC_APB2ENR_USART1EN);
 
     // Configure Alternate Pin Functions using your tool functions (AF7 for USART1)
-    GPIO_moder(GPIOA, 9,  MODE_AF);  // PA9  -> TX Line
-    GPIO_moder(GPIOA, 10, MODE_AF);  // PA10 -> RX Line
-    GPIO_af(GPIOA, 9,  7);
-    GPIO_af(GPIOA, 10, 7);
+    dev()->run->gpio_moder(GPIOA, 9,  MODE_AF);  // PA9  -> TX Line
+    dev()->run->gpio_moder(GPIOA, 10, MODE_AF);  // PA10 -> RX Line
+    dev()->run->gpio_af(GPIOA, 9,  7);
+    dev()->run->gpio_af(GPIOA, 10, 7);
 
-    GPIO_ospeed(GPIOA, 9,  3);
-    GPIO_ospeed(GPIOA, 10, 3);
+    dev()->run->gpio_ospeed(GPIOA, 9,  3);
+    dev()->run->gpio_ospeed(GPIOA, 10, 3);
 
-    GPIO_otype(GPIOA, 9,  0);
-    GPIO_otype(GPIOA, 10, 0);
+    dev()->run->gpio_otype(GPIOA, 9,  0);
+    dev()->run->gpio_otype(GPIOA, 10, 0);
 
-    GPIO_pupd(GPIOA, 9,  0);
-    GPIO_pupd(GPIOA, 10, 1);
+    dev()->run->gpio_pupd(GPIOA, 9,  0);
+    dev()->run->gpio_pupd(GPIOA, 10, 1);
 
     // Routing Peripheral Signals into DMAMUX Matrices (Ch1=RX, Ch2=TX)
     write_field_value(&(dev()->dma->dmamux1_ch1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, 24);

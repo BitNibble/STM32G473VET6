@@ -6,7 +6,7 @@ Hardware: Fits entire STM32G4 Family (G431, G441, G471, G473, G474, etc.)
 Date:     04062026
 **********************************************************************/
 #ifndef STM32G4XX_FAMILY_H
-#define STM32G4XX_FAMILY_H
+	#define STM32G4XX_FAMILY_H
 
 /*** Library ***/
 #include <stm32g4xx.h>
@@ -63,9 +63,7 @@ typedef union{
 	uint64_t var;
 }U_qword;
 
-/******************************************************************
- * CORE
- ******************************************************************/
+/*** DEV PARAMETER ***/
 typedef const struct {
     NVIC_Type* nvic;
     SCB_Type* scb;
@@ -284,10 +282,50 @@ typedef const struct {
     DMAMUX_Channel_TypeDef* dmamux1;
     DMAMUX_RequestGen_TypeDef* dmamux_rg;
 } EVENT_Block;
-
-/******************************************************************
- * DEVICE STRUCTURE
- ******************************************************************/
+/*** DEV GET PARAMETER ***/
+typedef const struct {
+	uint32_t (*pll_source)(void);
+	uint8_t (*pllm)(void);
+	uint16_t (*plln)(void);
+	uint8_t (*pllp)(void);
+	uint8_t (*pllq)(void);
+	uint8_t (*pllr)(void);
+	uint32_t (*pll_vco_in)(void);
+	uint32_t (*pll_vco_out)(void);
+	uint32_t (*pllclk)(void);
+	uint32_t (*sysclk)(void);
+	uint32_t (*hclk)(void);
+	uint32_t (*systickclk)(void);
+	uint32_t (*pclk1)(void);
+	uint32_t (*pclk2)(void);
+	uint32_t (*timclk1)(void);
+	uint32_t (*timclk2)(void);
+	uint32_t (*adc12_hclk)(void);
+	uint32_t (*adc12_ker_ck_input)(void);
+	uint32_t (*adc12_ker_ck)(void);
+	uint32_t (*freq_adc12)(void);
+}DEV_get_par;
+/*** DEV V-TABLE ***/
+typedef const struct {
+	void (*gpio_clock)(GPIO_TypeDef* GPIO, uint8_t enable);
+	void (*gpio_moder)( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode );
+	void (*gpio_otype)( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t otype );
+	void (*gpio_ospeed)( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t ospeed );
+	void (*gpio_pupd)( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t pupd );
+	void (*gpio_hmoder)( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t mode );
+	void (*gpio_hotype)( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t otype );
+	void (*gpio_hospeed)( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t ospeed );
+	void (*gpio_hpupd)( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t pupd );
+	void (*gpio_lck)(GPIO_TypeDef* GPIO, uint16_t hpin);
+	void (*gpio_af)( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af );
+	void (*gpio_haf)( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t af );
+	void (*set_hpin)(GPIO_TypeDef* reg, uint16_t hpin);
+	void (*clear_hpin)(GPIO_TypeDef* reg, uint16_t hpin);
+	void (*toggle_hpin)(GPIO_TypeDef* reg, uint16_t hpin);
+	void (*set_pin)(GPIO_TypeDef* reg, uint8_t pin);
+	void (*clear_pin)(GPIO_TypeDef* reg, uint8_t pin);
+}DEV_run;
+/*** DEV HANDLER ***/
 typedef const struct {
 	CORE_Block* core;
 	SYSTEM_Block* sys;
@@ -300,58 +338,18 @@ typedef const struct {
 	WD_Block* wd;
 	MEMORY_Block* memory;
 	EVENT_Block* event;
+	DEV_get_par* get_par;
+	DEV_run* run;
 } STM32_DEVICE;
-
+/*** DEV ACCESSOR FUNCTION ***/
 STM32_DEVICE* dev(void);
-
-/************************** CLOCK QUERY ****************************/
-uint32_t get_pll_source(void);
-uint8_t get_pllm(void);
-uint16_t get_plln(void);
-uint8_t get_pllp(void);
-uint8_t get_pllq(void);
-uint8_t get_pllr(void);
-uint32_t get_pll_vco_in(void);
-uint32_t get_pll_vco_out(void);
-uint32_t get_pllclk(void);
-uint32_t get_sysclk(void);
-uint32_t get_hclk(void);
-uint32_t get_systickclk(void);
-uint32_t get_pclk1(void);
-uint32_t get_pclk2(void);
-uint32_t get_timclk1(void);
-uint32_t get_timclk2(void);
-uint32_t get_adc12_hclk(void);
-uint32_t get_adc12_ker_ck_input(void);
-uint32_t get_adc12_ker_ck(void);
-uint32_t get_freq_adc12(void);
 
 /************************* Generic UTILS ***************************/
 U_word writeHLbyte(uint16_t v);
-
-/************************** GPIO UTILS *****************************/
-void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable);
-void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode );
-void GPIO_otype( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t otype );
-void GPIO_ospeed( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t ospeed );
-void GPIO_pupd( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t pupd );
-void GPIO_hmoder( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t mode );
-void GPIO_hotype( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t otype );
-void GPIO_hospeed( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t ospeed );
-void GPIO_hpupd( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t pupd );
-void GPIO_lck(GPIO_TypeDef* GPIO, uint16_t hpin);
-void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af );
-void GPIO_haf( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t af );
-void set_hpin(GPIO_TypeDef* reg, uint16_t hpin);
-void clear_hpin(GPIO_TypeDef* reg, uint16_t hpin);
-void toggle_hpin(GPIO_TypeDef* reg, uint16_t hpin);
-void set_pin(GPIO_TypeDef* reg, uint8_t pin);
-void clear_pin(GPIO_TypeDef* reg, uint8_t pin);
-
-/*******************************************************************/
-
 /************************** FPU ENABLE *****************************/
 void fpu_enable(void);
 
 #endif
+
+/*** EOF ***/
 

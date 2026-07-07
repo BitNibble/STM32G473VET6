@@ -17,7 +17,7 @@ volatile uint32_t DelayCounter_0 = 0;
 /******/
 static inline uint32_t calc_tick(uint32_t div)
 {
-    uint32_t tmp = get_hclk() / div;
+    uint32_t tmp = dev()->get_par->hclk() / div;
     return (tmp > 1U) ? (tmp - 1U) : 1U;
 }
 void systick_configure(void)

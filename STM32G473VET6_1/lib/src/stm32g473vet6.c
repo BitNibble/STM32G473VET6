@@ -7,9 +7,7 @@ Date:     04062026
 **********************************************************************/
 #include "stm32g473vet6.h"
 
-/******************************************************************
- * CORE
- ******************************************************************/
+/*** DEV PARAMETER ***/
 static CORE_Block core = {
     .nvic      = NVIC,
     .scb       = SCB,
@@ -229,38 +227,13 @@ static EVENT_Block event = {
     .dmamux_rg = DMAMUX1_RequestGenerator0
 };
 
-/******************************************************************
- * DEVICE INSTANCE
- ******************************************************************/
-static STM32_DEVICE device = {
-    .core   = &core,
-    .sys = &sys,
-    .gpio   = &gpio,
-    .timer  = &tim,
-    .dma    = &dma,
-    .analog = &analog,
-    .comm   = &comm,
-    .ext    = &ext,
-    .wd     = &wd,
-    .memory = &memory,
-    .event  = &event,
-};
-
-/******************************************************************
- * ACCESS
- ******************************************************************/
-STM32_DEVICE* dev(void)
-{
-    return &device;
-}
-
-/************************** CLOCK QUERY ****************************/
+/*** Procedure & Function Definition ***/
 /*=========================================================
   PLL SOURCE
 =========================================================*/
-inline uint32_t get_pll_source(void)
+static inline uint32_t get_pll_source(void)
 {
-    uint32_t src = get_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
+    uint32_t src = get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
 
     /* On G4: 00=No clock, 01=Reserved, 10=HSI16, 11=HSE */
     return (src == 3U) ? HSE_VALUE : HSI_VALUE;
@@ -269,22 +242,22 @@ inline uint32_t get_pll_source(void)
 /*=========================================================
   PLL CONFIG READBACK
 =========================================================*/
-inline uint8_t get_pllm(void)
+static inline uint8_t get_pllm(void)
 {
     /* PLLM mapping on G4: 0001=/2, 0010=/3... so M = value + 1 */
-    uint32_t m = get_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, RCC_PLLCFGR_PLLM_Pos);
+    uint32_t m = get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, RCC_PLLCFGR_PLLM_Pos);
     return (uint8_t)(m + 1U);
 }
 
-inline uint16_t get_plln(void)
+static inline uint16_t get_plln(void)
 {
-    return (uint16_t)get_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, RCC_PLLCFGR_PLLN_Pos);
+    return (uint16_t)get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, RCC_PLLCFGR_PLLN_Pos);
 }
 
 /* PLLP */
-inline uint8_t get_pllp(void)
+static inline uint8_t get_pllp(void)
 {
-    uint32_t p = get_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLP_Msk, RCC_PLLCFGR_PLLP_Pos);
+    uint32_t p = get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLP_Msk, RCC_PLLCFGR_PLLP_Pos);
     // Hardware rule: values 0 and 1 are invalid/reserved on STM32G4.
     // If read as 0 or 1, the PLLP output clock path is effectively disabled.
     if (p < 2U) return 0;
@@ -292,36 +265,36 @@ inline uint8_t get_pllp(void)
 }
 
 
-inline uint8_t get_pllq(void)
+static inline uint8_t get_pllq(void)
 {
     /* Output divisor = (value + 1) * 2 */
-    uint32_t q = get_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, RCC_PLLCFGR_PLLQ_Pos);
+    uint32_t q = get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, RCC_PLLCFGR_PLLQ_Pos);
     return (uint8_t)((q + 1U) * 2U);
 }
 
-inline uint8_t get_pllr(void)
+static inline uint8_t get_pllr(void)
 {
     /* Output divisor = (value + 1) * 2 */
-    uint32_t r = get_field_value(dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, RCC_PLLCFGR_PLLR_Pos);
+    uint32_t r = get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, RCC_PLLCFGR_PLLR_Pos);
     return (uint8_t)((r + 1U) * 2U);
 }
 
 /*=========================================================
   PLL FREQUENCY MODEL
 =========================================================*/
-inline uint32_t get_pll_vco_in(void)
+static inline uint32_t get_pll_vco_in(void)
 {
     uint32_t m = get_pllm();
     if (m < 1 || m > 16) return 0;
     return get_pll_source() / m;
 }
 
-inline uint32_t get_pll_vco_out(void)
+static inline uint32_t get_pll_vco_out(void)
 {
     return get_pll_vco_in() * get_plln();
 }
 
-inline uint32_t get_pllclk(void)
+static inline uint32_t get_pllclk(void)
 {
     uint32_t divisor = get_pllr();
     if (divisor == 0) return 0;
@@ -331,9 +304,9 @@ inline uint32_t get_pllclk(void)
 /*=========================================================
   SYSTEM CLOCK
 =========================================================*/
-inline uint32_t get_sysclk(void)
+static inline uint32_t get_sysclk(void)
 {
-    uint32_t sws = get_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos);
+    uint32_t sws = get_field_value(sys.rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos);
 
     switch (sws)
     {
@@ -347,7 +320,7 @@ inline uint32_t get_sysclk(void)
 /*=========================================================
   AHB CLOCK (HCLK)
 =========================================================*/
-inline uint32_t get_hclk(void)
+static inline uint32_t get_hclk(void)
 {
     static const uint16_t ahb_presc_table[16] =
     {
@@ -355,15 +328,15 @@ inline uint32_t get_hclk(void)
         2, 4, 8, 16, 64, 128, 256, 512
     };
 
-    uint32_t hpre = get_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_HPRE_Msk, RCC_CFGR_HPRE_Pos);
+    uint32_t hpre = get_field_value(sys.rcc->CFGR, RCC_CFGR_HPRE_Msk, RCC_CFGR_HPRE_Pos);
     return get_sysclk() / ahb_presc_table[hpre & 0x0FU];
 }
 
 /*=========================================================
   APB CLOCKS
 =========================================================*/
-uint8_t get_systickpre(void) {
-    uint32_t value = get_field_value(dev()->core->systick->CTRL, SysTick_CTRL_CLKSOURCE_Msk, SysTick_CTRL_CLKSOURCE_Pos);
+static uint8_t get_systickpre(void) {
+    uint32_t value = get_field_value(core.systick->CTRL, SysTick_CTRL_CLKSOURCE_Msk, SysTick_CTRL_CLKSOURCE_Pos);
     return value ? 8 : 1;
 }
 
@@ -371,50 +344,50 @@ uint32_t get_systickclk(void) {
     return get_hclk() / get_systickpre();
 }
 
-inline uint32_t get_pclk1(void)
+static inline uint32_t get_pclk1(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
-    uint32_t ppre1 = get_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
+    uint32_t ppre1 = get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
     return get_hclk() / apb_presc[ppre1 & 0x07U];
 }
 
-inline uint32_t get_pclk2(void)
+static inline uint32_t get_pclk2(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
-    uint32_t ppre2 = get_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
+    uint32_t ppre2 = get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
     return get_hclk() / apb_presc[ppre2 & 0x07U];
 }
 
 /*=========================================================
   TIMER CLOCKS (STM32G4 RULE)
 =========================================================*/
-inline uint32_t get_timclk1(void)
+static inline uint32_t get_timclk1(void)
 {
-    uint32_t ppre1 = get_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
+    uint32_t ppre1 = get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
     uint32_t pclk1 = get_pclk1();
     uint32_t apb_div = ((ppre1 & 0x04U) == 0U) ? 1U : 2U;
     return pclk1 * apb_div;
 }
 
-inline uint32_t get_timclk2(void)
+static inline uint32_t get_timclk2(void)
 {
-    uint32_t ppre2 = get_field_value(dev()->sys->rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
+    uint32_t ppre2 = get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
     uint32_t pclk2 = get_pclk2();
     uint32_t apb_div = ((ppre2 & 0x04U) == 0U) ? 1U : 2U;
     return pclk2 * apb_div;
 }
 
-uint32_t get_adc_hclk(void)
+static uint32_t get_adc12_hclk(void)
 {
     return get_hclk();
 }
 
 static inline uint32_t _get_adc12_sel(void)
 {
-    return get_field_value( dev()->sys->rcc->CCIPR, RCC_CCIPR_ADC12SEL_Msk, RCC_CCIPR_ADC12SEL_Pos );
+    return get_field_value( sys.rcc->CCIPR, RCC_CCIPR_ADC12SEL_Msk, RCC_CCIPR_ADC12SEL_Pos );
 }
 
-uint32_t get_adc12_ker_ck_input(void)
+static uint32_t get_adc12_ker_ck_input(void)
 {
     switch (_get_adc12_sel())
     {
@@ -429,19 +402,19 @@ uint32_t get_adc12_ker_ck_input(void)
     }
 }
 
-uint32_t get_adc12_ker_ck(void)
+static uint32_t get_adc12_ker_ck(void)
 {
     uint32_t input = get_adc12_ker_ck_input();
 
     if (input == 0)
         return 0;
 
-    uint32_t ckmode = get_field_value( dev()->analog->adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
+    uint32_t ckmode = get_field_value( analog.adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
 
     /* PRESC only applies in asynchronous mode */
     if (ckmode == 0)
     {
-        uint32_t presc = get_field_value( dev()->analog->adc12_common->CCR, ADC_CCR_PRESC_Msk, ADC_CCR_PRESC_Pos );
+        uint32_t presc = get_field_value( analog.adc12_common->CCR, ADC_CCR_PRESC_Msk, ADC_CCR_PRESC_Pos );
 
         uint32_t div = 1U << presc;
         return input / div;
@@ -451,11 +424,11 @@ uint32_t get_adc12_ker_ck(void)
     return input;
 }
 
-uint32_t get_freq_adc12(void)
+static uint32_t get_freq_adc12(void)
 {
     uint32_t hclk = get_hclk();
 
-    uint32_t ckmode = get_field_value( dev()->analog->adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
+    uint32_t ckmode = get_field_value( analog.adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
 
     switch (ckmode)
     {
@@ -474,15 +447,6 @@ uint32_t get_freq_adc12(void)
         default:
             return 0;
     }
-}
-
-/************************* Generic UTILS ***************************/
-U_word writeHLbyte(uint16_t v)
-{
-    U_word w;
-    w.par.h = v >> 8;
-    w.par.l = v & 0xFF;
-    return w;
 }
 
 /************************** GPIO UTILS *****************************/
@@ -519,9 +483,9 @@ void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable)
     else return;
 
     if (enable)
-        dev()->sys->rcc->AHB2ENR |= mask;
+        sys.rcc->AHB2ENR |= mask;
     else
-    	dev()->sys->rcc->AHB2ENR &= ~mask;
+    	sys.rcc->AHB2ENR &= ~mask;
 }
 
 void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode )
@@ -703,40 +667,108 @@ void GPIO_haf( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t af )
     }
 }
 
-inline void set_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
+static inline void SET_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
     reg->BSRR = hpin;
 }
-inline void clear_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
+static inline void CLEAR_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
     // Cast hpin to 32-bit first, then safely shift into the upper 16 bits
     reg->BSRR = ((uint32_t)hpin << WORD_BITS);
 }
-inline void toggle_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
+static inline void TOGGLE_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
     reg->ODR ^= hpin;
 }
-inline void set_pin(GPIO_TypeDef* reg, uint8_t pin) {
+static inline void SET_pin(GPIO_TypeDef* reg, uint8_t pin) {
     // 1UL guarantees safe, unsigned 32-bit shifting
     reg->BSRR = (1UL << pin);
 }
-inline void clear_pin(GPIO_TypeDef* reg, uint8_t pin) {
+static inline void CLEAR_pin(GPIO_TypeDef* reg, uint8_t pin) {
     // Directly shift 1UL to its final destination in the upper BRy half (pin + 16)
     reg->BSRR = (1UL << (pin + WORD_BITS));
 }
-/*******************************************************************/
-
+/************************* Generic UTILS ***************************/
+U_word writeHLbyte(uint16_t v)
+{
+    U_word w;
+    w.par.h = v >> 8;
+    w.par.l = v & 0xFF;
+    return w;
+}
 /************************** FPU ENABLE *****************************/
 inline void fpu_enable(void)
 {
     /* Enable full access to CP10 and CP11 (FPU) */
-    dev()->core->scb->CPACR |= (0xFU << 20);
+    core.scb->CPACR |= (0xFU << 20);
 
     /* Optional: instruction barrier */
     __DSB();
     __ISB();
 }
 
+/*** DEV GET PARAMETER ***/
+static DEV_get_par get_par_setup = {
+	.pll_source = get_pll_source,
+	.pllm = get_pllm,
+	.plln = get_plln,
+	.pllp = get_pllp,
+	.pllq = get_pllq,
+	.pllr = get_pllr,
+	.pll_vco_in = get_pll_vco_in,
+	.pll_vco_out = get_pll_vco_out,
+	.pllclk = get_pllclk,
+	.sysclk = get_sysclk,
+	.hclk = get_hclk,
+	.systickclk = get_systickclk,
+	.pclk1 = get_pclk1,
+	.pclk2 = get_pclk2,
+	.timclk1 = get_timclk1,
+	.timclk2 = get_timclk2,
+	.adc12_hclk = get_adc12_hclk,
+	.adc12_ker_ck_input = get_adc12_ker_ck_input,
+	.adc12_ker_ck = get_adc12_ker_ck,
+	.freq_adc12 = get_freq_adc12
+};
+/*** DEV V-TABLE ***/
+static DEV_run run_setup = {
+	.gpio_clock = GPIO_clock,
+	.gpio_moder = GPIO_moder,
+	.gpio_otype = GPIO_otype,
+	.gpio_ospeed = GPIO_ospeed,
+	.gpio_pupd = GPIO_pupd,
+	.gpio_hmoder = GPIO_hmoder,
+	.gpio_hotype = GPIO_hotype,
+	.gpio_hospeed = GPIO_hospeed,
+	.gpio_hpupd = GPIO_hpupd,
+	.gpio_lck = GPIO_lck,
+	.gpio_af = GPIO_af,
+	.gpio_haf = GPIO_haf,
+	.set_hpin = SET_hpin,
+	.clear_hpin = CLEAR_hpin,
+	.toggle_hpin = TOGGLE_hpin,
+	.set_pin = SET_pin,
+	.clear_pin = CLEAR_pin
+};
+/*** DEV HANDLER ***/
+static STM32_DEVICE device = {
+    .core   = &core,
+    .sys = &sys,
+    .gpio   = &gpio,
+    .timer  = &tim,
+    .dma    = &dma,
+    .analog = &analog,
+    .comm   = &comm,
+    .ext    = &ext,
+    .wd     = &wd,
+    .memory = &memory,
+    .event  = &event,
+	.get_par = &get_par_setup,
+	.run = &run_setup,
+};
+/*** DEV ACCESSOR FUNCTION ***/
+STM32_DEVICE* dev(void) { return &device; }
+
 /*** EOF ***/
 /**
- * Singleton and Multiple Independent instance objects.
+ * Singleton and Multiple Independent Instance objects.
  * Enabling an interrupt and not defining its request procedure blocks the program.
  * RCC only gets a clean slate when powered off.
  **/

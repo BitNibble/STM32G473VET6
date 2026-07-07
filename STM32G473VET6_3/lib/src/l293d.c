@@ -96,17 +96,17 @@ L293D_Handler l293d_enable(GPIO_TypeDef *port, uint8_t en_pin) {
         },
 		.run = &run_setup
     };
-    GPIO_clock(l293d.par.EN_GPIO, ONE);
-    GPIO_moder(l293d.par.EN_GPIO, l293d.par.en_pin, MODE_OUTPUT);
+    dev()->run->gpio_clock(l293d.par.EN_GPIO, ONE);
+    dev()->run->gpio_moder(l293d.par.EN_GPIO, l293d.par.en_pin, MODE_OUTPUT);
 
-    GPIO_clock(l293d.par.TIM_GPIO, ONE);
-    GPIO_moder(l293d.par.TIM_GPIO, 6, MODE_AF);
-    GPIO_moder(l293d.par.TIM_GPIO, 7, MODE_AF);
+    dev()->run->gpio_clock(l293d.par.TIM_GPIO, ONE);
+    dev()->run->gpio_moder(l293d.par.TIM_GPIO, 6, MODE_AF);
+    dev()->run->gpio_moder(l293d.par.TIM_GPIO, 7, MODE_AF);
 
-    GPIO_af(l293d.par.TIM_GPIO, 6, l293d.par.tim_af); // AF2 -> TIM3_CH1
-    GPIO_af(l293d.par.TIM_GPIO, 7, l293d.par.tim_af); // AF2 -> TIM3_CH2
+    dev()->run->gpio_af(l293d.par.TIM_GPIO, 6, l293d.par.tim_af); // AF2 -> TIM3_CH1
+    dev()->run->gpio_af(l293d.par.TIM_GPIO, 7, l293d.par.tim_af); // AF2 -> TIM3_CH2
 
-    GPIO_hospeed(l293d.par.TIM_GPIO, (1 << 6) | (1 << 7), GPIO_SPEED_FREQ_HIGH);
+    dev()->run->gpio_hospeed(l293d.par.TIM_GPIO, (1 << 6) | (1 << 7), GPIO_SPEED_FREQ_HIGH);
 
     // Enable TIM3 Clock
     RCC->APB1ENR1 |= RCC_APB1ENR1_TIM3EN;
