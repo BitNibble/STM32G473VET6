@@ -33,6 +33,7 @@ typedef enum
     RTC_CLK_LSE = 2,
 	RTC_CLK_HSE = 3
 } rtc_select_clk;
+
 /*** File Procedure & Function Header ***/
 static void RCC_Flash_SetLatency(uint32_t sysclk);
 void STM32GXXX_Rcc_Pwr_Clock(uint8_t state);
@@ -55,52 +56,6 @@ void STM32GXXX_Prescaler(uint16_t ahbpre, uint8_t ppre1, uint8_t ppre2);
 void STM32GXXX_RTC_ClockSelect(uint8_t rtc);
 
 /*** RCC Procedure & Function Definition ***/
-void rcc_start_v1(void)
-{
-	uint8_t multiply = 96; // (plln >= 8 && plln <= 127)
-	uint8_t devide = 2;
-    /* Enable primary clock source safely */
-    STM32GXXX_Rcc_HEnable(H_Clock_Source);
-
-    /* Select PLL source clock type */
-    STM32GXXX_Rcc_PLL_Source(H_Clock_Source);
-
-    uint32_t input = get_pll_source();
-    uint32_t pllm = input / 1000000;
-    //uint32_t pllm = input / 2000000;
-    //uint32_t pllm = input / 4000000;
-    //uint32_t pllm = input / 8000000;
-
-    if (pllm < 1)  pllm = 1;
-    if (pllm > 16) pllm = 16;
-
-    /* Configure PLL (M, N, P, Q, R) */
-    STM32GXXX_PLL_Division((uint8_t)pllm, multiply, 2, 2, devide);
-
-    if (PLL_ON_OFF)
-    {
-        uint32_t vco = (input / pllm) * multiply;
-        uint32_t sysclk = vco / devide;
-
-        /* Flash latency MUST match final target SYSCLK frequency BEFORE switching */
-        RCC_Flash_SetLatency(sysclk);
-
-        /* Enable PLL circuit and wait for physical lock */
-        STM32GXXX_Rcc_PLL_CLK_Enable();
-
-        /* RCC_HCLK_PLL */
-        STM32GXXX_Rcc_HSelect(RCC_HCLK_PLL);
-    }
-    else
-    {
-        STM32GXXX_Rcc_HSelect(H_Clock_Source);
-    }
-    /* (AHB=1, APB1=1, APB2=1) */
-    STM32GXXX_Prescaler(1, 1, 1);
-    /* SysTick Time Constants */
-    systick_configure();
-}
-
 void rcc_start(void)
 {
     uint8_t multiply = 48; // VCO = (Entrada / M) * 48
@@ -476,26 +431,22 @@ void STM32GXXX_PLL_Division(uint8_t pllm, uint16_t plln, uint8_t pllp, uint8_t p
 	set_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLQEN_Msk, RCC_PLLCFGR_PLLQEN);
 	set_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLPEN_Msk, RCC_PLLCFGR_PLLPEN);
 }
-/*** Extended ***/
-static STM32GXXX_RCC_PLL STM32GXXX_rcc_pll_setup = {
-	.division = STM32GXXX_PLL_Division,
-	.enable = STM32GXXX_Rcc_PLL_CLK_Enable
-};
+/*** RCC V-TABLE ***/
 static STM32GXXX_RCC_run STM32GXXX_rcc_run_setup = {
 	.inic = rcc_start,
 	.henable = STM32GXXX_Rcc_HEnable,
 	.hselect = STM32GXXX_Rcc_HSelect,
 	.lenable = STM32GXXX_Rcc_LEnable,
 	.lselect = STM32GXXX_Rcc_LSelect,
-	.prescaler = STM32GXXX_Prescaler
+	.prescaler = STM32GXXX_Prescaler,
+	.pll_prescaler = STM32GXXX_PLL_Division,
+	.pll_enable = STM32GXXX_Rcc_PLL_CLK_Enable
 };
-/*** HANDLER ***/
+/*** RCC HANDLER ***/
 static STM32GXXX_RCC_HANDLER STM32GXXX_rcc_setup = {
-	.pll = &STM32GXXX_rcc_pll_setup,
 	.run = &STM32GXXX_rcc_run_setup
-
 };
-
+/*** RCC ACCESSOR FUNCTION ***/
 STM32GXXX_RCC_HANDLER* rcc(void){ return &STM32GXXX_rcc_setup; };
 
 /*** EOF ***/
