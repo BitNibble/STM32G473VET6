@@ -48,6 +48,7 @@ typedef const struct {
 	uint32_t (*dr)(void);
 	uint32_t (*tr)(void);
 }RTC_get_par;
+
 /*** RTC SET PARAMETER ***/
 typedef const struct {
 	void (*day)(uint8_t day);
@@ -58,6 +59,7 @@ typedef const struct {
 	void (*minute)(uint8_t minute);
 	void (*second)(uint8_t second);
 }RTC_set_par;
+
 /*** RTC V-TABLE ***/
 typedef const struct {
 	void (*dr2vec)(char* rtc_vect);
@@ -74,6 +76,7 @@ typedef const struct {
 	void (*irq_enable)(uint8_t type);
 	void (*irq_disable)(uint8_t type);
 } RTC_run;
+
 /*** RTC CALLBACK ***/
 typedef struct {
     void (*Alarm)(void);
@@ -82,6 +85,7 @@ typedef struct {
     void (*Tamper)(void);
     void (*Overrun)(void);
 } RTC_callback;
+
 /*** RTC HANDLER ***/
 typedef const struct
 {
@@ -90,6 +94,7 @@ typedef const struct
 	RTC_run* run;
 	RTC_callback* callback;
 } STM32G473_RTC_Handler;
+
 /*** RTC ACCESSOR FUNCTION ***/
 STM32G473_RTC_Handler* rtc(void);
 

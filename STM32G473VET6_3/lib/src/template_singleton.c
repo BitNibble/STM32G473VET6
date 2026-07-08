@@ -27,7 +27,6 @@ static singleton_set_par set_par_setup = {
 };
 /*** SINGLETON V-TABLE ***/
 static singleton_run run_setup = {
-	.config = NULL,
 	.init = NULL,
 	.proc_1 = NULL,
 	.proc_2 = NULL,
@@ -40,7 +39,7 @@ static singleton_irq irq_setup = {
 	.callback_2 = NULL
 };
 /*** SINGLETON HANDLER ***/
-singleton_handler singleton_setup = {
+static singleton_handler singleton_setup = {
 	.par = &par_setup,
 	.get_par = &get_par_setup,
 	.set_par = &set_par_setup,

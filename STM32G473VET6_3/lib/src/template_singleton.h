@@ -28,8 +28,7 @@ typedef const struct {
 }singleton_set_par;
 /*** SINGLETON V-TABLE ***/
 typedef const struct {
-	void (*config)(singleton_par par);
-	void (*init)(void);
+	void (*init)(singleton_par* par);
 	void (*proc_1)(void);
 	void (*proc_2)(void);
 	void (*func_1)(uint32_t a);

@@ -28,7 +28,7 @@ static instance_run run_setup = {
 	.func_2 = NULL
 };
 /*** INSTANCE CALLBACK ***/
-static instance_irq irq_default = {
+static instance_irq irq_setup = {
 	.callback_1 = NULL,
 	.callback_2 = NULL
 };
@@ -39,7 +39,7 @@ instance_handler instance_enable(instance_par par) {
 		.par = par,
 		.get_par = &get_par_setup,
 		.set_par = &set_par_setup,
-		.irq = irq_default,
+		.irq = irq_setup,
 		.run = &run_setup
 	};
 	return instance_setup;
