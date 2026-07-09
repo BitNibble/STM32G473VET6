@@ -22,6 +22,5 @@
 "./lib/src/stm32xtool.o"
 "./lib/src/template_instance.o"
 "./lib/src/template_singleton.o"
-"./lib/src/template_singleton_v2.o"
 "./lib/src/timer_irq.o"
 "./lib/src/znpid.o"

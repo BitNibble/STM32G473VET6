@@ -17,8 +17,8 @@ static void set_analog_filter(uint8_t state);
 static void set_digital_filter(uint8_t filter_value);
 
 /* Sub-interface: Common */
-static void _common_config(const i2c1_par *par);
-static void common_init(const i2c1_par *par);
+static void _common_config(void);
+static void common_init(void);
 static void common_enable(void);
 static void common_disable(void);
 static void common_reset(void);
@@ -47,14 +47,14 @@ static int8_t dma_write(uint16_t address, const uint8_t *buffer, uint16_t length
 static int8_t dma_read(uint16_t address, uint8_t *buffer, uint16_t length);
 
 /* --- Object Interface Structures --- */
-static i2c1_get_par i2c1_get = {
+static i2c1_get i2c1_internal_get = {
     .busy    = get_busy,
     .ready   = get_ready,
     .enabled = get_enabled,
     .error   = get_error
 };
 
-static i2c1_set_par i2c1_set = {
+static i2c1_set i2c1_internal_set = {
     .timing          = set_timing,
     .own_address     = set_own_address,
     .addressing_mode = set_addressing_mode,
@@ -106,17 +106,14 @@ static const i2c1_run i2c1_execute = {
 
 static i2c1_handler i2c1_obj = {
     .par     = &i2c1_internal_par,
-    .get_par = &i2c1_get,
-    .set_par = &i2c1_set,
+    .get     = &i2c1_internal_get,
+    .set     = &i2c1_internal_set,
     .irq     = &i2c1_internal_irq,
     .run     = &i2c1_execute
 };
 
 /* --- Public Interface Accessor --- */
-i2c1_handler *i2c1(void) 
-{
-    return &i2c1_obj;
-}
+i2c1_handler *i2c1(void) { return &i2c1_obj; }
 
 /* --- GET Functions Implementation --- */
 static uint8_t get_busy(void) 
@@ -199,68 +196,68 @@ static void set_digital_filter(uint8_t filter_value)
 }
 
 /* --- COMMON Execution Functions --- */
-static void _common_config(const i2c1_par *par)
+static void _common_config(void)
 {
-    if (par == NULL || par->scl_port == NULL || par->sda_port == NULL) return;
+    if (i2c1_internal_par.scl_port == NULL || i2c1_internal_par.sda_port == NULL) return;
 
     /* 1. Turn on GPIO Clocks dynamically depending on ports assigned */
-    if (par->scl_port == GPIOA || par->sda_port == GPIOA) RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
-    if (par->scl_port == GPIOB || par->sda_port == GPIOB) RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
-    if (par->scl_port == GPIOC || par->sda_port == GPIOC) RCC->AHB2ENR |= RCC_AHB2ENR_GPIOCEN;
+    if (i2c1_internal_par.scl_port == GPIOA || i2c1_internal_par.sda_port == GPIOA) RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
+    if (i2c1_internal_par.scl_port == GPIOB || i2c1_internal_par.sda_port == GPIOB) RCC->AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
+    if (i2c1_internal_par.scl_port == GPIOC || i2c1_internal_par.sda_port == GPIOC) RCC->AHB2ENR |= RCC_AHB2ENR_GPIOCEN;
     /* Wait for stabilization clock cycle */
     __DSB();
 
     /* Helper variables to translate pin index from bitmasks if necessary */
-    uint32_t scl_pos = par->scl_pin;
-    uint32_t sda_pos = par->sda_pin;
+    uint32_t scl_pos = i2c1_internal_par.scl_pin;
+    uint32_t sda_pos = i2c1_internal_par.sda_pin;
 
     /* 2. Configure SCL Pin to Alternate Function Mode, Open-Drain, High Speed */
-    par->scl_port->MODER   &= ~(3U << (scl_pos * 2U));
-    par->scl_port->MODER   |=  (2U << (scl_pos * 2U));  /* AF Mode */
-    par->scl_port->OTYPER  |=  (1U << scl_pos);         /* Open Drain */
-    par->scl_port->OSPEEDR |=  (3U << (scl_pos * 2U));  /* Very High Speed */
-    par->scl_port->PUPDR   &= ~(3U << (scl_pos * 2U));  /* No Pull (Assuming Ext Pull-ups) */
+    i2c1_internal_par.scl_port->MODER   &= ~(3U << (scl_pos * 2U));
+    i2c1_internal_par.scl_port->MODER   |=  (2U << (scl_pos * 2U));  /* AF Mode */
+    i2c1_internal_par.scl_port->OTYPER  |=  (1U << scl_pos);         /* Open Drain */
+    i2c1_internal_par.scl_port->OSPEEDR |=  (3U << (scl_pos * 2U));  /* Very High Speed */
+    i2c1_internal_par.scl_port->PUPDR   &= ~(3U << (scl_pos * 2U));  /* No Pull (Assuming Ext Pull-ups) */
 
     /* 3. Configure SDA Pin identically */
-    par->sda_port->MODER   &= ~(3U << (sda_pos * 2U));
-    par->sda_port->MODER   |=  (2U << (sda_pos * 2U));
-    par->sda_port->OTYPER  |=  (1U << sda_pos);
-    par->sda_port->OSPEEDR |=  (3U << (sda_pos * 2U));
-    par->sda_port->PUPDR   &= ~(3U << (sda_pos * 2U));
+    i2c1_internal_par.sda_port->MODER   &= ~(3U << (sda_pos * 2U));
+    i2c1_internal_par.sda_port->MODER   |=  (2U << (sda_pos * 2U));
+    i2c1_internal_par.sda_port->OTYPER  |=  (1U << sda_pos);
+    i2c1_internal_par.sda_port->OSPEEDR |=  (3U << (sda_pos * 2U));
+    i2c1_internal_par.sda_port->PUPDR   &= ~(3U << (sda_pos * 2U));
 
     /* 4. Map the Alternate Function (AF) Number into the AFR registers */
     /* SCL Alternate Function Multiplexing */
     if (scl_pos < 8U) {
-        par->scl_port->AFR[0] &= ~(0xFU << (scl_pos * 4U));
-        par->scl_port->AFR[0] |=  ((uint32_t)par->alternate_function << (scl_pos * 4U));
+        i2c1_internal_par.scl_port->AFR[0] &= ~(0xFU << (scl_pos * 4U));
+        i2c1_internal_par.scl_port->AFR[0] |=  ((uint32_t)i2c1_internal_par.alternate_function << (scl_pos * 4U));
     } else {
-        par->scl_port->AFR[1] &= ~(0xFU << ((scl_pos - 8U) * 4U));
-        par->scl_port->AFR[1] |=  ((uint32_t)par->alternate_function << ((scl_pos - 8U) * 4U));
+        i2c1_internal_par.scl_port->AFR[1] &= ~(0xFU << ((scl_pos - 8U) * 4U));
+        i2c1_internal_par.scl_port->AFR[1] |=  ((uint32_t)i2c1_internal_par.alternate_function << ((scl_pos - 8U) * 4U));
     }
 
     /* SDA Alternate Function Multiplexing */
     if (sda_pos < 8U) {
-        par->sda_port->AFR[0] &= ~(0xFU << (sda_pos * 4U));
-        par->sda_port->AFR[0] |=  ((uint32_t)par->alternate_function << (sda_pos * 4U));
+        i2c1_internal_par.sda_port->AFR[0] &= ~(0xFU << (sda_pos * 4U));
+        i2c1_internal_par.sda_port->AFR[0] |=  ((uint32_t)i2c1_internal_par.alternate_function << (sda_pos * 4U));
     } else {
-        par->sda_port->AFR[1] &= ~(0xFU << ((sda_pos - 8U) * 4U));
-        par->sda_port->AFR[1] |=  ((uint32_t)par->alternate_function << ((sda_pos - 8U) * 4U));
+        i2c1_internal_par.sda_port->AFR[1] &= ~(0xFU << ((sda_pos - 8U) * 4U));
+        i2c1_internal_par.sda_port->AFR[1] |=  ((uint32_t)i2c1_internal_par.alternate_function << ((sda_pos - 8U) * 4U));
     }
 
     /* 5. Proceed with standard I2C Register Setup as before */
     I2C1->CR1 &= ~I2C_CR1_PE;
-    set_addressing_mode(par->addressing_mode);
-    set_timing(par->timing);
-    set_analog_filter(par->analog_filter);
-    set_digital_filter(par->digital_filter);
-    set_own_address(par->own_address);
+    set_addressing_mode(i2c1_internal_par.addressing_mode);
+    set_timing(i2c1_internal_par.timing);
+    set_analog_filter(i2c1_internal_par.analog_filter);
+    set_digital_filter(i2c1_internal_par.digital_filter);
+    set_own_address(i2c1_internal_par.own_address);
 }
 
-static void common_init(const i2c1_par *par)
+static void common_init(void)
 {
     RCC->APB1ENR1 |= RCC_APB1ENR1_I2C1EN;
     __DSB();
-    _common_config(par);
+    _common_config();
 }
 
 static void common_enable(void) 
@@ -278,7 +275,7 @@ static void common_reset(void)
     RCC->APB1RSTR1 |= RCC_APB1RSTR1_I2C1RST;
     __DSB();
     RCC->APB1RSTR1 &= ~RCC_APB1RSTR1_I2C1RST;
-    common_init(&i2c1_internal_par);
+    common_init();
 }
 
 static void common_irq_event(void) 

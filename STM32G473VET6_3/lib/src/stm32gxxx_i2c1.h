@@ -6,7 +6,6 @@ extern "C" {
 #endif
 
 #include "stm32g473vet6.h"
-#include "stm32xtool.h"
 
 #define I2C1_ADDR_7BIT             0U
 #define I2C1_ADDR_10BIT            1U
@@ -42,7 +41,7 @@ typedef const struct
     uint8_t (*enabled)(void);
     uint8_t (*error)(void);
 
-} i2c1_get_par;
+} i2c1_get;
 
 typedef const struct
 {
@@ -52,7 +51,7 @@ typedef const struct
     void (*analog_filter)(uint8_t);
     void (*digital_filter)(uint8_t);
 
-} i2c1_set_par;
+} i2c1_set;
 
 typedef struct
 {
@@ -65,7 +64,7 @@ typedef struct
 
 typedef const struct
 {
-    void (*init)(const i2c1_par *par);
+    void (*init)(void);
     void (*enable)(void);
     void (*disable)(void);
     void (*reset)(void);
@@ -120,8 +119,8 @@ typedef const struct
 typedef const struct
 {
     i2c1_par *par;
-    i2c1_get_par *get_par;
-    i2c1_set_par *set_par;
+    i2c1_get *get;
+    i2c1_set *set;
     i2c1_irq *irq;
     const i2c1_run *run;
 

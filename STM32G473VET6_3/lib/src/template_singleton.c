@@ -8,22 +8,26 @@ Date:     02/07/2026
 #include "template_singleton.h"
 
 /*** SINGLETON PARAMETER ***/
-static singleton_par par_setup= {
+static singleton_par par_setup = {
+	.gpio = NULL,
+	.af = 0,
+	.pin_1 = 0,
+	.pin_2 = 0,
 	.var_1 = 0,
 	.var_2 = 0
 };
 
 /*** Procedure & Function Definition ***/
 
-/*** SINGLETON GET PARAMETER ***/
-static singleton_get_par get_par_setup = {
-	.var_1 = NULL,
-	.var_2 = NULL
+/*** SINGLETON GET ***/
+static singleton_get get_setup = {
+	.get_1 = NULL,
+	.get_2 = NULL
 };
-/*** SINGLETON SET PARAMETER ***/
-static singleton_set_par set_par_setup = {
-	.var_1 = NULL,
-	.var_2 = NULL
+/*** SINGLETON SET ***/
+static singleton_set set_setup = {
+	.set_1 = NULL,
+	.set_2 = NULL
 };
 /*** SINGLETON V-TABLE ***/
 static singleton_run run_setup = {
@@ -41,8 +45,8 @@ static singleton_irq irq_setup = {
 /*** SINGLETON HANDLER ***/
 static singleton_handler singleton_setup = {
 	.par = &par_setup,
-	.get_par = &get_par_setup,
-	.set_par = &set_par_setup,
+	.get = &get_setup,
+	.set = &set_setup,
 	.irq = &irq_setup,
 	.run = &run_setup
 };

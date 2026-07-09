@@ -8,27 +8,29 @@ Date:     02/07/2026
 #ifndef TEMPLATE_SINGLETON_H
 	#define TEMPLATE_SINGLETON_H
 /*** LIBRARY ***/
-#include <stdint.h>
-#include <inttypes.h>
-#include <stddef.h>
+#include "stm32g473vet6.h"
 /*** SINGLETON PARAMETER ***/
 typedef struct {
+	GPIO_TypeDef* gpio;
+	uint8_t af;
+	uint8_t pin_1;
+	uint8_t pin_2;
 	uint8_t var_1;
 	uint8_t var_2;
 }singleton_par;
-/*** SINGLETON GET PARAMETER ***/
+/*** SINGLETON GET ***/
 typedef const struct {
-	uint8_t (*var_1)(void);
-	uint8_t (*var_2)(void);
-}singleton_get_par;
-/*** SINGLETON SET PARAMETER ***/
+	uint8_t (*get_1)(void);
+	uint8_t (*get_2)(void);
+}singleton_get;
+/*** SINGLETON SET ***/
 typedef const struct {
-	void (*var_1)(uint8_t value);
-	void (*var_2)(uint8_t value);
-}singleton_set_par;
+	void (*set_1)(uint8_t value);
+	void (*set_2)(uint8_t value);
+}singleton_set;
 /*** SINGLETON V-TABLE ***/
 typedef const struct {
-	void (*init)(singleton_par* par);
+	void (*init)(void);
 	void (*proc_1)(void);
 	void (*proc_2)(void);
 	void (*func_1)(uint32_t a);
@@ -42,8 +44,8 @@ typedef struct {
 /*** SINGLETON HANDLER ***/
 typedef const struct {
 	singleton_par* par;
-	singleton_get_par* get_par;
-	singleton_set_par* set_par;
+	singleton_get* get;
+	singleton_set* set;
 	singleton_irq* irq;
 	singleton_run* run;
 }singleton_handler;
