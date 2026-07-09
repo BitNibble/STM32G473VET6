@@ -282,7 +282,7 @@ typedef const struct {
     DMAMUX_Channel_TypeDef* dmamux1;
     DMAMUX_RequestGen_TypeDef* dmamux_rg;
 } EVENT_Block;
-/*** DEV GET PARAMETER ***/
+/*** DEV GET ***/
 typedef const struct {
 	uint32_t (*pll_source)(void);
 	uint8_t (*pllm)(void);
@@ -304,7 +304,7 @@ typedef const struct {
 	uint32_t (*adc12_ker_ck_input)(void);
 	uint32_t (*adc12_ker_ck)(void);
 	uint32_t (*freq_adc12)(void);
-}DEV_get_par;
+}DEV_get;
 /*** DEV V-TABLE ***/
 typedef const struct {
 	void (*gpio_clock)(GPIO_TypeDef* GPIO, uint8_t enable);
@@ -339,7 +339,7 @@ typedef const struct {
 	WD_Block* wd;
 	MEMORY_Block* memory;
 	EVENT_Block* event;
-	DEV_get_par* get_par;
+	DEV_get* get;
 	DEV_run* run;
 } STM32_DEVICE;
 /*** DEV ACCESSOR FUNCTION ***/

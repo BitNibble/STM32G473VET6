@@ -17,6 +17,7 @@ typedef struct {
 }instance_par;
 /*** INSTANCE V-TABLE ***/
 typedef const struct {
+	void (*init)(instance_par* par);
 	void (*proc_1)(instance_par* par);
 	void (*proc_2)(instance_par* par);
 	void (*func_1)(instance_par* par,uint32_t a);

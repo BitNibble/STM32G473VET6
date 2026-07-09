@@ -35,7 +35,7 @@ typedef enum {
 	RTC_IRQ_TS,
 } RTC_IRQ_config;
 
-/*** RTC GET PARAMETER ***/
+/*** RTC GET ***/
 typedef const struct {
 	uint8_t (*year)(void);
 	uint8_t (*month)(void);
@@ -47,9 +47,9 @@ typedef const struct {
 	uint16_t (*ss)(void);
 	uint32_t (*dr)(void);
 	uint32_t (*tr)(void);
-}RTC_get_par;
+}RTC_get;
 
-/*** RTC SET PARAMETER ***/
+/*** RTC SET ***/
 typedef const struct {
 	void (*day)(uint8_t day);
 	void (*month)(uint8_t month);
@@ -58,7 +58,7 @@ typedef const struct {
 	void (*hour)(uint8_t hour);
 	void (*minute)(uint8_t minute);
 	void (*second)(uint8_t second);
-}RTC_set_par;
+}RTC_set;
 
 /*** RTC V-TABLE ***/
 typedef const struct {
@@ -89,8 +89,8 @@ typedef struct {
 /*** RTC HANDLER ***/
 typedef const struct
 {
-	RTC_get_par* get_par;
-	RTC_set_par* set_par;
+	RTC_get* get;
+	RTC_set* set;
 	RTC_run* run;
 	RTC_callback* callback;
 } STM32G473_RTC_Handler;

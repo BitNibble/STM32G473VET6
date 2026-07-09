@@ -29,21 +29,21 @@ typedef struct {
 	uint8_t*  buff_tx;
 } USART1_par;
 
-/*** USART1 GET PARAMETER ***/
+/*** USART1 GET ***/
 typedef const struct {
 	uint8_t (*wordlength)(void);
 	uint8_t (*stopbit)(void);
 	uint8_t (*samplingmode)(void);
 	uint32_t (*baudrate)(void);
-} USART1_get_par;
+} USART1_get;
 
-/*** USART1 SET PARAMETER ***/
+/*** USART1 SET ***/
 typedef const struct {
 	void (*wordlength)(uint8_t value);
 	void (*stopbit)(uint8_t value);
 	void (*samplingmode)(uint8_t value);
 	void (*baudrate)(uint32_t value);
-} USART1_set_par;
+} USART1_set;
 
 /*** USART1 CALLBACK ***/
 typedef struct {
@@ -55,7 +55,6 @@ typedef struct {
 /*** USART1 V-TABLE ***/
 typedef const struct {
     /* Lifecycle */
-	void (*config)(USART1_par par);
     void (*init)(void);
     void (*start_rx)(void);
 
@@ -79,6 +78,8 @@ typedef const struct {
 /*** USART1 HANDLER ***/
 typedef const struct {
 	USART1_par* par;
+	USART1_get* get;
+	USART1_set* set;
 	USART1_irq* irq;
 	USART1_run* run;
 } USARTG4_Handle;

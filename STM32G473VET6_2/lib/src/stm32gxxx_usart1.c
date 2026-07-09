@@ -31,56 +31,6 @@ static USART1_par par_setup = {
 	.buff_tx        = u1_tx_raw
 };
 
-static void impl_config(USART1_par par_setup);
-static void impl_init(void);
-static void impl_start_rx(void);
-static uint16_t impl_read(uint8_t *out);
-static char impl_read_char(void);
-static uint16_t impl_read_str(char* str);
-static uint16_t impl_read_str_size(char* str, uint16_t max_len);
-static void impl_send(const uint8_t *data, uint16_t len);
-static uint8_t impl_tx_ready(void);
-void impl_send_v2(const uint8_t *data, uint16_t len);
-uint8_t impl_tx_ready_v2(void);
-static uint16_t impl_get_rx_left(void);
-static uint16_t impl_get_rx_read_index(void);
-static uint16_t impl_get_rx_write_index(void);
-static uint16_t impl_rx_available(void);
-static void default_idle_irq(void);
-static void default_dma_tx_irq(void);
-
-/*** USART1 CALLBACK ***/
-static USART1_irq	irq_setup = {
-	.idle    = default_idle_irq,
-	.dma_tx = default_dma_tx_irq,
-};
-/*** USART1 V-TABLE ***/
-static USART1_run run_setup = {
-	.config             = impl_config,
-	.init               = impl_init,
-	.start_rx           = impl_start_rx,
-	.read               = impl_read,
-	.read_char          = impl_read_char,
-	.read_str           = impl_read_str,
-	.read_str_size      = impl_read_str_size,
-	.send               = impl_send,
-	.tx_ready           = impl_tx_ready,
-	.get_rx_left        = impl_get_rx_left,
-	.get_rx_read_index  = impl_get_rx_read_index,
-	.get_rx_write_index = impl_get_rx_write_index,
-	.rx_available       = impl_rx_available
-};
-
-/*** USART1 HANDLER ***/
-static USARTG4_Handle handle_instance = {
-		.par = &par_setup,
-		.irq = &irq_setup,
-		.run = &run_setup
-};
-
-/*** USART1 ACCESSOR FUNCTION ***/
-USARTG4_Handle* usart1(void) { return &handle_instance; }
-
 /* ============================================================================
    DRIVER CODE IMPLEMENTATIONS
    ============================================================================ */
@@ -89,7 +39,7 @@ static inline uint16_t _rx_dma_write_snapshot(void) {
 }
 
 /******/
-static void impl_set_wordlength(uint8_t wordlength) {
+void impl_set_wordlength(uint8_t wordlength) {
 	volatile uint32_t* cr1_reg = &(dev()->comm->usart1->CR1);
 	// Setup Word Length (Split across CR1->M1 and CR1->M0)
 	uint32_t m0_val = 0;
@@ -114,12 +64,12 @@ static void impl_set_wordlength(uint8_t wordlength) {
 	write_field_value(cr1_reg, USART_CR1_M1_Msk, USART_CR1_M1_Pos, m1_val);
 }
 
-static void impl_set_stopbit(uint8_t stopbit) {
+void impl_set_stopbit(uint8_t stopbit) {
 	volatile uint32_t* cr2_reg = &(dev()->comm->usart1->CR2);
 	write_field_value(cr2_reg, USART_CR2_STOP_Msk, USART_CR2_STOP_Pos, stopbit);
 }
 
-static void impl_set_samplingmode(uint8_t samplingmode) {
+void impl_set_samplingmode(uint8_t samplingmode) {
 	volatile uint32_t* cr1_reg = &(dev()->comm->usart1->CR1);
 	if(samplingmode == 8) {
 	    write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ONE);
@@ -137,7 +87,7 @@ static uint8_t impl_get_samplingmode(void) {
 }
 
 static void impl_set_baudrate(uint32_t baudrate) {
-	uint32_t pclk = dev()->get_par->pclk2();
+	uint32_t pclk = dev()->get->pclk2();
 	uint32_t brr_calculated_val = ZERO;
 	// Calculate BRR using direct floor division (as expected by STM32 hardware)
 	if (impl_get_samplingmode() == 8) {
@@ -152,22 +102,6 @@ static void impl_set_baudrate(uint32_t baudrate) {
 	}
 	// Write calculated value to the USART1 BRR Register
 	write_field_value(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
-}
-
-static void impl_config(USART1_par par) {
-	par.buff_rx = u1_rx_raw;
-	par.buff_tx = u1_tx_raw;
-	par_setup = par;
-    // Setup Word Length (Split across CR1->M1 and CR1->M0)
-    impl_set_wordlength(par_setup.wordlength);
-    // Setup Stop Bits (CR2->STOP[1:0])
-    // Expected input values standard mapping: 00: 1 Stop bit, 01: 0.5 Stop bit, 10: 2 Stop bits, 11: 1.5 Stop bits
-    impl_set_stopbit(par_setup.stopbit);
-    // Setup Sampling Mode (CR1->OVER8)
-    // 0: Oversampling by 16, 1: Oversampling by 8
-    impl_set_samplingmode(par_setup.samplingmode);
-    // Fetch the peripheral clock frequency
-    impl_set_baudrate(par_setup.baudrate);
 }
 
 static void impl_init(void) {
@@ -357,7 +291,6 @@ static uint16_t impl_rx_available(void) {
     return available;
 }
 
-
 /* ============================================================================
    INTERRUPT VECTOR LAYER DRIVER CONNECTIONS
    ============================================================================ */
@@ -386,6 +319,56 @@ static void default_dma_tx_irq(void) {
         par_setup.tx_busy = ZERO; // Release the lock so next transfers can happen
     }
 }
+
+/*** USART1 GET ***/
+static USART1_get get_setup = {
+	.wordlength = NULL,
+	.stopbit = NULL,
+	.samplingmode = impl_get_samplingmode,
+	.baudrate = NULL
+};
+
+/*** USART1 SET ***/
+static USART1_set set_setup = {
+	.wordlength = impl_set_wordlength,
+	.stopbit = impl_set_stopbit,
+	.samplingmode = impl_set_samplingmode,
+	.baudrate = impl_set_baudrate
+};
+
+/*** USART1 CALLBACK ***/
+static USART1_irq	irq_setup = {
+	.idle    = default_idle_irq,
+	.dma_tx = default_dma_tx_irq,
+};
+
+/*** USART1 V-TABLE ***/
+static USART1_run run_setup = {
+	.init               = impl_init,
+	.start_rx           = impl_start_rx,
+	.read               = impl_read,
+	.read_char          = impl_read_char,
+	.read_str           = impl_read_str,
+	.read_str_size      = impl_read_str_size,
+	.send               = impl_send,
+	.tx_ready           = impl_tx_ready,
+	.get_rx_left        = impl_get_rx_left,
+	.get_rx_read_index  = impl_get_rx_read_index,
+	.get_rx_write_index = impl_get_rx_write_index,
+	.rx_available       = impl_rx_available
+};
+
+/*** USART1 HANDLER ***/
+static USARTG4_Handle handle_instance = {
+		.par = &par_setup,
+		.get = &get_setup,
+		.set = &set_setup,
+		.irq = &irq_setup,
+		.run = &run_setup
+};
+
+/*** USART1 ACCESSOR FUNCTION ***/
+USARTG4_Handle* usart1(void) { return &handle_instance; }
 
 /*** USART1 INTERRUPT ***/
 void USART1_IRQHandler(void) {

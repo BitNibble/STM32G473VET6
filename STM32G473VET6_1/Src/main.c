@@ -107,7 +107,7 @@ int main(void)
 		//toggle_hpin( dev()->gpio->f, 1 << 2 );
 		lcd1.run->start(&lcd1.par);
 		lcd1.run->drawstring16x24_size(&lcd1.par,"LED OFF",10,20,ST77XX_MAGENTA,BG_colour, 8);
-		lcd1.run->drawstring24x48_size( &lcd1.par, func()->ui32toa(dev()->get_par->sysclk()), 10, 100, ST77XX_MAGENTA, BG_colour, 10 );
+		lcd1.run->drawstring24x48_size( &lcd1.par, func()->ui32toa(dev()->get->sysclk()), 10, 100, ST77XX_MAGENTA, BG_colour, 10 );
 		//lcd1.run->drawstring24x48_size( &lcd1.par, func()->ui32toa(get_pll_source()), 10, 100, ST77XX_MAGENTA, ST77XX_GREEN, 10 );
 		//lcd1.run->drawstring24x48_size( &lcd1.par, func()->ui32toa(get_pll_vco_out()), 10, 100, ST77XX_MAGENTA, ST77XX_GREEN, 10 );
 		lcd1.run->stop(&lcd1.par);
@@ -118,7 +118,7 @@ int main(void)
 		//func()->format_string(str,32,"%u", 60);
 		//ptr = function_ui16toa(60);
 		//ptr = func()->ui16toa(60);
-		ptr = func()->ui16toa(rtc()->get_par->second());
+		ptr = func()->ui16toa(rtc()->get->second());
 		lcd1.run->drawstring16x24_size(&lcd1.par,ptr,10,200,ST77XX_RED,BG_colour,2);
 		//lcd1.drawstring16x24(&lcd1.par,"hello",10,200,ST77XX_RED,ST77XX_GREEN);
 		lcd1.run->stop(&lcd1.par);

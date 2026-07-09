@@ -705,7 +705,7 @@ static inline void fpu_enable(void)
 }
 
 /*** DEV GET PARAMETER ***/
-static DEV_get_par get_par_setup = {
+static DEV_get get_setup = {
 	.pll_source = get_pll_source,
 	.pllm = get_pllm,
 	.plln = get_plln,
@@ -761,7 +761,7 @@ static STM32_DEVICE device = {
     .wd     = &wd,
     .memory = &memory,
     .event  = &event,
-	.get_par = &get_par_setup,
+	.get = &get_setup,
 	.run = &run_setup,
 };
 /*** DEV ACCESSOR FUNCTION ***/

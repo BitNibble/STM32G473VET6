@@ -384,8 +384,8 @@ static uint8_t _rtc_dec2bcd(uint8_t num) {
     return ((num / 10) << 4) | (num % 10);
 }
 
-/*** RTC GET PARAMETER ***/
-static RTC_get_par get_par_setup = {
+/*** RTC GET ***/
+static RTC_get get_setup = {
 	.year = RTC_get_year,
 	.month = RTC_get_month,
 	.weekday = RTC_get_weekday,
@@ -397,8 +397,8 @@ static RTC_get_par get_par_setup = {
 	.dr = RTC_dr,
 	.tr = RTC_tr
 };
-/*** RTC SET PARAMETER ***/
-static RTC_set_par set_par_setup = {
+/*** RTC SET ***/
+static RTC_set set_setup = {
 	.year = RTC_set_year,
 	.month = RTC_set_month,
 	.weekday = RTC_set_weekday,
@@ -427,8 +427,8 @@ static RTC_callback callback_setup = {NULL, NULL, NULL, NULL, NULL};
 /*** RTC HANDLER ***/
 static STM32G473_RTC_Handler rtc_instance =
 {
-	.get_par = &get_par_setup,
-	.set_par = &set_par_setup,
+	.get = &get_setup,
+	.set = &set_setup,
 	.run = &run_setup,
 	.callback = &callback_setup
 };

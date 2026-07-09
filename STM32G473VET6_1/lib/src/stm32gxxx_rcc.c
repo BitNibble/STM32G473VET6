@@ -64,7 +64,7 @@ void rcc_start(void)
     STM32GXXX_Rcc_HEnable(H_Clock_Source);
     STM32GXXX_Rcc_PLL_Source(H_Clock_Source);
 
-    uint32_t input = dev()->get_par->pll_source();
+    uint32_t input = dev()->get->pll_source();
 
     /* CORREÇÃO: Alvo de frequência de entrada do VCO = 2 MHz (Válido para HSI 16MHz) */
     uint32_t pllm = input / 2000000;

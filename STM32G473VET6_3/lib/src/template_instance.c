@@ -11,6 +11,7 @@ Date:     02/07/2026
 
 /*** INSTANCE V-TABLE ***/
 static instance_run run_setup = {
+	.init = NULL,
 	.proc_1 = NULL,
 	.proc_2 = NULL,
 	.func_1 = NULL,
