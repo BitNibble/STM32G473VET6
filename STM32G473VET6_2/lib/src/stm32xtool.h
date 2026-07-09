@@ -54,6 +54,7 @@ float CalculateTemperature(uint16_t adc_value);
 /*** Fall Threw Delay ***/
 int ftdelayCycles(uint8_t lock_ID, unsigned int n_cycle, void (*init)(void), void (*term)(void));
 void ftdelayReset(uint8_t ID);
+void ftdelayTerm(uint8_t ID);
 
 /*** EOF ***/
 
