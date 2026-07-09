@@ -15,6 +15,16 @@ Date:     08/06/2026
 
 /*** USART1 PARAMETER ***/
 typedef struct {
+	GPIO_TypeDef* rx_gpio;
+	GPIO_TypeDef* tx_gpio;
+	uint8_t rx_af;
+	uint8_t tx_af;
+	uint8_t rx_pin;
+	uint8_t tx_pin;
+	uint8_t rx_dma_ch;
+	uint8_t tx_dma_ch;
+	uint8_t usart_priority;
+	uint8_t dma_priority;
 	uint8_t wordlength;
 	uint8_t stopbit;
 	uint8_t samplingmode;

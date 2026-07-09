@@ -16,7 +16,17 @@ static uint8_t u1_rx_raw[USART1_RX_SIZE + ONE] = {0}; // overflow safety
 static uint8_t u1_tx_raw[USART1_TX_SIZE] = {0};
 
 /*** USART1 PARAMETER ***/
-static USART1_par par_setup = {
+static USART1_par par_setup = { // DEFAULT
+	.rx_gpio = GPIOA,
+	.tx_gpio = GPIOA,
+	.rx_af = 7,
+	.tx_af = 7,
+	.rx_pin = 10,
+	.tx_pin = 9,
+	.rx_dma_ch = 24,
+	.tx_dma_ch = 25,
+	.usart_priority = 5,
+	.dma_priority = 5,
 	.wordlength     = 8,
 	.stopbit        = 0,
 	.samplingmode   = 16,
@@ -106,28 +116,29 @@ static void impl_set_baudrate(uint32_t baudrate) {
 
 static void impl_init(void) {
     // Gating Clocks via Native GPIO and Clock System tree APIs
-	dev()->run->gpio_clock(dev()->gpio->a, ONE);
+	dev()->run->gpio_clock(par_setup.rx_gpio, ONE);
+	dev()->run->gpio_clock(par_setup.tx_gpio, ONE);
     set_reg(&(dev()->sys->rcc->AHB1ENR), RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMAMUX1EN);
     set_reg(&(dev()->sys->rcc->APB2ENR), RCC_APB2ENR_USART1EN);
 
     // Configure Alternate Pin Functions using your tool functions (AF7 for USART1)
-    dev()->run->gpio_moder(GPIOA, 9,  MODE_AF);  // PA9  -> TX Line
-    dev()->run->gpio_moder(GPIOA, 10, MODE_AF);  // PA10 -> RX Line
-    dev()->run->gpio_af(GPIOA, 9,  7);
-    dev()->run->gpio_af(GPIOA, 10, 7);
+    dev()->run->gpio_moder(par_setup.tx_gpio, par_setup.tx_pin,  MODE_AF);  // PA9  -> TX Line
+    dev()->run->gpio_moder(par_setup.rx_gpio, par_setup.rx_pin, MODE_AF);  // PA10 -> RX Line
+    dev()->run->gpio_af(par_setup.tx_gpio, par_setup.tx_pin,  7);
+    dev()->run->gpio_af(par_setup.rx_gpio, par_setup.rx_pin, 7);
 
-    dev()->run->gpio_ospeed(GPIOA, 9,  3);
-    dev()->run->gpio_ospeed(GPIOA, 10, 3);
+    dev()->run->gpio_ospeed(par_setup.tx_gpio, par_setup.tx_pin,  3);
+    dev()->run->gpio_ospeed(par_setup.rx_gpio, par_setup.rx_pin, 3);
 
-    dev()->run->gpio_otype(GPIOA, 9,  0);
-    dev()->run->gpio_otype(GPIOA, 10, 0);
+    dev()->run->gpio_otype(par_setup.tx_gpio, par_setup.tx_pin,  0);
+    dev()->run->gpio_otype(par_setup.rx_gpio, par_setup.rx_pin, 0);
 
-    dev()->run->gpio_pupd(GPIOA, 9,  0);
-    dev()->run->gpio_pupd(GPIOA, 10, 1);
+    dev()->run->gpio_pupd(par_setup.tx_gpio, par_setup.tx_pin,  0);
+    dev()->run->gpio_pupd(par_setup.rx_gpio, par_setup.rx_pin, 1);
 
     // Routing Peripheral Signals into DMAMUX Matrices (Ch1=RX, Ch2=TX)
-    write_field_value(&(dev()->dma->dmamux1_ch1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, 24);
-    write_field_value(&(dev()->dma->dmamux1_ch2->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, 25);
+    write_field_value(&(dev()->dma->dmamux1_ch1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.rx_dma_ch);
+    write_field_value(&(dev()->dma->dmamux1_ch2->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.tx_dma_ch);
 
     // Configure DMA RX Channel (Circular mode)
     clear_reg(&(dev()->dma->dma1_ch1->CCR), DMA_CCR_EN);
@@ -152,9 +163,9 @@ static void impl_init(void) {
     set_reg(&(dev()->comm->usart1->CR1), USART_CR1_UE);
 
     // Core NVIC Interrupt Vectors Configurations
-    NVIC_SetPriority(USART1_IRQn, 5);
+    NVIC_SetPriority(USART1_IRQn, par_setup.usart_priority);
     NVIC_EnableIRQ(USART1_IRQn);
-    NVIC_SetPriority(DMA1_Channel2_IRQn, 5);
+    NVIC_SetPriority(DMA1_Channel2_IRQn, par_setup.dma_priority);
     NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 }
 
