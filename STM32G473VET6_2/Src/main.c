@@ -111,6 +111,8 @@ int main(void)
 
 	while(1)
 	{
+
+
 		if(btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR & BTN_ALL_PINS_MASK)) {
 			select_mode(btn_engine);
 			adjust_active_field(btn_engine);
@@ -150,6 +152,7 @@ int main(void)
 		if (tr.run->update(&tr.par, rtc()->get->tr()) || dr.run->update(&dr.par, rtc()->get->dr())) {
 			rtc()->run->dr2vec(vecD);
 			rtc()->run->tr2vec(vecT);
+
 			if(!ui_state) {
 				lcd1.run->start(&lcd1.par);
 				lcd1.run->drawstring16x24_size( &lcd1.par, (char*)state_name[ui_state], 10, 10, idle_colour++, BG_colour, 7);

@@ -10,7 +10,6 @@ Date: 02072026
 
 /*** LIBRARY ***/
 #include "stm32g473vet6.h"
-#include "stm32xtool.h"
 
 /*** ADC1 PARAMETER ***/
 typedef struct {

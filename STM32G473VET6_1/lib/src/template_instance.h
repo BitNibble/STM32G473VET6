@@ -2,7 +2,7 @@
 	TEMPLATE MULTI INSTANCE
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
-Hardware: MCU
+Hardware: MCU (Highly optimizable)
 Date:     02/07/2026
 ************************************************************************/
 #ifndef TEMPLATE_INSTANCE_H
@@ -11,6 +11,8 @@ Date:     02/07/2026
 #include "stm32g473vet6.h"
 /*** INSTANCE PARAMETER ***/
 typedef struct {
+	GPIO_TypeDef* gpio;
+	uint8_t af;
 	uint8_t var_1;
 	uint8_t var_2;
 	void* handler;

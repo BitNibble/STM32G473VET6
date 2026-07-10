@@ -22,6 +22,8 @@ instance_handler instance_enable(void) {
 	/*** INSTANCE HANDLER ***/
 	instance_handler instance_setup = {
 		.par = {
+			.gpio = NULL,
+			.af = 0,
 			.var_1 = 0,
 			.var_2 = 0,
 			.handler = NULL

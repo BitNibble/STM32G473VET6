@@ -2,7 +2,7 @@
 	TEMPLATE SINGLETON
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
-Hardware: MCU
+Hardware: MCU (Highly optimizable)
 Date:     02/07/2026
 ************************************************************************/
 #ifndef TEMPLATE_SINGLETON_H

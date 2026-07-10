@@ -191,7 +191,7 @@ static inline void st7789_data(ST7789_par* par, uint8_t d) {
 	st7789_spi_tx_fast(par, d);
 }
 
-void st7789_set_caset(ST7789_par* par, uint16_t x0, uint16_t x1)
+static void st7789_set_caset(ST7789_par* par, uint16_t x0, uint16_t x1)
 {
 	U_word w;
 	
@@ -201,7 +201,7 @@ void st7789_set_caset(ST7789_par* par, uint16_t x0, uint16_t x1)
 	st7789_spi_flush(par);
 }
 
-void st7789_set_raset(ST7789_par* par, uint16_t y0, uint16_t y1)
+static void st7789_set_raset(ST7789_par* par, uint16_t y0, uint16_t y1)
 {
 	U_word w;
 
@@ -212,7 +212,7 @@ void st7789_set_raset(ST7789_par* par, uint16_t y0, uint16_t y1)
 }
 
 // Initialization sequence
-void st7789_init_seq(ST7789_par* par) {
+static void st7789_init_seq(ST7789_par* par) {
     st7789_cs_low(par);
     st7789_cmd(par, ST77XX_SWRESET); // SWRESET
     st7789_spi_flush(par);
@@ -283,7 +283,7 @@ void st7789_init_seq(ST7789_par* par) {
 }
 /***/
 
-void st7789_set_window(ST7789_par* par, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
+static void st7789_set_window(ST7789_par* par, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
 {
 	st7789_set_caset(par, x0, x1);
 
@@ -292,14 +292,14 @@ void st7789_set_window(ST7789_par* par, uint16_t x0, uint16_t y0, uint16_t x1, u
 	st7789_cmd(par, ST77XX_RAMWR);
 }
 
-void st7789_shift_pixel(ST7789_par* par, uint16_t color) {
+static void st7789_shift_pixel(ST7789_par* par, uint16_t color) {
 	U_word data = { .var = color };
 	st7789_data(par, data.par.h);
 	st7789_data(par, data.par.l);
 }
 
 // Draw a single pixel
-void st7789_draw_pixel(ST7789_par* par, uint16_t x, uint16_t y, uint16_t color) {
+static void st7789_draw_pixel(ST7789_par* par, uint16_t x, uint16_t y, uint16_t color) {
 	
 	if(x >= par->width || y >= par->height) return;
 
@@ -308,7 +308,7 @@ void st7789_draw_pixel(ST7789_par* par, uint16_t x, uint16_t y, uint16_t color) 
 	st7789_spi_flush(par);
 }
 
-void st7789_fill_screen(ST7789_par* par, uint16_t color) {
+static void st7789_fill_screen(ST7789_par* par, uint16_t color) {
 	st7789_cs_low(par);
 	st7789_set_window(par, 0, 0, (par->width - 1), (par->height - 1));
 	for (uint16_t y = 0; y < par->height; y++) {
@@ -336,7 +336,7 @@ static inline void st7789_draw_bits_fast(ST7789_par* par, uint8_t byte, uint8_t 
     }
 }
 
-void st7789_drawfont8x12(ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg)
+static void st7789_drawfont8x12(ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg)
 {
 	const uint8_t first  = 32;   // first ASCII in font
 	const uint8_t glyph_width  = 8;
@@ -362,7 +362,7 @@ void st7789_drawfont8x12(ST7789_par* par, char c, uint16_t x, uint16_t y, uint16
 	st7789_spi_flush(par);
 }
 
-void st7789_drawstring8x12(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg)
+static void st7789_drawstring8x12(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg)
 {
 	uint16_t cursorX = x;
 	uint16_t cursorY = y;
@@ -375,7 +375,7 @@ void st7789_drawstring8x12(ST7789_par* par, const char* str, uint16_t x, uint16_
 	}
 }
 
-void st7789_drawstring8x12_size(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size)
+static void st7789_drawstring8x12_size(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size)
 {
 	uint16_t cursorX = x; char c;
 	while (size) {
@@ -386,7 +386,7 @@ void st7789_drawstring8x12_size(ST7789_par* par, const char* str, uint16_t x, ui
 	}
 }
 
-void st7789_drawfont12x16(ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg)
+static void st7789_drawfont12x16(ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg)
 {
     const uint8_t first  = 32;
     const uint8_t glyph_width  = 12;
@@ -414,7 +414,7 @@ void st7789_drawfont12x16(ST7789_par* par, char c, uint16_t x, uint16_t y, uint1
     st7789_spi_flush(par);
 }
 
-void st7789_drawstring12x16(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg)
+static void st7789_drawstring12x16(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg)
 {
 	uint16_t cursorX = x;
 	while(*str) {
@@ -425,7 +425,7 @@ void st7789_drawstring12x16(ST7789_par* par, const char* str, uint16_t x, uint16
 	}
 }
 
-void st7789_drawstring12x16_size(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size)
+static void st7789_drawstring12x16_size(ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size)
 {
 	uint16_t cursorX = x; char c;
 	while(size) {
@@ -436,7 +436,7 @@ void st7789_drawstring12x16_size(ST7789_par* par, const char* str, uint16_t x, u
 	}
 }
 
-void st7789_drawfont16x24( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+static void st7789_drawfont16x24( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
 	const uint8_t first = 32;
 	const uint8_t glyph_w = 16;
 	const uint8_t glyph_h = 24;
@@ -462,7 +462,7 @@ void st7789_drawfont16x24( ST7789_par* par, char c, uint16_t x, uint16_t y, uint
 	st7789_spi_flush(par);
 }
 
-void st7789_drawstring16x24( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg )
+static void st7789_drawstring16x24( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg )
 {
 	uint16_t cursorX = x;
 	while(*str){
@@ -473,7 +473,7 @@ void st7789_drawstring16x24( ST7789_par* par, const char* str, uint16_t x, uint1
 	}
 }
 
-void st7789_drawstring16x24_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
+static void st7789_drawstring16x24_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
 {
 	uint16_t cursorX = x;  char c;
 	while(size){
@@ -484,7 +484,7 @@ void st7789_drawstring16x24_size( ST7789_par* par, const char* str, uint16_t x, 
 	}
 }
 
-void st7789_drawfont32x32( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+static void st7789_drawfont32x32( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
 	const uint8_t first = 32;
 	const uint8_t glyph_w = 32;
 	const uint8_t glyph_h = 32;
@@ -516,7 +516,7 @@ void st7789_drawfont32x32( ST7789_par* par, char c, uint16_t x, uint16_t y, uint
 	st7789_spi_flush(par);
 }
 
-void st7789_drawstring32x32_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
+static void st7789_drawstring32x32_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
 {
 	uint16_t cursorX = x;  char c;
 	while(size){
@@ -527,7 +527,7 @@ void st7789_drawstring32x32_size( ST7789_par* par, const char* str, uint16_t x, 
 	}
 }
 
-void st7789_drawfont18x32( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+static void st7789_drawfont18x32( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
 	const uint8_t first = 32;
 	const uint8_t glyph_w = 18; // True window visual width
 	const uint8_t glyph_h = 32; // True window height
@@ -563,7 +563,7 @@ void st7789_drawfont18x32( ST7789_par* par, char c, uint16_t x, uint16_t y, uint
 	st7789_spi_flush(par);
 }
 
-void st7789_drawstring18x32_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
+static void st7789_drawstring18x32_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
 {
 	uint16_t cursorX = x;  char c;
 	while(size){
@@ -573,7 +573,8 @@ void st7789_drawstring18x32_size( ST7789_par* par, const char* str, uint16_t x, 
 		if(cursorX + 18 > par->width) break;
 	}
 }
-void st7789_drawfont48x48( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+
+static void st7789_drawfont48x48( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
 	const uint8_t first = 32;
 	const uint8_t glyph_w = 48;
 	const uint8_t glyph_h = 48;
@@ -609,7 +610,7 @@ void st7789_drawfont48x48( ST7789_par* par, char c, uint16_t x, uint16_t y, uint
 	st7789_spi_flush(par);
 }
 
-void st7789_drawstring48x48_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
+static void st7789_drawstring48x48_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
 {
 	uint16_t cursorX = x;  char c;
 	while(size){
@@ -620,7 +621,7 @@ void st7789_drawstring48x48_size( ST7789_par* par, const char* str, uint16_t x, 
 	}
 }
 
-void st7789_drawfont24x48( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+static void st7789_drawfont24x48( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
 	const uint8_t first = 32;
 	const uint8_t glyph_w = 24;
 	const uint8_t glyph_h = 48;
@@ -659,7 +660,7 @@ void st7789_drawfont24x48( ST7789_par* par, char c, uint16_t x, uint16_t y, uint
 	st7789_spi_flush(par);
 }
 
-void st7789_drawstring24x48_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
+static void st7789_drawstring24x48_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
 {
 	uint16_t cursorX = x;  char c;
 	while(size){
@@ -671,7 +672,7 @@ void st7789_drawstring24x48_size( ST7789_par* par, const char* str, uint16_t x, 
 }
 
 /**
-void st7789_drawfont64x64( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
+static void st7789_drawfont64x64( ST7789_par* par, char c, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg ){
 	const uint8_t first = 32;
 	const uint8_t glyph_w = 64;
 	const uint8_t glyph_h = 64;
@@ -712,7 +713,7 @@ void st7789_drawfont64x64( ST7789_par* par, char c, uint16_t x, uint16_t y, uint
 	st7789_spi_flush(par);
 }
 
-void st7789_drawstring64x64_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
+static void st7789_drawstring64x64_size( ST7789_par* par, const char* str, uint16_t x, uint16_t y, uint16_t fg, uint16_t bg, uint16_t size )
 {
 	uint16_t cursorX = x;  char c;
 	while(size){
@@ -757,7 +758,7 @@ void st7789_drawfont_universal( ST7789_par* par, const uint8_t* font_array, uint
     st7789_spi_flush(par);
 }
 
-void st7789_draw_line(ST7789_par* par, int x0, int y0, int x1, int y1, uint16_t color)
+static void st7789_draw_line(ST7789_par* par, int x0, int y0, int x1, int y1, uint16_t color)
 {
 	int dx = abs(x1 - x0);
 	int sx = x0 < x1 ? 1 : -1;
@@ -775,7 +776,7 @@ void st7789_draw_line(ST7789_par* par, int x0, int y0, int x1, int y1, uint16_t 
 }
 
 // Draw line using y = m*x + b
-void st7789_draw_line_eq(ST7789_par* par, float m, float b, int x_start, int x_end, uint16_t color){
+static void st7789_draw_line_eq(ST7789_par* par, float m, float b, int x_start, int x_end, uint16_t color){
 	if(x_end < x_start) {
 		// swap to ensure x_start <= x_end
 		int tmp = x_start; x_start = x_end; x_end = tmp;
@@ -793,7 +794,7 @@ void st7789_draw_line_eq(ST7789_par* par, float m, float b, int x_start, int x_e
 	}
 }
 
-void st7789_draw_circle( ST7789_par* par, int x0, int y0, int r, uint16_t color ){
+static void st7789_draw_circle( ST7789_par* par, int x0, int y0, int r, uint16_t color ){
 	if(r <= 0) return;
 
 	int x = r;
@@ -822,7 +823,7 @@ void st7789_draw_circle( ST7789_par* par, int x0, int y0, int r, uint16_t color 
 }
 
 // Draw circle in real time using equation y = sqrt(r^2 - x^2)
-void st7789_draw_circle_eq(ST7789_par* par, int cx, int cy, int r, uint16_t color){
+static void st7789_draw_circle_eq(ST7789_par* par, int cx, int cy, int r, uint16_t color){
 	for (int x = 0; x <= r; x++) {
 		int y = (int)(sqrt(r*r - x*x) + 0.5f); // round to nearest integer
 
@@ -839,7 +840,7 @@ void st7789_draw_circle_eq(ST7789_par* par, int cx, int cy, int r, uint16_t colo
 	}
 }
 
-void st7789_fill_circle_v1( ST7789_par* par, int x0, int y0, int r, uint16_t color ){
+static void st7789_fill_circle_v1( ST7789_par* par, int x0, int y0, int r, uint16_t color ){
 	if(r <= 0) return;
 
 	int x = r;
@@ -863,7 +864,7 @@ void st7789_fill_circle_v1( ST7789_par* par, int x0, int y0, int r, uint16_t col
 	}
 }
 
-void st7789_fill_circle_v2( ST7789_par* par, int x0, int y0, int r, uint16_t color ){
+static void st7789_fill_circle_v2( ST7789_par* par, int x0, int y0, int r, uint16_t color ){
 	int x = r;
 	int y = 0;
 	int err = 1 - x;
@@ -885,7 +886,7 @@ void st7789_fill_circle_v2( ST7789_par* par, int x0, int y0, int r, uint16_t col
 	}
 }
 
-void draw_random_circles(ST7789_par* par, uint8_t num) {
+static void draw_random_circles(ST7789_par* par, uint8_t num) {
 	for(int i = 0; i < num; i++) {
 		// Random position
 		int x = rand() % par->width;
@@ -906,7 +907,7 @@ void draw_random_circles(ST7789_par* par, uint8_t num) {
 	}
 }
 
-void st7789_draw_star5( ST7789_par* par, int cx, int cy, int r_outer, int r_inner, uint16_t color ){
+static void st7789_draw_star5( ST7789_par* par, int cx, int cy, int r_outer, int r_inner, uint16_t color ){
 	int x[10];
 	int y[10];
 
@@ -928,7 +929,7 @@ void st7789_draw_star5( ST7789_par* par, int cx, int cy, int r_outer, int r_inne
 	}
 }
 
-void st7789_draw_raw_bitmap_fg(ST7789_par* par, const uint8_t* bitmap, uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t fg_color){
+static void st7789_draw_raw_bitmap_fg(ST7789_par* par, const uint8_t* bitmap, uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t fg_color){
 	uint16_t total_pixel = w * h;
 
 	uint16_t current_byte_index = 0xFFFF; // invalid initially
@@ -960,7 +961,7 @@ void st7789_draw_raw_bitmap_fg(ST7789_par* par, const uint8_t* bitmap, uint16_t 
 	}
 }
 
-void st7789_draw_adjust_bitmap_fg(ST7789_par* par, const uint8_t* bitmap, uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t fg_color){
+static void st7789_draw_adjust_bitmap_fg(ST7789_par* par, const uint8_t* bitmap, uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t fg_color){
 	uint16_t width = _pad_width8(w);
 	uint16_t total_pixel = width * h;
 
@@ -993,7 +994,7 @@ void st7789_draw_adjust_bitmap_fg(ST7789_par* par, const uint8_t* bitmap, uint16
 	}
 }
 
-void st7789_dump_buffer( ST7789_par* par, const uint16_t* buf, uint16_t bw, uint16_t bh, uint16_t x0, uint16_t y0, uint16_t transparent ){
+static void st7789_dump_buffer( ST7789_par* par, const uint16_t* buf, uint16_t bw, uint16_t bh, uint16_t x0, uint16_t y0, uint16_t transparent ){
 	if(!buf) return;
 
 	for(uint16_t y = 0; y < bh; y++){
@@ -1013,7 +1014,7 @@ void st7789_dump_buffer( ST7789_par* par, const uint16_t* buf, uint16_t bw, uint
 	}
 }
 
-void st7789_dump_image( ST7789_par* par, uint16_t x0, uint16_t y0, const uint16_t *img, uint16_t w, uint16_t h, uint16_t transparent ){
+static void st7789_dump_image( ST7789_par* par, uint16_t x0, uint16_t y0, const uint16_t *img, uint16_t w, uint16_t h, uint16_t transparent ){
 	for (uint16_t y = 0; y < h; y++) {
 		for (uint16_t x = 0; x < w; x++) {
 
@@ -1028,7 +1029,7 @@ void st7789_dump_image( ST7789_par* par, uint16_t x0, uint16_t y0, const uint16_
 }
 
 // Test pin blink for debugging
-void st7789_test_pin(ST7789_par* par, uint8_t pin) {
+static void st7789_test_pin(ST7789_par* par, uint8_t pin) {
 	if(pin >= 8) return;
 	for(uint8_t repeat = 0; repeat < 10; repeat++) {
 		dev()->run->set_pin(par->scl_gpio, pin);
@@ -1038,7 +1039,6 @@ void st7789_test_pin(ST7789_par* par, uint8_t pin) {
 	}
 }
 
-/*** Default Setup ***/
 /*** GPIO Setup ***/
 void st7789_setup_gpio(ST7789_par* par)
 {
@@ -1109,8 +1109,6 @@ void st7789_setup_spi(ST7789_par* par)
     else if(spi == SPI3)
     	device->sys->rcc->APB1ENR1 |= RCC_APB1ENR1_SPI3EN_Msk;
 
-
-
     spi->CR1 &= ~SPI_CR1_SPE_Msk;
 
     // G - FULL RESET of CR1 (important on G4 to avoid inherited state)
@@ -1141,7 +1139,7 @@ void st7789_setup_spi(ST7789_par* par)
 }
 
 /*** Initial Screen ***/
-void boot_screen(ST7789_par* par){
+static void boot_screen(ST7789_par* par){
 	U_word color = { .var = ST77XX_BLACK };
 	st7789_cs_low(par);
 	st7789_set_window(par, 0, 0, par->width, par->height);
