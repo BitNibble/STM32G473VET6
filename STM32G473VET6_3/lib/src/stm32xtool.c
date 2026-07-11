@@ -125,17 +125,17 @@ static inline uint8_t toggle(uint8_t n) {
 	}
 }
 /*** NULL Check ***/
-static int isPtrNull(void* ptr) {
+static int isPtrNull(const void* ptr) {
     return ptr ? 0 : 1; // Returns 1 if NULL, 0 otherwise
 }
-static int isCharPtrFlush(void* ptr) {
+static int isCharPtrFlush(const void* ptr) {
 	if (ptr == NULL) return 1;
     // Cast the void pointer to a char pointer to dereference it
     return *((unsigned char*)ptr) ? 0 : 1; // Returns 1 if '\0', 0 otherwise
 }
 
 /*** ADC ***/
-static float CalculateTemperature(uint16_t adc_value) {
+static float calculate_temperature(uint16_t adc_value) {
     const float V_25 = 0.76f;  // Voltage at 25°C (in volts)
     const float Avg_slope = 0.0025f;  // Average slope (in volts/°C)
     const float V_ref = 3.3f;  // Reference voltage, typically 3.0V or 3.3V
@@ -204,7 +204,7 @@ static tool_handler tool_setup = {
 		.isPtrNull = isPtrNull,
 		.isCharPtrFlush = isCharPtrFlush,
 		/*** ADC ***/
-		.CalculateTemperature = CalculateTemperature,
+		.calculate_temperature = calculate_temperature,
 		/*** Fall Threw Delay ***/
 		.ftdelayCycles = ftdelayCycles,
 		.ftdelayReset = ftdelayReset,

@@ -1,0 +1,18 @@
+Framework:
+
+-dev() exposes MCU hardware.
+-exe() contains hardware-independent utilities.
+-Internal MCU peripherals use the singleton template.
+-External devices use the instance template.
+-get reads.
+-set configures.
+-run performs actions.
+-Drivers should follow the reference manual's procedures.
+-Application code should not manipulate peripheral registers directly.
+
+-Keep it close to the hardware.
+-Keep it consistent.
+-Make it pleasant to use.
+-Don't hide what's really happening.
+-Organize first, optimize second.
+-Build reusable pieces instead of one-off solutions.

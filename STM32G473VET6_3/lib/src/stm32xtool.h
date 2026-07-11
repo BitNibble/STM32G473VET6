@@ -46,10 +46,10 @@ typedef const struct {
 	void (*increment)(uint16_t* value, uint16_t min, uint16_t max);
 	uint8_t (*toggle)(uint8_t n);
 	/*** NULL Check ***/
-	int (*isPtrNull)(void* ptr);
-	int (*isCharPtrFlush)(void* ptr);
+	int (*isPtrNull)(const void* ptr);
+	int (*isCharPtrFlush)(const void* ptr);
 	/*** ADC ***/
-	float (*CalculateTemperature)(uint16_t adc_value);
+	float (*calculate_temperature)(uint16_t adc_value);
 	/*** Fall Threw Delay ***/
 	int (*ftdelayCycles)(uint8_t lock_ID, unsigned int n_cycle, void (*init)(void), void (*term)(void));
 	void (*ftdelayReset)(uint8_t ID);

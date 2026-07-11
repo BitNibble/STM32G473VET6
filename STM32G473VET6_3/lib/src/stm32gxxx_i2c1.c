@@ -7,6 +7,15 @@ Date:     02/07/2026
 ************************************************************************/
 #include "stm32gxxx_i2c1.h"
 
+typedef struct
+{
+    uint8_t presc;
+    uint8_t scldel;
+    uint8_t sdadel;
+    uint8_t sclh;
+    uint8_t scll;
+} I2C_TIMING;
+
 /*** i2c1 PARAMETER ***/
 static i2c1_par par_setup = {
 	.gpio = NULL,
@@ -22,10 +31,10 @@ uint8_t _i2c1_device_mode(uint8_t device_address, uint8_t r_w){
 	return (device_address << 1) | (r_w & 0x01);
 }
 void i2c1_clock_enable(void) {
-	exe()->set_reg(&dev()->sys->rcc->AHB2ENR,RCC_APB1ENR1_I2C1EN);
+	exe()->set_reg(&dev()->sys->rcc->APB1ENR1,RCC_APB1ENR1_I2C1EN);
 }
 void i2c1_clock_disable(void) {
-	exe()->clear_reg(&dev()->sys->rcc->AHB2ENR,RCC_APB1ENR1_I2C1EN);
+	exe()->clear_reg(&dev()->sys->rcc->APB1ENR1,RCC_APB1ENR1_I2C1EN);
 }
 void i2c1_clock_configure(void) {
 	// setting the SCLH and SCLL bits in the I2C_TIMINGR register.
@@ -42,18 +51,18 @@ void i2c1_analog_filter_disable(void) {
 void i2c1_enable(void) {
 	exe()->set_reg(&dev()->comm->i2c1->CR1,I2C_CR1_PE);
 }
-uint8_t i2c1_is_enabled(void) {
+uint8_t _i2c1_is_enabled(void) {
 	return exe()->get_field_value(dev()->comm->i2c1->CR1,I2C_CR1_PE,I2C_CR1_PE_Pos);
 }
 void i2c1_disable(void) {
 	exe()->clear_reg(&dev()->comm->i2c1->CR1,I2C_CR1_PE);
 }
-uint8_t i2c1_is_disabled(void) {
+uint8_t _i2c1_is_disabled(void) {
 	return !exe()->get_field_value(dev()->comm->i2c1->CR1,I2C_CR1_PE,I2C_CR1_PE_Pos);
 }
 void i2c1_reset(void) {
 	i2c1_disable();
-	while(!i2c1_is_disabled());
+	while(!_i2c1_is_disabled());
 	i2c1_enable();
 }
 void i2c1_slave_address(uint8_t device_ID) {
@@ -108,23 +117,11 @@ uint32_t i2c1_status(void) { // ACK NACK & ERROR FLAGS
 }
 void i2c1_poll(uint16_t timeout){ // WAIR_READY
 }
-uint8_t i2c1_connect(uint8_t device_address, uint8_t r_w){
-	uint8_t cmd = _i2c1_device_mode(device_address, r_w);
-	(void)cmd;
-	//.....
-	return 0;
-}
 uint8_t i2c1_get_pecr(void) {
 	return exe()->get_field_value(dev()->comm->i2c1->PECR,I2C_PECR_PEC,I2C_PECR_PEC_Pos);
 }
 uint8_t i2c1_get_rxdata(void) {
 	return exe()->get_field_value(dev()->comm->i2c1->RXDR,I2C_RXDR_RXDATA,I2C_RXDR_RXDATA_Pos);
-}
-uint8_t i2c1_get_txdata(void) {
-	return exe()->get_field_value(dev()->comm->i2c1->TXDR,I2C_TXDR_TXDATA,I2C_TXDR_TXDATA_Pos);
-}
-void i2c1_set_rxdata(uint8_t data) {
-	return exe()->write_field_value(&dev()->comm->i2c1->RXDR,I2C_RXDR_RXDATA,I2C_RXDR_RXDATA_Pos, data);
 }
 void i2c1_set_txdata(uint8_t data) {
 	return exe()->write_field_value(&dev()->comm->i2c1->TXDR,I2C_TXDR_TXDATA,I2C_TXDR_TXDATA_Pos, data);
@@ -135,12 +132,26 @@ uint8_t i2c1_master_read(uint8_t ack_nack){return 0;}
 /*** i2c1 GET ***/
 static i2c1_get get_setup = {
 	.get_1 = NULL,
-	.get_2 = NULL
+	.get_2 = NULL,
+	.status = i2c1_status,
+	.pecr = i2c1_get_pecr,
+	.rxdata = i2c1_get_rxdata,
 };
 /*** i2c1 SET ***/
 static i2c1_set set_setup = {
 	.set_1 = NULL,
-	.set_2 = NULL
+	.set_2 = NULL,
+	.slave_address = i2c1_slave_address,
+	.direction = i2c1_direction,
+	.nbytes = i2c1_nbytes,
+	.own_address = i2c1_own_address,
+	.txdata = i2c1_set_txdata,
+	.reload_enable = i2c1_reload_enable,
+	.reload_disable = i2c1_reload_disable,
+	.autoend_enable = i2c1_autoend_enable,
+	.autoend_disable = i2c1_autoend_disable,
+	.pecbyte_enable = i2c1_pecbyte_enable,
+	.pecbyte_disable = i2c1_pecbyte_disable,
 };
 /*** i2c1 V-TABLE ***/
 static i2c1_run run_setup = {
@@ -148,7 +159,19 @@ static i2c1_run run_setup = {
 	.proc_1 = NULL,
 	.proc_2 = NULL,
 	.func_1 = NULL,
-	.func_2 = NULL
+	.func_2 = NULL,
+	.clock_enable = i2c1_clock_enable,
+	.clock_disable = i2c1_clock_disable,
+	.digital_filter = i2c1_digital_filter,
+	.analog_filter_enable = i2c1_analog_filter_enable,
+	.analog_filter_disable = i2c1_analog_filter_disable,
+	.enable = i2c1_enable,
+	.disable = i2c1_disable,
+	.reset = i2c1_reset,
+	.start = i2c1_start,
+	.stop = i2c1_stop,
+	.own_address_enable= i2c1_own_address_enable,
+	.own_address_disable = i2c1_own_address_disable,
 };
 /*** i2c1 CALLBACK ***/
 static i2c1_irq irq_setup = {

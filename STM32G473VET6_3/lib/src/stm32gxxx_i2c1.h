@@ -25,11 +25,25 @@ typedef struct {
 typedef const struct {
 	uint8_t (*get_1)(void);
 	uint8_t (*get_2)(void);
+	uint32_t (*status)(void);
+	uint8_t (*pecr)(void);
+	uint8_t (*rxdata)(void);
 }i2c1_get;
 /*** i2c1 SET ***/
 typedef const struct {
 	void (*set_1)(uint8_t value);
 	void (*set_2)(uint8_t value);
+	void (*slave_address)(uint8_t device_ID);
+	void (*direction)(uint8_t r_w);
+	void (*nbytes)(uint8_t nbytes);
+	void (*own_address)(uint8_t address);
+	void (*txdata)(uint8_t data);
+	void (*reload_enable)(void);
+	void (*reload_disable)(void);
+	void (*autoend_enable)(void);
+	void (*autoend_disable)(void);
+	void (*pecbyte_enable)(void);
+	void (*pecbyte_disable)(void);
 }i2c1_set;
 /*** i2c1 V-TABLE ***/
 typedef const struct {
@@ -38,6 +52,18 @@ typedef const struct {
 	void (*proc_2)(void);
 	void (*func_1)(uint32_t a);
 	void (*func_2)(uint32_t a,uint32_t b);
+	void (*clock_enable)(void);
+	void (*clock_disable)(void);
+	void (*digital_filter)(uint8_t filter);
+	void (*analog_filter_enable)(void);
+	void (*analog_filter_disable)(void);
+	void (*enable)(void);
+	void (*disable)(void);
+	void (*reset)(void);
+	void (*start)(void);
+	void (*stop)(void);
+	void (*own_address_enable)(void);
+	void (*own_address_disable)(void);
 }i2c1_run;
 /*** i2c1 CALLBACK ***/
 typedef struct {
