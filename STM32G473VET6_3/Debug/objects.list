@@ -13,6 +13,7 @@
 "./lib/src/st7789_font.o"
 "./lib/src/stm32g473vet6.o"
 "./lib/src/stm32gxxx_adc1.o"
+"./lib/src/stm32gxxx_i2c1.o"
 "./lib/src/stm32gxxx_rcc.o"
 "./lib/src/stm32gxxx_rtc.o"
 "./lib/src/stm32gxxx_tim1.o"

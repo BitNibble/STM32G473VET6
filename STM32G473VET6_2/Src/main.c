@@ -123,7 +123,7 @@ int main(void)
 		}
 
 		if(btn_engine.par.HL & BTN_FW_PIN) {
-			if(toggle(0)){
+			if(exe()->toggle(0)){
 				drive.run->pwm_forward(&drive.par,speed);
 			}else{
 				drive.run->stop(&drive.par);
@@ -131,7 +131,7 @@ int main(void)
 		}
 
 		if(btn_engine.par.HL & BTN_RV_PIN) {
-			if(toggle(0)){
+			if(exe()->toggle(0)){
 				drive.run->pwm_reverse(&drive.par,speed);
 			}else{
 				drive.run->stop(&drive.par);
@@ -139,12 +139,12 @@ int main(void)
 		}
 
 		if(btn_engine.par.LL & BTN_SP_PIN) {
-			if(ftdelayCycles(1,2500,NULL,speed_inc)){
+			if(exe()->ftdelayCycles(1,2500,NULL,speed_inc)){
 				lcd1.run->start(&lcd1.par);
 				func()->format_string(str,32,"speed: %d",speed);
 				lcd1.run->drawstring12x16_size(&lcd1.par,str,15,170,ST77XX_ORANGE,BG_colour,14);
 				lcd1.run->stop(&lcd1.par);
-				ftdelayReset(1);
+				exe()->ftdelayReset(1);
 			}
 		}
 
@@ -280,5 +280,5 @@ void adjust_active_field(EXPLODE_Handler active_press)
 }
 
 void speed_inc(void) {
-	increment(&speed, 530, drive.par.tim_arr);
+	exe()->increment(&speed, 530, drive.par.tim_arr);
 }

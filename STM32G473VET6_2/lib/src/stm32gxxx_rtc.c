@@ -40,53 +40,53 @@ static uint8_t _rtc_dec2bcd(uint8_t num);
 static uint8_t RTC_get_year(void) {
     RTC_Wait_sync();
     uint32_t dr = RTC->DR;
-    uint8_t t = (uint8_t)get_field_value(dr, RTC_DR_YT_Msk, RTC_DR_YT_Pos);
-    uint8_t u = (uint8_t)get_field_value(dr, RTC_DR_YU_Msk, RTC_DR_YU_Pos);
+    uint8_t t = (uint8_t)exe()->get_field_value(dr, RTC_DR_YT_Msk, RTC_DR_YT_Pos);
+    uint8_t u = (uint8_t)exe()->get_field_value(dr, RTC_DR_YU_Msk, RTC_DR_YU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
 static uint8_t RTC_get_month(void) {
     RTC_Wait_sync();
     uint32_t dr = RTC->DR;
-    uint8_t t = (uint8_t)get_field_value(dr, RTC_DR_MT_Msk, RTC_DR_MT_Pos);
-    uint8_t u = (uint8_t)get_field_value(dr, RTC_DR_MU_Msk, RTC_DR_MU_Pos);
+    uint8_t t = (uint8_t)exe()->get_field_value(dr, RTC_DR_MT_Msk, RTC_DR_MT_Pos);
+    uint8_t u = (uint8_t)exe()->get_field_value(dr, RTC_DR_MU_Msk, RTC_DR_MU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
 static uint8_t RTC_get_weekday(void) {
     RTC_Wait_sync();
-    return (uint8_t)get_field_value(RTC->DR, RTC_DR_WDU_Msk, RTC_DR_WDU_Pos);
+    return (uint8_t)exe()->get_field_value(RTC->DR, RTC_DR_WDU_Msk, RTC_DR_WDU_Pos);
 }
 
 static uint8_t RTC_get_day(void) {
     RTC_Wait_sync();
     uint32_t dr = RTC->DR;
-    uint8_t t = (uint8_t)get_field_value(dr, RTC_DR_DT_Msk, RTC_DR_DT_Pos);
-    uint8_t u = (uint8_t)get_field_value(dr, RTC_DR_DU_Msk, RTC_DR_DU_Pos);
+    uint8_t t = (uint8_t)exe()->get_field_value(dr, RTC_DR_DT_Msk, RTC_DR_DT_Pos);
+    uint8_t u = (uint8_t)exe()->get_field_value(dr, RTC_DR_DU_Msk, RTC_DR_DU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
 static uint8_t RTC_get_hour(void) {
     RTC_Wait_sync();
     uint32_t tr = RTC->TR;
-    uint8_t t = (uint8_t)get_field_value(tr, RTC_TR_HT_Msk, RTC_TR_HT_Pos);
-    uint8_t u = (uint8_t)get_field_value(tr, RTC_TR_HU_Msk, RTC_TR_HU_Pos);
+    uint8_t t = (uint8_t)exe()->get_field_value(tr, RTC_TR_HT_Msk, RTC_TR_HT_Pos);
+    uint8_t u = (uint8_t)exe()->get_field_value(tr, RTC_TR_HU_Msk, RTC_TR_HU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
 static uint8_t RTC_get_minute(void) {
     RTC_Wait_sync();
     uint32_t tr = RTC->TR;
-    uint8_t t = (uint8_t)get_field_value(tr, RTC_TR_MNT_Msk, RTC_TR_MNT_Pos);
-    uint8_t u = (uint8_t)get_field_value(tr, RTC_TR_MNU_Msk, RTC_TR_MNU_Pos);
+    uint8_t t = (uint8_t)exe()->get_field_value(tr, RTC_TR_MNT_Msk, RTC_TR_MNT_Pos);
+    uint8_t u = (uint8_t)exe()->get_field_value(tr, RTC_TR_MNU_Msk, RTC_TR_MNU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
 static uint8_t RTC_get_second(void) {
     RTC_Wait_sync();
     uint32_t tr = RTC->TR;
-    uint8_t t = (uint8_t)get_field_value(tr, RTC_TR_ST_Msk, RTC_TR_ST_Pos);
-    uint8_t u = (uint8_t)get_field_value(tr, RTC_TR_SU_Msk, RTC_TR_SU_Pos);
+    uint8_t t = (uint8_t)exe()->get_field_value(tr, RTC_TR_ST_Msk, RTC_TR_ST_Pos);
+    uint8_t u = (uint8_t)exe()->get_field_value(tr, RTC_TR_SU_Msk, RTC_TR_SU_Pos);
     return (_rtc_bcd2dec(t) * 10) + _rtc_bcd2dec(u);
 }
 
@@ -109,7 +109,7 @@ static void RTC_set_month(uint8_t month) {
 static void RTC_set_weekday(uint8_t weekday) {
     if (weekday < MIN_WEEKDAY || weekday > MAX_WEEKDAY) return;
     uint32_t dr = RTC->DR;
-    write_field_value(&dr, RTC_DR_WDU_Msk, RTC_DR_WDU_Pos, weekday);
+    exe()->write_field_value(&dr, RTC_DR_WDU_Msk, RTC_DR_WDU_Pos, weekday);
     RTC_Set_dr(dr);
 }
 
@@ -213,22 +213,22 @@ static uint16_t RTC_get_ss(void) {
 }
 
 static void pwr_clock_enable(void) {
-	set_reg(&(dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
+	exe()->set_reg(&(dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
 }
 
 static void pwr_clock_disable(void) {
-	clear_reg(&(dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
+	exe()->clear_reg(&(dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
 }
 
 static void RTC_clock_enable(void) {
     RTC_Write_enable();
-    set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
+    exe()->set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
     RTC_Write_disable();
 }
 
 static void RTC_clock_disable(void) {
     RTC_Write_enable();
-    clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
+    exe()->clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
     RTC_Write_disable();
 }
 
@@ -245,10 +245,10 @@ static void RTC_irq_enable(uint8_t type) {
     RTC_Write_enable();
     RTC_Reg_unlock();
     switch (type) {
-        case RTC_IRQ_ALARM:  set_reg(&(RTC->CR), RTC_CR_ALRAIE); break;
-        case RTC_IRQ_WAKEUP: set_reg(&(RTC->CR), RTC_CR_WUTIE);  break;
-        case RTC_IRQ_TS:     set_reg(&(RTC->CR), RTC_CR_TSIE);   break;
-        case RTC_IRQ_TAMPER: set_reg(&(TAMP->IER), TAMP_IER_TAMP1IE); break;
+        case RTC_IRQ_ALARM:  exe()->set_reg(&(RTC->CR), RTC_CR_ALRAIE); break;
+        case RTC_IRQ_WAKEUP: exe()->set_reg(&(RTC->CR), RTC_CR_WUTIE);  break;
+        case RTC_IRQ_TS:     exe()->set_reg(&(RTC->CR), RTC_CR_TSIE);   break;
+        case RTC_IRQ_TAMPER: exe()->set_reg(&(TAMP->IER), TAMP_IER_TAMP1IE); break;
     }
     RTC_Write_disable();
 }
@@ -257,10 +257,10 @@ static void RTC_irq_disable(uint8_t type) {
     RTC_Write_enable();
     RTC_Reg_unlock();
     switch (type) {
-        case RTC_IRQ_ALARM:  clear_reg(&(RTC->CR), RTC_CR_ALRAIE); break;
-        case RTC_IRQ_WAKEUP: clear_reg(&(RTC->CR), RTC_CR_WUTIE);  break;
-        case RTC_IRQ_TS:     clear_reg(&(RTC->CR), RTC_CR_TSIE);   break;
-        case RTC_IRQ_TAMPER: clear_reg(&(TAMP->IER), TAMP_IER_TAMP1IE); break;
+        case RTC_IRQ_ALARM:  exe()->clear_reg(&(RTC->CR), RTC_CR_ALRAIE); break;
+        case RTC_IRQ_WAKEUP: exe()->clear_reg(&(RTC->CR), RTC_CR_WUTIE);  break;
+        case RTC_IRQ_TS:     exe()->clear_reg(&(RTC->CR), RTC_CR_TSIE);   break;
+        case RTC_IRQ_TAMPER: exe()->clear_reg(&(TAMP->IER), TAMP_IER_TAMP1IE); break;
     }
     RTC_Write_disable();
 }
@@ -270,20 +270,20 @@ static void RTC_inic(void) {
     pwr_clock_enable();
     RTC_Write_enable();
 
-    if (get_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos) == RTCSEL_NONE) {
-        set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
-        clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
+    if (exe()->get_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos) == RTCSEL_NONE) {
+        exe()->set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
+        exe()->clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
         
-        set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_LSEON);
+        exe()->set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_LSEON);
         uint32_t timeout = RTC_INIT_TIMEOUT;
-        while(!get_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_LSERDY_Msk, RCC_BDCR_LSERDY_Pos) && --timeout);
+        while(!exe()->get_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_LSERDY_Msk, RCC_BDCR_LSERDY_Pos) && --timeout);
 
         if (timeout == 0) { 
-            set_reg(&(dev()->sys->rcc->CSR), RCC_CSR_LSION);
-            while(!get_field_value(dev()->sys->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
-            write_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSI);
+            exe()->set_reg(&(dev()->sys->rcc->CSR), RCC_CSR_LSION);
+            while(!exe()->get_field_value(dev()->sys->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
+            exe()->write_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSI);
         } else {
-            write_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSE);
+            exe()->write_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSE);
         }
     }
     
@@ -298,11 +298,11 @@ static void RTC_inic(void) {
     RTC_Write_enable();    // Unprotect the backup domain registers (PWR->CR1 |= PWR_CR1_DBP)
 
     // Force a clean, deterministic Backup Domain Reset to unlock the routing multiplexer
-    set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
-    clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
+    exe()->set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
+    exe()->clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
 
     // Turn on the internal LSI (Safe, stable internal clock source)
-    set_reg(&(dev()->sys->rcc->CSR), RCC_CSR_LSION);
+    exe()->set_reg(&(dev()->sys->rcc->CSR), RCC_CSR_LSION);
     while(!get_reg_field_value(dev()->sys->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
 
     // Route RTC to use LSI (0x02)
@@ -319,11 +319,11 @@ static void RTC_inic(void) {
 /*** Under-The-Hood Private Utilities ***/
 
 static void RTC_Write_enable(void) {
-    set_reg(&(dev()->sys->pwr->CR1), PWR_CR1_DBP);
+    exe()->set_reg(&(dev()->sys->pwr->CR1), PWR_CR1_DBP);
 }
 
 static void RTC_Write_disable(void) {
-    clear_reg(&(dev()->sys->pwr->CR1), PWR_CR1_DBP);
+    exe()->clear_reg(&(dev()->sys->pwr->CR1), PWR_CR1_DBP);
 }
 
 static void RTC_Reg_unlock(void) {
@@ -333,30 +333,30 @@ static void RTC_Reg_unlock(void) {
 
 /**
 static void RTC_Wait_sync(void) {
-    clear_reg(&(RTC->ICSR), RTC_ICSR_RSF); 
+    exe()->clear_reg(&(RTC->ICSR), RTC_ICSR_RSF);
     while(!get_reg_field_value(RTC->ICSR, RTC_ICSR_RSF_Msk, RTC_ICSR_RSF_Pos));
 }
 **/
 
 static void RTC_Wait_sync(void) {
-    clear_reg(&(RTC->ICSR), RTC_ICSR_RSF);
+    exe()->clear_reg(&(RTC->ICSR), RTC_ICSR_RSF);
     volatile uint32_t timeout = 50000U; // Hardware safety counter
-    while(!get_field_value(RTC->ICSR, RTC_ICSR_RSF_Msk, RTC_ICSR_RSF_Pos) && --timeout);
+    while(!exe()->get_field_value(RTC->ICSR, RTC_ICSR_RSF_Msk, RTC_ICSR_RSF_Pos) && --timeout);
 }
 
 static void RTC_Set_tr(uint32_t value) {
     RTC_Write_enable();
     RTC_Reg_unlock();
     
-    set_reg(&(RTC->ICSR), RTC_ICSR_INIT);
+    exe()->set_reg(&(RTC->ICSR), RTC_ICSR_INIT);
     uint32_t timeout = RTC_INIT_TIMEOUT;
-    while(!get_field_value(RTC->ICSR, RTC_ICSR_INITF_Msk, RTC_ICSR_INITF_Pos) && --timeout);
+    while(!exe()->get_field_value(RTC->ICSR, RTC_ICSR_INITF_Msk, RTC_ICSR_INITF_Pos) && --timeout);
     
     if (timeout > 0) {
         RTC->TR = value;
     }
     
-    clear_reg(&(RTC->ICSR), RTC_ICSR_INIT);
+    exe()->clear_reg(&(RTC->ICSR), RTC_ICSR_INIT);
     RTC_Write_disable();
 }
 
@@ -364,15 +364,15 @@ static void RTC_Set_dr(uint32_t value) {
     RTC_Write_enable();
     RTC_Reg_unlock();
     
-    set_reg(&(RTC->ICSR), RTC_ICSR_INIT);
+    exe()->set_reg(&(RTC->ICSR), RTC_ICSR_INIT);
     uint32_t timeout = RTC_INIT_TIMEOUT;
-    while(!get_field_value(RTC->ICSR, RTC_ICSR_INITF_Msk, RTC_ICSR_INITF_Pos) && --timeout);
+    while(!exe()->get_field_value(RTC->ICSR, RTC_ICSR_INITF_Msk, RTC_ICSR_INITF_Pos) && --timeout);
     
     if (timeout > 0) {
         RTC->DR = value;
     }
     
-    clear_reg(&(RTC->ICSR), RTC_ICSR_INIT);
+    exe()->clear_reg(&(RTC->ICSR), RTC_ICSR_INIT);
     RTC_Write_disable();
 }
 

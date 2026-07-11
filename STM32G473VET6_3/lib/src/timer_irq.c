@@ -146,8 +146,8 @@ void TIM1_UP_TIM16_IRQHandler(void)
 
 /* Update this name at the bottom of stm32gxxx_tim1.c */
 void TIM1_UP_TIM16_IRQHandler(void) {
-    if (_mask(TIM1->SR, TIM_SR_UIF)) {
-        clear_reg(&TIM1->SR, TIM_SR_UIF);
+    if (exe()->_mask(TIM1->SR, TIM_SR_UIF)) {
+        exe()->clear_reg(&TIM1->SR, TIM_SR_UIF);
         (void)TIM1->SR; // Compliance bus-cycle synchronization barrier
 
         if (tim1()->irq->u != NULL) {
@@ -174,7 +174,7 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void)
 **/
 
 void TIM1_TRG_COM_TIM17_IRQHandler(void) {
-    if (_mask(TIM1->SR, TIM_SR_TIF)) {
+    if (exe()->_mask(TIM1->SR, TIM_SR_TIF)) {
         // Direct safe assignment to clear the rc_w0 flag
         TIM1->SR = ~TIM_SR_TIF;
 

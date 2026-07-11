@@ -233,7 +233,7 @@ static EVENT_Block event = {
 =========================================================*/
 static inline uint32_t get_pll_source(void)
 {
-    uint32_t src = get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
+    uint32_t src = exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
 
     /* On G4: 00=No clock, 01=Reserved, 10=HSI16, 11=HSE */
     return (src == 3U) ? HSE_VALUE : HSI_VALUE;
@@ -245,19 +245,19 @@ static inline uint32_t get_pll_source(void)
 static inline uint8_t get_pllm(void)
 {
     /* PLLM mapping on G4: 0001=/2, 0010=/3... so M = value + 1 */
-    uint32_t m = get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, RCC_PLLCFGR_PLLM_Pos);
+    uint32_t m = exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, RCC_PLLCFGR_PLLM_Pos);
     return (uint8_t)(m + 1U);
 }
 
 static inline uint16_t get_plln(void)
 {
-    return (uint16_t)get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, RCC_PLLCFGR_PLLN_Pos);
+    return (uint16_t)exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, RCC_PLLCFGR_PLLN_Pos);
 }
 
 /* PLLP */
 static inline uint8_t get_pllp(void)
 {
-    uint32_t p = get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLP_Msk, RCC_PLLCFGR_PLLP_Pos);
+    uint32_t p = exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLP_Msk, RCC_PLLCFGR_PLLP_Pos);
     // Hardware rule: values 0 and 1 are invalid/reserved on STM32G4.
     // If read as 0 or 1, the PLLP output clock path is effectively disabled.
     if (p < 2U) return 0;
@@ -268,14 +268,14 @@ static inline uint8_t get_pllp(void)
 static inline uint8_t get_pllq(void)
 {
     /* Output divisor = (value + 1) * 2 */
-    uint32_t q = get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, RCC_PLLCFGR_PLLQ_Pos);
+    uint32_t q = exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, RCC_PLLCFGR_PLLQ_Pos);
     return (uint8_t)((q + 1U) * 2U);
 }
 
 static inline uint8_t get_pllr(void)
 {
     /* Output divisor = (value + 1) * 2 */
-    uint32_t r = get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, RCC_PLLCFGR_PLLR_Pos);
+    uint32_t r = exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, RCC_PLLCFGR_PLLR_Pos);
     return (uint8_t)((r + 1U) * 2U);
 }
 
@@ -306,7 +306,7 @@ static inline uint32_t get_pllclk(void)
 =========================================================*/
 static inline uint32_t get_sysclk(void)
 {
-    uint32_t sws = get_field_value(sys.rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos);
+    uint32_t sws = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos);
 
     switch (sws)
     {
@@ -328,7 +328,7 @@ static inline uint32_t get_hclk(void)
         2, 4, 8, 16, 64, 128, 256, 512
     };
 
-    uint32_t hpre = get_field_value(sys.rcc->CFGR, RCC_CFGR_HPRE_Msk, RCC_CFGR_HPRE_Pos);
+    uint32_t hpre = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_HPRE_Msk, RCC_CFGR_HPRE_Pos);
     return get_sysclk() / ahb_presc_table[hpre & 0x0FU];
 }
 
@@ -336,7 +336,7 @@ static inline uint32_t get_hclk(void)
   APB CLOCKS
 =========================================================*/
 static uint8_t get_systickpre(void) {
-    uint32_t value = get_field_value(core.systick->CTRL, SysTick_CTRL_CLKSOURCE_Msk, SysTick_CTRL_CLKSOURCE_Pos);
+    uint32_t value = exe()->get_field_value(core.systick->CTRL, SysTick_CTRL_CLKSOURCE_Msk, SysTick_CTRL_CLKSOURCE_Pos);
     return value ? 8 : 1;
 }
 
@@ -347,14 +347,14 @@ uint32_t get_systickclk(void) {
 static inline uint32_t get_pclk1(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
-    uint32_t ppre1 = get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
+    uint32_t ppre1 = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
     return get_hclk() / apb_presc[ppre1 & 0x07U];
 }
 
 static inline uint32_t get_pclk2(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
-    uint32_t ppre2 = get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
+    uint32_t ppre2 = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
     return get_hclk() / apb_presc[ppre2 & 0x07U];
 }
 
@@ -363,7 +363,7 @@ static inline uint32_t get_pclk2(void)
 =========================================================*/
 static inline uint32_t get_timclk1(void)
 {
-    uint32_t ppre1 = get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
+    uint32_t ppre1 = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
     uint32_t pclk1 = get_pclk1();
     uint32_t apb_div = ((ppre1 & 0x04U) == 0U) ? 1U : 2U;
     return pclk1 * apb_div;
@@ -371,7 +371,7 @@ static inline uint32_t get_timclk1(void)
 
 static inline uint32_t get_timclk2(void)
 {
-    uint32_t ppre2 = get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
+    uint32_t ppre2 = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
     uint32_t pclk2 = get_pclk2();
     uint32_t apb_div = ((ppre2 & 0x04U) == 0U) ? 1U : 2U;
     return pclk2 * apb_div;
@@ -384,7 +384,7 @@ static uint32_t get_adc12_hclk(void)
 
 static inline uint32_t _get_adc12_sel(void)
 {
-    return get_field_value( sys.rcc->CCIPR, RCC_CCIPR_ADC12SEL_Msk, RCC_CCIPR_ADC12SEL_Pos );
+    return exe()->get_field_value( sys.rcc->CCIPR, RCC_CCIPR_ADC12SEL_Msk, RCC_CCIPR_ADC12SEL_Pos );
 }
 
 static uint32_t get_adc12_ker_ck_input(void)
@@ -409,12 +409,12 @@ static uint32_t get_adc12_ker_ck(void)
     if (input == 0)
         return 0;
 
-    uint32_t ckmode = get_field_value( analog.adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
+    uint32_t ckmode = exe()->get_field_value( analog.adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
 
     /* PRESC only applies in asynchronous mode */
     if (ckmode == 0)
     {
-        uint32_t presc = get_field_value( analog.adc12_common->CCR, ADC_CCR_PRESC_Msk, ADC_CCR_PRESC_Pos );
+        uint32_t presc = exe()->get_field_value( analog.adc12_common->CCR, ADC_CCR_PRESC_Msk, ADC_CCR_PRESC_Pos );
 
         uint32_t div = 1U << presc;
         return input / div;
@@ -428,7 +428,7 @@ static uint32_t get_freq_adc12(void)
 {
     uint32_t hclk = get_hclk();
 
-    uint32_t ckmode = get_field_value( analog.adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
+    uint32_t ckmode = exe()->get_field_value( analog.adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
 
     switch (ckmode)
     {
