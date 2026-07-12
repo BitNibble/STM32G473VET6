@@ -32,17 +32,18 @@ typedef enum {
 
 /*** i2c1 PARAMETER ***/
 typedef struct {
-	GPIO_TypeDef*    gpio;
-	uint8_t          af;
-	uint8_t          pin_scl;       // Renamed var for visual clarity
-	uint8_t          pin_sda;       // Renamed var for visual clarity
-	i2c_bus_speed_t  bus_speed;     // Self-documenting
-	i2c_addr_mode_t  address_mode;  // Self-documenting
+	GPIO_TypeDef*    pin_scl_gpio;
+	GPIO_TypeDef*    pin_sda_gpio;
+	uint8_t          pin_scl_af;
+	uint8_t          pin_sda_af;
+	uint8_t          pin_scl;
+	uint8_t          pin_sda;
+	i2c_bus_speed_t  bus_speed;
+	i2c_addr_mode_t  address_mode;
 } i2c1_par;
 
 /*** i2c1 GET ***/
 typedef const struct {
-	uint8_t (*idle_detect)(void);
 	uint32_t(*status)(void);
 	uint8_t (*pecr)(void);
 	uint8_t (*rxdata)(void);
@@ -51,6 +52,7 @@ typedef const struct {
 	uint8_t (*hold_timing)(void);
 	uint8_t (*setup_timing)(void);
 	uint8_t (*timing_prescaler)(void);
+	uint8_t (*start)(void);
 	uint8_t (*scl_state)(void);
 	uint8_t (*sda_state)(void);
 } i2c1_get;

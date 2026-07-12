@@ -2,6 +2,11 @@
 	MAIN
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
+
+	Board BUTTON
+Button - PC13
+	Board LED
+BLUE LED - PF2
 	ST8879V
 SCL - PC10
 SDA - PC12
@@ -23,7 +28,7 @@ int main(void)
 	rcc()->run->inic();
 	dev()->run->fpu_enable();
 
-	dev()->run->gpio_clock( dev()->gpio->f, 1 );
+	dev()->run->gpio_clock( dev()->gpio->f, 1 ); //
 	dev()->run->gpio_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
 
 	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
