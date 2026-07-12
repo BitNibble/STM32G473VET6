@@ -309,6 +309,28 @@ static void i2c1_reset(void) {
 	i2c1_enable();
 }
 
+static uint8_t i2c1_is_idle(void) {
+	uint32_t isr_value = dev()->comm->i2c1->ISR;
+
+	if ((isr_value & I2C_ISR_BUSY) == 0U) {
+		return 1U;
+	}
+
+	return 0U;
+}
+
+uint8_t wait_for_bus_idle(uint32_t timeout_loops) {
+	volatile uint32_t timeout = timeout_loops;
+
+	while (i2c1_is_idle() == 0U) {
+		if (--timeout == 0U) {
+			i2c1()->run->reset();
+			return 0U;
+		}
+	}
+	return 1U;
+}
+
 /******************  High-Level API Functions  *********************/
 // Universal master buffer writer function
 static uint8_t i2c1_write_buffer(uint16_t device_id, uint8_t* p_data, uint8_t length) {
@@ -357,11 +379,12 @@ static uint8_t i2c1_read_buffer(uint16_t device_id, uint8_t* p_buffer, uint8_t l
 	return 1;
 }
 
-static void init(void) {
+static void init_v1(void) {
 	// preamble stuff (sequence layout)
 	uint8_t data = 0;
 	(void) data;
 
+	/*** SETUP ***/
 	dev()->run->gpio_moder( par_setup.pin_scl_gpio, par_setup.pin_scl, MODE_AF );
 	dev()->run->gpio_moder( par_setup.pin_sda_gpio, par_setup.pin_sda, MODE_AF );
 	dev()->run->gpio_af( par_setup.pin_scl_gpio, par_setup.pin_scl, par_setup.pin_scl_af );
@@ -379,25 +402,73 @@ static void init(void) {
 	i2c1_hold_timing(0x2); // 48MHZ - 100KHZ - 0x2
 	i2c1_setup_timing(0x4); // 48MHZ - 100KHZ - 0x4
 
+	/*** Communication ***/
+	i2c1_enable();
+
 	if(!i2c1_get_start()){
 		i2c1_addressing_mode(I2C_ADDR_7BIT);
 		i2c1_slave_address(PCF8563);
 		i2c1_direction(I2C_DIR_READ);
 		i2c1_nbytes(TWO);
-	}
 
-	if(ONE){ // check if it is IDLE
-		i2c1_start(); // busy
-		i2c1_set_txdata(0x02); // RXNE
-		data = i2c1_get_rxdata(); // RXNE
-		i2c1_stop();
+		if(i2c1_is_idle()){
+			i2c1_start(); // busy
+			i2c1_set_txdata(0x02); // RXNE
+			data = i2c1_get_rxdata(); // RXNE
+			i2c1_stop();
+		}
 	}
+}
 
+void init(void) {
+	// Local buffer layout to track power-up responses safely
+	uint8_t time_test_buffer[2] = {0};
+
+	/*** SETUP ***/
+	dev()->run->gpio_moder( par_setup.pin_scl_gpio, par_setup.pin_scl, MODE_AF );
+	dev()->run->gpio_moder( par_setup.pin_sda_gpio, par_setup.pin_sda, MODE_AF );
+	dev()->run->gpio_af( par_setup.pin_scl_gpio, par_setup.pin_scl, par_setup.pin_scl_af );
+	dev()->run->gpio_af( par_setup.pin_sda_gpio, par_setup.pin_sda, par_setup.pin_sda_af );
+	dev()->run->gpio_pupd( par_setup.pin_scl_gpio, par_setup.pin_scl, GPIO_PULLUP );
+	dev()->run->gpio_pupd( par_setup.pin_sda_gpio, par_setup.pin_sda, GPIO_PULLUP );
+
+	i2c1_clock_enable();
+	i2c1_digital_filter(1);
+	i2c1_analog_filter_disable();
+
+	// tSCL Calculation Layout (48MHZ - 100KHZ Specification Metrics)
+	i2c1_timing_prescaler(0xB);
+	i2c1_low_period(0x13);
+	i2c1_high_period(0xF);
+	i2c1_hold_timing(0x2);
+	i2c1_setup_timing(0x4);
+
+	/*** Communication Wakeup ***/
+	i2c1_enable();
+	i2c1_addressing_mode(I2C_ADDR_7BIT);
+	i2c1_autoend_enable(); // Enable auto-stop logic to support buffer transfers
+
+	// Check if a hardware transaction is currently already running
+	if(!i2c1_get_start()){
+		if(i2c1_is_idle()){
+			// Step 1: Tell PCF8563 we want to look at register address 0x02 (Seconds)
+			uint8_t rtc_register_pointer = 0x02;
+
+			if (i2c1_write_buffer(PCF8563, &rtc_register_pointer, 1U)) {
+				// Step 2: Read the 2 raw active time bytes back securely
+				if (i2c1_read_buffer(PCF8563, time_test_buffer, 2U)) {
+					// Success! Hardware responded perfectly, data is now safe inside your array
+					(void)time_test_buffer;
+				}
+			}
+		}
+	}
 }
 
 /*** i2c1 GET ***/
 static i2c1_get get_setup = {
 	.status = i2c1_status,
+	.is_idle = i2c1_is_idle,
 	.pecr = i2c1_get_pecr,
 	.rxdata = i2c1_get_rxdata,
 	.low_period = i2c1_get_low_period,
@@ -465,6 +536,7 @@ static i2c1_run run_setup = {
 	.timeout_enable = i2c1_timeout_enable,
 	.timeout_disable = i2c1_timeout_disable,
 	.reset = i2c1_reset,
+	.wait_for_bus_idle = wait_for_bus_idle,
 	.write_buffer = i2c1_write_buffer,
 	.read_buffer = i2c1_read_buffer,
 };

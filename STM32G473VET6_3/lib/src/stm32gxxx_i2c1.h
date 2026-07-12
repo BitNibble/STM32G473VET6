@@ -45,6 +45,7 @@ typedef struct {
 /*** i2c1 GET ***/
 typedef const struct {
 	uint32_t(*status)(void);
+	uint8_t (*is_idle)(void);
 	uint8_t (*pecr)(void);
 	uint8_t (*rxdata)(void);
 	uint8_t (*low_period)(void);
@@ -116,6 +117,7 @@ typedef const struct {
 	void (*timeout_enable)(void);
 	void (*timeout_disable)(void);
 	void (*reset)(void);
+	uint8_t (*wait_for_bus_idle)(uint32_t timeout_loops);
 	uint8_t (*write_buffer)(uint16_t device_id, uint8_t* p_data, uint8_t length);
 	uint8_t (*read_buffer)(uint16_t device_id, uint8_t* p_buffer, uint8_t length);
 
