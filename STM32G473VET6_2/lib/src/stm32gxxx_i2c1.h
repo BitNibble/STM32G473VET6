@@ -48,10 +48,6 @@ typedef const struct {
 /*** i2c1 V-TABLE ***/
 typedef const struct {
 	void (*init)(void);
-	void (*proc_1)(void);
-	void (*proc_2)(void);
-	void (*func_1)(uint32_t a);
-	void (*func_2)(uint32_t a,uint32_t b);
 	void (*clock_enable)(void);
 	void (*clock_disable)(void);
 	void (*digital_filter)(uint8_t filter);
