@@ -331,6 +331,74 @@ uint8_t wait_for_bus_idle(uint32_t timeout_loops) {
 	return 1U;
 }
 
+static void i2c1_calculate_and_apply_timing(i2c_bus_speed_t target_bus_speed_hz) {
+	uint32_t i2c_clk_hz = dev()->get->pclk1();
+
+	// 1. Dynamic Prescaler derivation targeting an optimal internal timing clock.
+	// For Standard Mode, we target 4MHz. For Fast Modes, we target 8MHz-16MHz for resolution.
+	uint32_t target_internal_clk = (target_bus_speed_hz <= I2C_SPEED_STANDARD) ? 4000000UL : 10000000UL;
+	uint32_t presc_val = i2c_clk_hz / target_internal_clk;
+
+	if (presc_val > 0) presc_val -= 1UL;
+	if (presc_val > 0x0FUL) presc_val = 0x0FUL; // Clamp to the hardware's 4-bit limit
+
+	uint32_t prescaled_clk_hz = i2c_clk_hz / (presc_val + 1UL);
+
+	// 2. Use signed variables for cycle derivation to capture low-frequency underflow risks
+	int32_t total_cycles = (int32_t)(prescaled_clk_hz / (uint32_t)target_bus_speed_hz);
+
+	// Adjust for inner hardware synchronization delay pipelines
+	total_cycles -= 3;
+	if (total_cycles < 4) total_cycles = 4; // Absolute minimum hardware safety floor
+
+	int32_t scl_low = 0;
+	int32_t scl_high = 0;
+	uint8_t sdadel = 0;
+	uint8_t scldel = 0;
+
+	if (target_bus_speed_hz <= I2C_SPEED_STANDARD) {
+		// Standard Mode (100 kHz)
+		scl_low  = ((total_cycles * 50) / 100) - 1;
+		scl_high = (total_cycles - (scl_low + 1)) - 1;
+		sdadel   = 0x02U;
+		scldel   = 0x04U;
+	} else {
+		// Fast Mode (400 kHz)
+		scl_low  = ((total_cycles * 66) / 100) - 1;
+		scl_high = (total_cycles - (scl_low + 1)) - 1;
+		sdadel   = 0x01U;
+		scldel   = 0x03U;
+	}
+
+	// 3. Prevent variable underflows from turning into maximum register limits (0xFF)
+	if (scl_low  < 0) scl_low  = 0;
+	if (scl_high < 0) scl_high = 0;
+	if (scl_low  > 255) scl_low  = 255;
+	if (scl_high > 255) scl_high = 255;
+
+	// 4. Combine the calculated fields into a single local tracking layout variable
+	uint32_t timingr_value = 0;
+	timingr_value |= (presc_val << I2C_TIMINGR_PRESC_Pos)  & I2C_TIMINGR_PRESC;
+	timingr_value |= ((uint32_t)scl_low << I2C_TIMINGR_SCLL_Pos)   & I2C_TIMINGR_SCLL;
+	timingr_value |= ((uint32_t)scl_high << I2C_TIMINGR_SCLH_Pos)  & I2C_TIMINGR_SCLH;
+	timingr_value |= ((uint32_t)sdadel << I2C_TIMINGR_SDADEL_Pos) & I2C_TIMINGR_SDADEL;
+	timingr_value |= ((uint32_t)scldel << I2C_TIMINGR_SCLDEL_Pos) & I2C_TIMINGR_SCLDEL;
+
+	// 5. Commit using an atomic overwrite block while ensuring PE is disabled
+	uint32_t is_enabled = exe()->get_field_value(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos);
+	if (is_enabled) {
+		exe()->clear_reg(&dev()->comm->i2c1->CR1, I2C_CR1_PE);
+		while(exe()->get_field_value(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos));
+	}
+
+	// Single atomic push using your structural layout tool
+	exe()->write_field_encoded(&dev()->comm->i2c1->TIMINGR, 0xFFFFFFFFU, timingr_value);
+
+	if (is_enabled) {
+		exe()->set_reg(&dev()->comm->i2c1->CR1, I2C_CR1_PE);
+	}
+}
+
 /******************  High-Level API Functions  *********************/
 // Universal master buffer writer function
 static uint8_t i2c1_write_buffer(uint16_t device_id, uint8_t* p_data, uint8_t length) {
@@ -379,7 +447,7 @@ static uint8_t i2c1_read_buffer(uint16_t device_id, uint8_t* p_buffer, uint8_t l
 	return 1;
 }
 
-static void init_v1(void) {
+void init_v1(void) {
 	// preamble stuff (sequence layout)
 	uint8_t data = 0;
 	(void) data;
@@ -396,11 +464,12 @@ static void init_v1(void) {
 	i2c1_digital_filter(1);
 	i2c1_analog_filter_disable();
 	// tSCL = tSYNC1 + tSYNC2 + {[(SCLH+ 1) + (SCLL+ 1)] x (PRESC+ 1) x tI2CCLK}
-	i2c1_timing_prescaler(0xB); // 48MHZ - 100KHZ - 0xB
-	i2c1_low_period(0x13); // 48MHZ - 100KHZ - 0x13
-	i2c1_high_period(0xF); // 48MHZ - 100KHZ - 0xF
-	i2c1_hold_timing(0x2); // 48MHZ - 100KHZ - 0x2
-	i2c1_setup_timing(0x4); // 48MHZ - 100KHZ - 0x4
+	//i2c1_timing_prescaler(0xB); // 48MHZ - 100KHZ - 0xB
+	//i2c1_low_period(0x13); // 48MHZ - 100KHZ - 0x13
+	//i2c1_high_period(0xF); // 48MHZ - 100KHZ - 0xF
+	//i2c1_hold_timing(0x2); // 48MHZ - 100KHZ - 0x2
+	//i2c1_setup_timing(0x4); // 48MHZ - 100KHZ - 0x4
+	i2c1_calculate_and_apply_timing(I2C_SPEED_STANDARD);
 
 	/*** Communication ***/
 	i2c1_enable();
@@ -420,7 +489,7 @@ static void init_v1(void) {
 	}
 }
 
-void init(void) {
+static void init(void) {
 	// Local buffer layout to track power-up responses safely
 	uint8_t time_test_buffer[2] = {0};
 
@@ -437,11 +506,12 @@ void init(void) {
 	i2c1_analog_filter_disable();
 
 	// tSCL Calculation Layout (48MHZ - 100KHZ Specification Metrics)
-	i2c1_timing_prescaler(0xB);
-	i2c1_low_period(0x13);
-	i2c1_high_period(0xF);
-	i2c1_hold_timing(0x2);
-	i2c1_setup_timing(0x4);
+	//i2c1_timing_prescaler(0xB);
+	//i2c1_low_period(0x13);
+	//i2c1_high_period(0xF);
+	//i2c1_hold_timing(0x2);
+	//i2c1_setup_timing(0x4);
+	i2c1_calculate_and_apply_timing(I2C_SPEED_STANDARD);
 
 	/*** Communication Wakeup ***/
 	i2c1_enable();
@@ -537,6 +607,7 @@ static i2c1_run run_setup = {
 	.timeout_disable = i2c1_timeout_disable,
 	.reset = i2c1_reset,
 	.wait_for_bus_idle = wait_for_bus_idle,
+	.calculate_and_apply_timing = i2c1_calculate_and_apply_timing,
 	.write_buffer = i2c1_write_buffer,
 	.read_buffer = i2c1_read_buffer,
 };
