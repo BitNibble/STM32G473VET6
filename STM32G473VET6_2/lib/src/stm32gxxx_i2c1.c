@@ -19,8 +19,8 @@ static volatile uint32_t i2c1_cr2;
 static i2c1_par par_setup = { // DEFAULT
 	.pin_scl_gpio = GPIOB,
 	.pin_sda_gpio = GPIOB,
-	.pin_scl_af = 6,
-	.pin_sda_af = 6,
+	.pin_scl_af = 4,
+	.pin_sda_af = 4,
 	.pin_scl = 8,
 	.pin_sda = 9,
 	.bus_speed = I2C_SPEED_STANDARD,
@@ -430,7 +430,7 @@ static uint8_t i2c1_read_buffer(uint16_t device_id, uint8_t* p_buffer, uint8_t l
 	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
 	// 1. Stage parameters
 	i2c1_slave_address(device_id);
-	i2c1_direction(I2C_DIR_READ); // 1 = Read
+	i2c1_direction(I2C_DIR_READ);
 	i2c1_nbytes(length);
 	exe()->set_reg(&dev()->comm->i2c1->ICR, 0x3F38U);
 	// 2. Fire Start
@@ -490,10 +490,9 @@ void init_v1(void) {
 }
 
 static void init(void) {
-	// Local buffer layout to track power-up responses safely
-	uint8_t time_test_buffer[2] = {0};
-
 	/*** SETUP ***/
+	dev()->run->gpio_clock( par_setup.pin_scl_gpio, ONE );
+	dev()->run->gpio_clock( par_setup.pin_sda_gpio, ONE );
 	dev()->run->gpio_moder( par_setup.pin_scl_gpio, par_setup.pin_scl, MODE_AF );
 	dev()->run->gpio_moder( par_setup.pin_sda_gpio, par_setup.pin_sda, MODE_AF );
 	dev()->run->gpio_af( par_setup.pin_scl_gpio, par_setup.pin_scl, par_setup.pin_scl_af );
@@ -505,19 +504,24 @@ static void init(void) {
 	i2c1_digital_filter(1);
 	i2c1_analog_filter_disable();
 
-	// tSCL Calculation Layout (48MHZ - 100KHZ Specification Metrics)
+	/*** tSCL Calculation Layout (48MHZ - 100KHZ Specification Metrics) ***/
 	//i2c1_timing_prescaler(0xB);
 	//i2c1_low_period(0x13);
 	//i2c1_high_period(0xF);
 	//i2c1_hold_timing(0x2);
 	//i2c1_setup_timing(0x4);
-	i2c1_calculate_and_apply_timing(I2C_SPEED_STANDARD);
 
+	i2c1_calculate_and_apply_timing(par_setup.bus_speed);
+
+	i2c1_addressing_mode(par_setup.address_mode);
+}
+
+static void test(void){
+	// Local buffer layout to track power-up responses safely
+	uint8_t time_test_buffer[2] = {0};
 	/*** Communication Wakeup ***/
 	i2c1_enable();
-	i2c1_addressing_mode(I2C_ADDR_7BIT);
 	i2c1_autoend_enable(); // Enable auto-stop logic to support buffer transfers
-
 	// Check if a hardware transaction is currently already running
 	if(!i2c1_get_start()){
 		if(i2c1_is_idle()){
@@ -610,6 +614,7 @@ static i2c1_run run_setup = {
 	.calculate_and_apply_timing = i2c1_calculate_and_apply_timing,
 	.write_buffer = i2c1_write_buffer,
 	.read_buffer = i2c1_read_buffer,
+	.test = test,
 };
 /*** i2c1 CALLBACK ***/
 static i2c1_irq irq_setup = {

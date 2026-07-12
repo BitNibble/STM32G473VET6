@@ -121,7 +121,7 @@ typedef const struct {
 	void (*calculate_and_apply_timing)(i2c_bus_speed_t target_bus_speed_hz);
 	uint8_t (*write_buffer)(uint16_t device_id, uint8_t* p_data, uint8_t length);
 	uint8_t (*read_buffer)(uint16_t device_id, uint8_t* p_buffer, uint8_t length);
-
+	void (*test)(void);
 } i2c1_run;
 
 /*** i2c1 CALLBACK ***/

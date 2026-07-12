@@ -19,14 +19,25 @@ CS - PC7
 #include "st7789.h"
 #include "function.h"
 #include "explode.h"
+#include "stm32gxxx_i2c1.h"
 #include <string.h>
 
+#define BTN_ALL_PINS_MASK    (0x3FU << 8)
 #define BG_colour 0x0000
+
+static EXPLODE_Handler btn_engine;
+void rtc_ui_init(void);
 
 int main(void)
 {
 	rcc()->run->inic();
 	dev()->run->fpu_enable();
+
+	uint32_t count = 0;
+
+	i2c1()->run->init();
+
+	rtc_ui_init();
 
 	dev()->run->gpio_clock( dev()->gpio->f, 1 ); //
 	dev()->run->gpio_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
@@ -42,7 +53,26 @@ int main(void)
 
 	while(1)
 	{
+		if(btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR & BTN_ALL_PINS_MASK)) {
+			lcd1.run->start(&lcd1.par);
+			lcd1.run->drawstring8x12_size(&lcd1.par,func()->ui32toa(dev()->get->pclk1()),10,10,ST77XX_BLUE,BG_colour,10);
+			lcd1.run->drawstring8x12_size(&lcd1.par,func()->ui32toa(count++),10,30,ST77XX_BLUE,BG_colour,10);
 
+			lcd1.run->stop(&lcd1.par);
+			i2c1()->run->test();
+		}
 	}
+}
+
+void rtc_ui_init(void)
+{
+    // Enable GPIO Port D Clock via your helper
+	dev()->run->gpio_clock(dev()->gpio->d, 1);
+    // Batch set PD8-PD13 to Input Mode (0)
+	dev()->run->gpio_hmoder(dev()->gpio->d, BTN_ALL_PINS_MASK, 0);
+    // Batch set PD8-PD13 to internal Pull-Up (1)
+    dev()->run->gpio_hpupd(dev()->gpio->d, BTN_ALL_PINS_MASK, 1);
+    // Initialize the edge detector tracking instance
+    btn_engine = EXPLODE_enable();
 }
 
