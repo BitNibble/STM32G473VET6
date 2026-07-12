@@ -233,6 +233,21 @@ void i2c1_setup_timing(uint8_t setup) {
 void i2c1_timing_prescaler(uint8_t prescaler) {
 	exe()->write_field_value(&dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_PRESC,I2C_TIMINGR_PRESC_Pos,prescaler & 0xF);
 }
+uint8_t i2c1_get_low_period(void) {
+	return exe()->get_field_value(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SCLL,I2C_TIMINGR_SCLL_Pos);
+}
+uint8_t i2c1_get_high_period(void) {
+	return exe()->get_field_value(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SCLH,I2C_TIMINGR_SCLH_Pos);
+}
+uint8_t i2c1_get_hold_timing(void) {
+	return exe()->get_field_value(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SDADEL,I2C_TIMINGR_SDADEL_Pos);
+}
+uint8_t i2c1_get_setup_timing(void) {
+	return exe()->get_field_value(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SCLDEL,I2C_TIMINGR_SCLDEL_Pos);
+}
+uint8_t i2c1_get_timing_prescaler(void) {
+	return exe()->get_field_value(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_PRESC,I2C_TIMINGR_PRESC_Pos);
+}
 /******************* Bit definition for I2C_TIMEOUTR register *******************/
 void i2c1_bus_timeout(uint16_t timeout) {
 	exe()->write_field_value(&dev()->comm->i2c1->TIMEOUTR,I2C_TIMEOUTR_TIMEOUTA,I2C_TIMEOUTR_TIMEOUTA_Pos,timeout & 0x0FFF);
@@ -355,6 +370,11 @@ static i2c1_get get_setup = {
 	.status = i2c1_status,
 	.pecr = i2c1_get_pecr,
 	.rxdata = i2c1_get_rxdata,
+	.low_period = i2c1_get_low_period,
+	.high_period = i2c1_get_high_period,
+	.hold_timing = i2c1_get_hold_timing,
+	.setup_timing = i2c1_get_setup_timing,
+	.timing_prescaler = i2c1_get_timing_prescaler,
 };
 /*** i2c1 SET ***/
 static i2c1_set set_setup = {

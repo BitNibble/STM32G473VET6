@@ -43,12 +43,16 @@ typedef struct {
 /*** i2c1 GET ***/
 typedef const struct {
 	uint8_t (*idle_detect)(void);
-	uint32_t (*status)(void);
-	uint8_t  (*pecr)(void);
-	uint8_t  (*rxdata)(void);
-
-	uint8_t  (*scl_state)(void);
-	uint8_t  (*sda_state)(void);
+	uint32_t(*status)(void);
+	uint8_t (*pecr)(void);
+	uint8_t (*rxdata)(void);
+	uint8_t (*low_period)(void);
+	uint8_t (*high_period)(void);
+	uint8_t (*hold_timing)(void);
+	uint8_t (*setup_timing)(void);
+	uint8_t (*timing_prescaler)(void);
+	uint8_t (*scl_state)(void);
+	uint8_t (*sda_state)(void);
 } i2c1_get;
 
 /*** i2c1 SET ***/
