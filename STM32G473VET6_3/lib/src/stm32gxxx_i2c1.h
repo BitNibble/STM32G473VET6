@@ -42,11 +42,13 @@ typedef struct {
 
 /*** i2c1 GET ***/
 typedef const struct {
-	uint8_t  (*scl_state)(void);
-	uint8_t  (*sda_state)(void);
+	uint8_t (*idle_detect)(void);
 	uint32_t (*status)(void);
 	uint8_t  (*pecr)(void);
 	uint8_t  (*rxdata)(void);
+
+	uint8_t  (*scl_state)(void);
+	uint8_t  (*sda_state)(void);
 } i2c1_get;
 
 /*** i2c1 SET ***/
@@ -57,8 +59,14 @@ typedef const struct {
 	void (*addressing_mode)(i2c_addr_mode_t mode);
 	void (*nbytes)(uint8_t nbytes);
 	void (*own_address)(uint8_t address);
-
+	void (*low_period)(uint8_t ll);
+	void (*high_period)(uint8_t hh);
+	void (*hold_timing)(uint8_t hold);
+	void (*setup_timing)(uint8_t setup);
+	void (*timing_prescaler)(uint8_t prescaler);
+	void (*bus_timeout)(uint16_t timeout);
 	void (*txdata)(uint8_t data);
+
 	void (*reload_enable)(void);
 	void (*reload_disable)(void);
 	void (*autoend_enable)(void);
@@ -93,10 +101,18 @@ typedef const struct {
 	void (*pecbyte_disable)(void);
 	void (*start)(void);
 	void (*stop)(void);
-
-	void (*reset)(void);
+	void (*own_address_10bit_mode_enable)(void);
+	void (*own_address_10bit_mode_disable)(void);
 	void (*own_address_enable)(void);
 	void (*own_address_disable)(void);
+	void (*idle_timeout_detect_enable)(void);
+	void (*idle_timeout_detect_disable)(void);
+	void (*timeout_enable)(void);
+	void (*timeout_disable)(void);
+	void (*reset)(void);
+	uint8_t (*write_buffer)(uint16_t device_id, uint8_t* p_data, uint8_t length);
+	uint8_t (*read_buffer)(uint16_t device_id, uint8_t* p_buffer, uint8_t length);
+
 } i2c1_run;
 
 /*** i2c1 CALLBACK ***/

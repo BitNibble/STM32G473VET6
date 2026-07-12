@@ -53,6 +53,22 @@ static inline void _i2c1_modify_cr1_protected(void (*modify_func)(void)) {
         exe()->set_reg(&dev()->comm->i2c1->CR1, I2C_CR1_PE);
     }
 }
+// Universal non-blocking status check helper
+uint8_t _i2c1_get_flag(uint32_t flag_mask) {
+    // Read the whole register and isolate the single flag bit
+    return (dev()->comm->i2c1->ISR & flag_mask) ? 1U : 0U;
+}
+// Fixed-timeout polling engine to protect your MCU from locking up indefinitely on bus faults
+uint8_t _i2c1_wait_flag_timeout(uint32_t flag_mask, uint8_t status_expected, uint32_t timeout_loops) {
+    volatile uint32_t timeout = timeout_loops;
+    while (_i2c1_get_flag(flag_mask) != status_expected) {
+        if (--timeout == 0) {
+            return 0; // Operation failed / Timed out
+        }
+    }
+    return 1; // Success
+}
+
 /*******************  Bit definition for I2C_CR1 register  *******************/
 uint8_t _i2c1_is_enabled(void) {
 	return exe()->get_field_value(dev()->comm->i2c1->CR1,I2C_CR1_PE,I2C_CR1_PE_Pos);
@@ -208,10 +224,10 @@ void i2c1_low_period(uint8_t ll) {
 void i2c1_high_period(uint8_t hh) {
 	exe()->write_field_value(&dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SCLH,I2C_TIMINGR_SCLH_Pos,hh);
 }
-void i2c1_hold_time(uint8_t hold) {
+void i2c1_hold_timing(uint8_t hold) {
 	exe()->write_field_value(&dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SDADEL,I2C_TIMINGR_SDADEL_Pos,hold & 0xF);
 }
-void i2c1_setup_time(uint8_t setup) {
+void i2c1_setup_timing(uint8_t setup) {
 	exe()->write_field_value(&dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SCLDEL,I2C_TIMINGR_SCLDEL_Pos,setup & 0xF);
 }
 void i2c1_timing_prescaler(uint8_t prescaler) {
@@ -240,8 +256,6 @@ void i2c1_timeout_disable(void) {
 uint32_t i2c1_status(void) { // ACK NACK & ERROR FLAGS
 	return dev()->comm->i2c1->ISR;
 }
-void i2c1_poll(uint16_t timeout){ // WAIR_READY
-}
 /******************  Bit definition for I2C_PECR register  *********************/
 uint8_t i2c1_get_pecr(void) {
 	return exe()->get_field_value(dev()->comm->i2c1->PECR,I2C_PECR_PEC,I2C_PECR_PEC_Pos);
@@ -260,26 +274,6 @@ void i2c1_reset(void) {
 	while(!_i2c1_is_disabled());
 	i2c1_enable();
 }
-void i2c1_clock_configure(void) {
-	// setting the SCLH and SCLL bits in the I2C_TIMINGR register.
-}
-// Universal non-blocking status check helper
-uint8_t i2c1_get_flag(uint32_t flag_mask) {
-    // Read the whole register and isolate the single flag bit
-    return (dev()->comm->i2c1->ISR & flag_mask) ? 1U : 0U;
-}
-
-// Fixed-timeout polling engine to protect your MCU from locking up indefinitely on bus faults
-uint8_t i2c1_wait_flag_timeout(uint32_t flag_mask, uint8_t status_expected, uint32_t timeout_loops) {
-    volatile uint32_t timeout = timeout_loops;
-    while (i2c1_get_flag(flag_mask) != status_expected) {
-        if (--timeout == 0) {
-            return 0; // Operation failed / Timed out
-        }
-    }
-    return 1; // Success
-}
-
 /******************  Extended Driver Infrastructure  *********************/
 
 // Helper to safely read specific flags from the ISR status register
@@ -287,7 +281,6 @@ uint8_t i2c1_get_status_flag(uint32_t msk) {
 	// Uses your get_field_value tool (Pos is 0 since we want the masked raw bit location)
 	return exe()->get_field_value(dev()->comm->i2c1->ISR, msk, 0) ? 1U : 0U;
 }
-
 // Fixed loop timeout polling engine to prevent the MCU from hanging on a dead bus
 uint8_t i2c1_wait_status_flag(uint32_t msk, uint8_t expected_state, uint32_t timeout_loops) {
 	volatile uint32_t timeout = timeout_loops;
@@ -309,18 +302,14 @@ uint8_t i2c1_wait_status_flag(uint32_t msk, uint8_t expected_state, uint32_t tim
 // Universal master buffer writer function
 uint8_t i2c1_write_buffer(uint16_t device_id, uint8_t* p_data, uint8_t length) {
 	if (length == 0 || exe()->isPtrNull(p_data)) return 0;
-
 	// 1. Stage the transaction parameters into your global shadow register
 	i2c1_slave_address(device_id);
-	i2c1_direction(0); // 0 = Write
+	i2c1_direction(I2C_DIR_WRITE);
 	i2c1_nbytes(length);
-
 	// 2. Clear out any leftover hardware status error flags before starting
 	exe()->set_reg(&dev()->comm->i2c1->ICR, 0x3F38U);
-
 	// 3. Fire the hardware start sequence!
 	i2c1_start();
-
 	// 4. Stream data out sequentially
 	for (uint8_t i = 0; i < length; i++) {
 		// Wait for TXIS (Transmit Interrupt Status) flag indicating TXDR is empty
@@ -331,26 +320,20 @@ uint8_t i2c1_write_buffer(uint16_t device_id, uint8_t* p_data, uint8_t length) {
 		// Load next data byte into the hardware transmitter
 		i2c1_set_txdata(p_data[i]);
 	}
-
 	// 5. If AUTOEND is disabled, manually wait for Transfer Complete (TC) and stop
 	// If AUTOEND is enabled, the hardware handles STOP automatically.
 	return 1;
 }
-
 // Universal master buffer reader function
 uint8_t i2c1_read_buffer(uint16_t device_id, uint8_t* p_buffer, uint8_t length) {
 	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
-
 	// 1. Stage parameters
 	i2c1_slave_address(device_id);
-	i2c1_direction(1); // 1 = Read
+	i2c1_direction(I2C_DIR_READ); // 1 = Read
 	i2c1_nbytes(length);
-
 	exe()->set_reg(&dev()->comm->i2c1->ICR, 0x3F38U);
-
 	// 2. Fire Start
 	i2c1_start();
-
 	// 3. Stream data in sequentially
 	for (uint8_t i = 0; i < length; i++) {
 		// Wait for RXNE (Receive Not Empty) flag indicating data has arrived
@@ -360,7 +343,6 @@ uint8_t i2c1_read_buffer(uint16_t device_id, uint8_t* p_buffer, uint8_t length) 
 		// Fetch the raw byte out of hardware
 		p_buffer[i] = i2c1_get_rxdata();
 	}
-
 	return 1;
 }
 
@@ -369,6 +351,7 @@ uint8_t i2c1_master_read(uint8_t ack_nack){return 0;}
 
 /*** i2c1 GET ***/
 static i2c1_get get_setup = {
+	.idle_detect = i2c1_idle_detect,
 	.status = i2c1_status,
 	.pecr = i2c1_get_pecr,
 	.rxdata = i2c1_get_rxdata,
@@ -379,10 +362,16 @@ static i2c1_set set_setup = {
 	.slave_address = i2c1_slave_address,
 	.direction = i2c1_direction,
 	.addressing_mode = i2c1_addressing_mode,
-
 	.nbytes = i2c1_nbytes,
 	.own_address = i2c1_own_address,
+	.low_period = i2c1_low_period,
+	.high_period = i2c1_high_period,
+	.hold_timing = i2c1_hold_timing,
+	.setup_timing = i2c1_setup_timing,
+	.timing_prescaler = i2c1_timing_prescaler,
+	.bus_timeout = i2c1_bus_timeout,
 	.txdata = i2c1_set_txdata,
+
 	.reload_enable = i2c1_reload_enable,
 	.reload_disable = i2c1_reload_disable,
 	.autoend_enable = i2c1_autoend_enable,
@@ -416,10 +405,17 @@ static i2c1_run run_setup = {
 	.pecbyte_disable = i2c1_pecbyte_disable,
 	.start = i2c1_start,
 	.stop = i2c1_stop,
-
-	.reset = i2c1_reset,
-	.own_address_enable= i2c1_own_address_enable,
+	.own_address_10bit_mode_enable = i2c1_own_address_10bit_mode_enable,
+	.own_address_10bit_mode_disable = i2c1_own_address_10bit_mode_disable,
+	.own_address_enable = i2c1_own_address_enable,
 	.own_address_disable = i2c1_own_address_disable,
+	.idle_timeout_detect_enable = i2c1_idle_timeout_detect_enable,
+	.idle_timeout_detect_disable = i2c1_idle_timeout_detect_disable,
+	.timeout_enable = i2c1_timeout_enable,
+	.timeout_disable = i2c1_timeout_disable,
+	.reset = i2c1_reset,
+	.write_buffer = i2c1_write_buffer,
+	.read_buffer = i2c1_read_buffer,
 };
 /*** i2c1 CALLBACK ***/
 static i2c1_irq irq_setup = {
