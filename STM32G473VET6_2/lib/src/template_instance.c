@@ -1,5 +1,5 @@
 /************************************************************************
-	TEMPLATE MULTI INSTANCE
+	TEMPLATE SYNTAX MULTI INSTANCE
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
 Hardware: MCU

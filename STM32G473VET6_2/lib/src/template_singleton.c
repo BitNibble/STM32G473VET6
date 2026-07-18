@@ -1,5 +1,5 @@
 /************************************************************************
-	TEMPLATE SINGLETON
+	TEMPLATE SYNTAX SINGLETON
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
 Hardware: MCU
