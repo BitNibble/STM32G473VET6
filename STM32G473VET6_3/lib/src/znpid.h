@@ -14,30 +14,28 @@ Comment:
 #include <inttypes.h>
 /*** File TypeDef ***/
 typedef struct {
-	double c; // constant p
-	double i; // constant i
-	double d; // constant d
+	double c;
+	double i;
+	double d;
 }k_par;
 typedef struct {
-	double Err_past; // Last Error reading
-	double dy; // difference error y axis points.
-	double dx; // difference time x axis points.
-	double integral; // progression
-	double derivative; // rate of growth (tangent), or derivative
+	double error;
+	double integral;
+	double derivative;
 }aux_par;
 typedef struct {
 	k_par k;
 	aux_par aux;
-	double SetPoint; // desired output
-	double PV; // output feedback
-	double OP; // output signal
+	double SetPoint;
+	double PV;
+	double OP;
 }znpid_par;
 typedef const struct {
 	void (*set_kc)(znpid_par* par, double kc);
 	void (*set_ki)(znpid_par* par, double ki);
 	void (*set_kd)(znpid_par* par, double kd);
 	void (*set_SP)(znpid_par* par, double setpoint);
-	double (*output)(znpid_par* par, double PV, double timelapse);
+	double (*get_OP)(znpid_par* par, double PV, double timelapse);
 }znpid_run;
 
 /*** ZNPID ***/
@@ -51,6 +49,8 @@ ZNPID_Handler ZNPID_enable(void);
 
 #endif
 /***EOF***/
+
+
 
 /******
 1º Sequence

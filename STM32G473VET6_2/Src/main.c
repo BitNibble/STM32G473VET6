@@ -159,7 +159,7 @@ int main(void)
 				lcd1.run->stop(&lcd1.par);
 			}
 
-			dev()->run->toggle_hpin(dev()->gpio->f, 1 << 2);
+			//dev()->run->toggle_hpin(dev()->gpio->f, 1 << 2);
 
 			lcd1.run->start(&lcd1.par);
 
@@ -177,6 +177,9 @@ int main(void)
 
 			lcd1.run->stop(&lcd1.par);
 		}
+		uint16_t a = 5025;
+		uint8_t b = ((U_word)a).par.l;
+		(void)b;
 	}
 }
 

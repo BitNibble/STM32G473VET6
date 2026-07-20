@@ -13,53 +13,24 @@ Comment:
 /*** File Constant & Macro ***/
 #define ZNPID_outMAX 1023
 #define ZNPID_outMIN -1023
-#define BYTE_BITS 8
-#define WORD_BITS 16
-#define N_BITS 32
-#define N_LIMBITS 33
-#define H_BIT 31
-#define L_BIT 0
-
-/*** File Variable ***/
-static double ZNPID_tmp;
+#define INTEGRAL_LIMIT 1023.0
 
 /*** File Header ***/
 void ZNPID_set_kc(znpid_par* par, double kc);
 void ZNPID_set_ki(znpid_par* par, double ki);
 void ZNPID_set_kd(znpid_par* par, double kp);
 void ZNPID_set_SP(znpid_par* par, double setpoint);
-double ZNPID_output(znpid_par* par, double PV, double timelapse);
-double ZNPID_integral(znpid_par* par, double PV, double timelapse);
-double ZNPID_derivative(znpid_par* par, double PV, double timelapse);
-double ZNPID_delta(double present_value, double past_value);
-double ZNPID_sum(double value_1, double value_2);
-double ZNPID_product(double value_1, double value_2);
-znpid_par znpid_par_init(void);
-
-/*** Tools ***/
-void znpid_set_reg(volatile uint32_t* reg, uint32_t hbits);
-void znpid_clear_reg(volatile uint32_t* reg, uint32_t hbits);
-uint32_t znpid_get_block(uint32_t reg, uint8_t size_block, uint8_t bit_n);
-uint32_t znpid_get_Msk(uint32_t reg, uint32_t Msk, uint8_t Pos);
-void znpid_write_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data);
-void znpid_write_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data);
-void znpid_set_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data);
-void znpid_set_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data);
-uint32_t znpid_get_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n);
-void znpid_set_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data);
-
+double ZNPID_OP(znpid_par* par, double PV, double timelapse);
 /*** ZNPID Auxiliar  ***/
 znpid_par znpid_par_init(void)
-{
+{ // DEFAULT
 	znpid_par znpid_par;
 	// initialize variables
 	znpid_par.k.c = 1;
 	znpid_par.k.i = 0;
 	znpid_par.k.d = 0;
 	znpid_par.SetPoint = 0;
-	znpid_par.aux.Err_past = 0;
-	znpid_par.aux.dy = 0;
-	znpid_par.aux.dx = 0;
+	znpid_par.aux.error = 0;
 	znpid_par.aux.integral = 0;
 	znpid_par.aux.derivative = 0;
 	znpid_par.PV = 0;
@@ -71,7 +42,7 @@ static znpid_run run_setup = {
 	.set_ki = ZNPID_set_ki,
 	.set_kd = ZNPID_set_kd,
 	.set_SP = ZNPID_set_SP,
-	.output = ZNPID_output
+	.get_OP = ZNPID_OP
 };
 /*** ZNPID Procedure & Function Definition ***/
 ZNPID_Handler ZNPID_enable(void)
@@ -105,135 +76,52 @@ void ZNPID_set_SP(znpid_par* par, double setpoint)
 	par->SetPoint = setpoint;
 }
 
-double ZNPID_output(znpid_par* par, double PV, double timelapse)
+double ZNPID_OP(znpid_par* par, double PV, double timelapse)
 {
-	double result;
-	par->PV = PV;
-	par->aux.dy = ZNPID_delta(par->SetPoint, PV);
-	par->aux.dx = timelapse;
-	result = ZNPID_product(par->k.c, par->aux.dy);
-	ZNPID_tmp = ZNPID_product(par->k.i, ZNPID_integral(par, PV, timelapse));
-	result = ZNPID_sum(result, ZNPID_tmp);
-	ZNPID_tmp = ZNPID_product(par->k.d, ZNPID_derivative(par, PV, timelapse));
-	result = ZNPID_sum(result, ZNPID_tmp);
-	par->aux.Err_past = par->aux.dy;
-	par->OP = result;
-	if(result > ZNPID_outMAX)
-		par->aux.integral = ZNPID_outMAX - (par->aux.dy * par->aux.dx) - (par->aux.derivative * par->aux.dx * par->aux.dx);
-	else if(result < ZNPID_outMIN)
-		par->aux.integral = ZNPID_outMIN + (par->aux.dy * par->aux.dx) + (par->aux.derivative * par->aux.dx * par->aux.dx);
-	return result;
+    // Safety check
+    if(timelapse <= 0) return par->OP;
+
+    double error = par->SetPoint - PV;
+
+    // Proportional on error
+    double P_term = par->k.c * error;
+
+    // Integral on ERROR
+    par->aux.integral += (error + par->aux.error) * timelapse / 2.0;
+    par->aux.error = error;
+
+    // Clamp integral to prevent excessive wind up
+    if(par->aux.integral > INTEGRAL_LIMIT)
+        par->aux.integral = INTEGRAL_LIMIT;
+    if(par->aux.integral < -INTEGRAL_LIMIT)
+        par->aux.integral = -INTEGRAL_LIMIT;
+
+    double I_term = par->k.i * par->aux.integral;
+
+    // Derivative on PV
+    double dPV = (PV - par->PV) / timelapse;
+    double D_term = -par->k.d * dPV;
+
+    double result = P_term + I_term + D_term;
+
+    // Anti-windup with safety
+    if(result > ZNPID_outMAX) {
+        result = ZNPID_outMAX;
+        if(par->k.i != 0.0) {
+            par->aux.integral = (ZNPID_outMAX - P_term - D_term) / par->k.i;
+        }
+    } else if(result < ZNPID_outMIN) {
+        result = ZNPID_outMIN;
+        if(par->k.i != 0.0) {
+            par->aux.integral = (ZNPID_outMIN - P_term - D_term) / par->k.i;
+        }
+    }
+
+    par->PV = PV;
+    par->OP = result;
+
+    return result;
 }
 
-double ZNPID_integral(znpid_par* par, double PV, double timelapse)
-{
-	ZNPID_tmp = ZNPID_product(ZNPID_sum(ZNPID_delta(par->SetPoint, PV), par->aux.Err_past), timelapse);
-	ZNPID_tmp /= 2;
-	return (par->aux.integral += ZNPID_tmp);
-}
-
-double ZNPID_derivative(znpid_par* par, double PV, double timelapse)
-{
-	ZNPID_tmp = ZNPID_delta(ZNPID_delta(par->SetPoint, PV), par->aux.Err_past);
-	return (par->aux.derivative = (ZNPID_tmp / timelapse));
-}
-
-double ZNPID_delta(double present_value, double past_value)
-{
-	return (present_value - past_value);
-}
-
-double ZNPID_sum(double value_1, double value_2)
-{
-	return (value_1 + value_2);
-}
-
-double ZNPID_product(double value_1, double value_2)
-{
-	return (value_1 * value_2);
-}
-
-/*** Tools ***/
-inline void znpid_set_reg(volatile uint32_t* reg, uint32_t hbits){
-	*reg |= hbits;
-}
-inline void znpid_clear_reg(volatile uint32_t* reg, uint32_t hbits){
-	*reg &= ~hbits;
-}
-inline uint32_t znpid_get_Msk(uint32_t reg, uint32_t Msk, uint8_t Pos)
-{
-	if(Pos > H_BIT){ Pos = L_BIT; reg = 0; }
-	else{ reg &= Msk; reg = (reg >> Pos); }
-	return reg;
-}
-inline void znpid_write_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data)
-{
-	uint32_t value = *reg;
-	if(Pos > H_BIT){ Pos = L_BIT; }
-	else{ data = (data << Pos); data &= Msk; value &= ~(Msk); value |= data; *reg = value; }
-}
-inline void znpid_set_Msk(volatile uint32_t* reg, uint32_t Msk, uint8_t Pos, uint32_t data)
-{
-	if(Pos > H_BIT){ Pos = L_BIT; }
-	else{ data = (data << Pos); data &= Msk; *reg &= ~(Msk); *reg |= data; }
-}
-uint32_t znpid_get_block(uint32_t reg, uint8_t size_block, uint8_t bit_n)
-{
-	if(size_block > N_BITS){ size_block = N_BITS; }
-	if(bit_n > H_BIT){ bit_n = L_BIT; reg = 0; }
-	else{
-		uint32_t mask = (uint32_t)((1 << size_block) - 1);
-		reg &= (mask << bit_n);
-		reg = (reg >> bit_n);
-	}
-	return reg;
-}
-void znpid_write_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data)
-{
-	if(size_block > N_BITS){ size_block = N_BITS; }
-	if(bit_n > H_BIT){ bit_n = H_BIT; }
-	else{
-		uint32_t value = *reg;
-		uint32_t mask = (uint32_t)((1 << size_block) - 1);
-		data &= mask; value &= ~(mask << bit_n);
-		data = (data << bit_n);
-		value |= data;
-		*reg = value;
-	}
-}
-void znpid_set_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data)
-{
-	if(size_block > N_BITS){ size_block = N_BITS; }
-	if(bit_n > H_BIT){ bit_n = H_BIT; }
-	else{
-		uint32_t mask = (uint32_t)((1 << size_block) - 1);
-		data &= mask;
-		*reg &= ~(mask << bit_n);
-		*reg |= (data << bit_n);
-	}
-}
-uint32_t znpid_get_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n)
-{
-	uint32_t value;
-	if(size_block > N_BITS){ size_block = N_BITS; }
-	uint32_t n = bit_n / N_BITS; bit_n = bit_n % N_BITS;
-	value = *(reg + n );
-	uint32_t mask = (uint32_t)((1 << size_block) - 1);
-	value &= (mask << bit_n);
-	value = (value >> bit_n);
-	return value;
-}
-void znpid_set_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t bit_n, uint32_t data)
-{
-	if(size_block > N_BITS){ size_block = N_BITS; }
-	uint32_t n = bit_n / N_BITS; bit_n = bit_n % N_BITS;
-	uint32_t mask = (uint32_t)((1 << size_block) - 1);
-	data &= mask;
-	*(reg + n ) &= ~(mask << bit_n);
-	*(reg + n ) |= (data << bit_n);
-}
-
-/***File Interrupt***/
-
-/***EOF***/
+/*** EOF ***/
 
