@@ -10,6 +10,7 @@ Date:     04062026
 
 /*** Library ***/
 #include <stm32g4xx.h>
+#include "i2c_bitfield.h"
 #include "custom_hal_def.h"
 #include "stm32xtool.h"
 
@@ -228,7 +229,7 @@ typedef const struct {
     SPI_TypeDef* spi4;
 #endif
 
-    I2C_TypeDef* i2c1;
+    I2C_BitField_TypeDef* i2c1;
     I2C_TypeDef* i2c2;
 #ifdef I2C3
     I2C_TypeDef* i2c3;

@@ -172,7 +172,7 @@ static COMM_Block comm = {
     .spi4    = SPI4,
 #endif
 
-    .i2c1    = I2C1,
+    .i2c1    = (I2C_BitField_TypeDef*) I2C1,
     .i2c2    = I2C2,
 #ifdef I2C3
     .i2c3    = I2C3,

@@ -13,6 +13,9 @@ SDA - PC12
 RST - PC9
 DC - PC8
 CS - PC7
+ I2C1
+SCL - GPIOB8
+SDA - GPIOB9
 ************************************************************************/
 #include "stm32gxxx_rcc.h"
 #include "arm_systick.h"
@@ -54,12 +57,15 @@ int main(void)
 	while(1)
 	{
 		if(btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR & BTN_ALL_PINS_MASK)) {
+
 			lcd1.run->start(&lcd1.par);
 			lcd1.run->drawstring8x12_size(&lcd1.par,func()->ui32toa(dev()->get->pclk1()),10,10,ST77XX_BLUE,BG_colour,10);
 			lcd1.run->drawstring8x12_size(&lcd1.par,func()->ui32toa(count++),10,30,ST77XX_BLUE,BG_colour,10);
+			lcd1.run->drawstring8x12_size(&lcd1.par,func()->ui32toa(i2c1()->run->test()),10,50,ST77XX_BLUE,BG_colour,10);
+
 
 			lcd1.run->stop(&lcd1.par);
-			i2c1()->run->test();
+
 		}
 	}
 }
