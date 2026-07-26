@@ -677,64 +677,46 @@ typedef union
 
 typedef struct
 {
-    RCC_CR_TypeDef            CR;             /* 0x0000 */
-    RCC_ICSCR_TypeDef         ICSCR;          /* 0x0004 */
-    RCC_CFGR_TypeDef          CFGR;           /* 0x0008 */
-    RCC_PLLCFGR_TypeDef       PLLCFGR;        /* 0x000C */
-
-    volatile uint32_t         RESERVED0;      /* 0x0010 */
-
-    RCC_CIER_TypeDef          CIER;           /* 0x0018 */
-    RCC_CIFR_TypeDef          CIFR;           /* 0x001C */
-    RCC_CICR_TypeDef          CICR;           /* 0x0020 */
-
-    volatile uint32_t         RESERVED1;      /* 0x0024 */
-
-    RCC_AHB1RSTR_TypeDef      AHB1RSTR;       /* 0x0028 */
-    RCC_AHB2RSTR_TypeDef      AHB2RSTR;       /* 0x002C */
-    RCC_AHB3RSTR_TypeDef      AHB3RSTR;       /* 0x0030 */
-
-    volatile uint32_t         RESERVED2;      /* 0x0034 */
-
-    RCC_APB1RSTR1_TypeDef     APB1RSTR1;      /* 0x0038 */
-    RCC_APB1RSTR2_TypeDef     APB1RSTR2;      /* 0x003C */
-    RCC_APB2RSTR_TypeDef      APB2RSTR;       /* 0x0040 */
-
-    volatile uint32_t         RESERVED3;      /* 0x0044 */
-
-    RCC_AHB1ENR_TypeDef       AHB1ENR;        /* 0x0048 */
-    RCC_AHB2ENR_TypeDef       AHB2ENR;        /* 0x004C */
-    RCC_AHB3ENR_TypeDef       AHB3ENR;        /* 0x0050 */
-
-    volatile uint32_t         RESERVED4;      /* 0x0054 */
-
-    RCC_APB1ENR1_TypeDef      APB1ENR1;       /* 0x0058 */
-    RCC_APB1ENR2_TypeDef      APB1ENR2;       /* 0x005C */
-    RCC_APB2ENR_TypeDef       APB2ENR;        /* 0x0060 */
-
-    volatile uint32_t         RESERVED5;      /* 0x0064 */
-
-    RCC_AHB1SMENR_TypeDef     AHB1SMENR;      /* 0x0068 */
-    RCC_AHB2SMENR_TypeDef     AHB2SMENR;      /* 0x006C */
-    RCC_AHB3SMENR_TypeDef     AHB3SMENR;      /* 0x0070 */
-
-    volatile uint32_t         RESERVED6;      /* 0x0074 */
-
-    RCC_APB1SMENR1_TypeDef    APB1SMENR1;     /* 0x0078 */
-    RCC_APB1SMENR2_TypeDef    APB1SMENR2;     /* 0x007C */
-    RCC_APB2SMENR_TypeDef     APB2SMENR;      /* 0x0080 */
-
-    volatile uint32_t         RESERVED7;      /* 0x0084 */
-
-    RCC_CCIPR_TypeDef         CCIPR;          /* 0x0088 */
-
-    volatile uint32_t         RESERVED8;      /* 0x008C */
-
-    RCC_BDCR_TypeDef          BDCR;           /* 0x0090 */
-    RCC_CSR_TypeDef           CSR;            /* 0x0094 */
-    RCC_CRRCR_TypeDef         CRRCR;          /* 0x0098 */
-    RCC_CCIPR2_TypeDef        CCIPR2;         /* 0x009C */
-
+	RCC_CR_TypeDef CR;
+	RCC_ICSCR_TypeDef ICSCR;
+	RCC_CFGR_TypeDef CFGR;
+	RCC_PLLCFGR_TypeDef PLLCFGR;
+	volatile uint32_t RESERVED0;
+	volatile uint32_t RESERVED1;
+	RCC_CIER_TypeDef CIER;
+	RCC_CIFR_TypeDef CIFR;
+	RCC_CICR_TypeDef CICR;
+	volatile uint32_t RESERVED2;
+	RCC_AHB1RSTR_TypeDef AHB1RSTR;
+	RCC_AHB2RSTR_TypeDef AHB2RSTR;
+	RCC_AHB3RSTR_TypeDef AHB3RSTR;
+	volatile uint32_t RESERVED3;
+	RCC_APB1RSTR1_TypeDef APB1RSTR1;
+	RCC_APB1RSTR2_TypeDef APB1RSTR2;
+	RCC_APB2RSTR_TypeDef APB2RSTR;
+	volatile uint32_t RESERVED4;
+	RCC_AHB1ENR_TypeDef AHB1ENR;
+	RCC_AHB2ENR_TypeDef AHB2ENR;
+	RCC_AHB3ENR_TypeDef AHB3ENR;
+	volatile uint32_t RESERVED5;
+	RCC_APB1ENR1_TypeDef APB1ENR1;
+	RCC_APB1ENR2_TypeDef APB1ENR2;
+	RCC_APB2ENR_TypeDef APB2ENR;
+	volatile uint32_t RESERVED6;
+	RCC_AHB1SMENR_TypeDef AHB1SMENR;
+	RCC_AHB2SMENR_TypeDef AHB2SMENR;
+	RCC_AHB3SMENR_TypeDef AHB3SMENR;
+	volatile uint32_t RESERVED7;
+	RCC_APB1SMENR1_TypeDef APB1SMENR1;
+	RCC_APB1SMENR2_TypeDef APB1SMENR2;
+	RCC_APB2SMENR_TypeDef APB2SMENR;
+	volatile uint32_t RESERVED8;
+	RCC_CCIPR_TypeDef CCIPR;
+	volatile uint32_t RESERVED9;
+	RCC_BDCR_TypeDef BDCR;
+	RCC_CSR_TypeDef CSR;
+	RCC_CRRCR_TypeDef CRRCR;
+	RCC_CCIPR2_TypeDef CCIPR2;
 } RCC_BitField_TypeDef;
 
 #endif
