@@ -160,11 +160,11 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
         switch(choice) {
             case RCC_CLK_HSI: // HSION: Internal high-speed clock enable
                 if(set) {
-                    exe()->write_field_encoded(&dev()->sys->rcc->CR, RCC_CR_HSION_Msk, RCC_CR_HSION); // Enable HSI
+                    dev()->sys->rcc_bf->CR.par.HSION = 1; // Enable HSI
                     timeout = 0x1FFFFF;
                     set = 0;
                 }
-                else if(dev()->sys->rcc->CR & RCC_CR_HSIRDY) { // Wait for HSIRDY
+                else if(dev()->sys->rcc_bf->CR.par.HSIRDY) { // Wait for HSIRDY
                     rdy = 0;
                 }
                 else {
@@ -176,11 +176,11 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
             break;
             case RCC_CLK_HSE: // HSEON: External high-speed clock enable
                 if(set) {
-                    exe()->write_field_encoded(&dev()->sys->rcc->CR, RCC_CR_HSEON_Msk, RCC_CR_HSEON); // Enable HSE
+                    dev()->sys->rcc_bf->CR.par.HSEON = 1; // Enable HSE
                     timeout = 0x1FFFFF;
                     set = 0;
                 }
-                else if(dev()->sys->rcc->CR & RCC_CR_HSERDY) { // Wait for HSERDY
+                else if(dev()->sys->rcc_bf->CR.par.HSERDY) { // Wait for HSERDY
                     rdy = 0;
                 }
                 else {
@@ -192,7 +192,7 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
             break;
 
             case RCC_CLK_HSEBYP: // HSEBYP: HSE clock bypass
-                exe()->write_field_encoded(&dev()->sys->rcc->CR, RCC_CR_HSEBYP_Msk, RCC_CR_HSEBYP); // Enable HSE bypass
+                dev()->sys->rcc_bf->CR.par.HSEBYP = 1; // Enable HSE bypass
                 choice = RCC_CLK_HSE; // Switch to enabling HSE path
                 break;
 
@@ -202,8 +202,8 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
         }
     }
     if (choice == RCC_CLK_HSE) {
-        if (dev()->sys->rcc->CR & RCC_CR_HSERDY) {
-            exe()->write_field_encoded(&dev()->sys->rcc->CR, RCC_CR_CSSON_Msk, RCC_CR_CSSON);
+        if (dev()->sys->rcc_bf->CR.par.HSERDY) {
+            dev()->sys->rcc_bf->CR.par.CSSON = 1;
         }
     }
 }

@@ -21,6 +21,7 @@ static CORE_Block core = {
 
 static SYSTEM_Block sys = {
     .rcc    = RCC,
+	.rcc_bf = (RCC_BitField_TypeDef*) RCC,
     .flash  = FLASH,
     .pwr    = PWR,
     .syscfg = SYSCFG,
@@ -172,7 +173,8 @@ static COMM_Block comm = {
     .spi4    = SPI4,
 #endif
 
-    .i2c1    = (I2C_BitField_TypeDef*) I2C1,
+	.i2c1    = I2C1,
+    .i2c1_bf    = (I2C_BitField_TypeDef*) I2C1,
     .i2c2    = I2C2,
 #ifdef I2C3
     .i2c3    = I2C3,

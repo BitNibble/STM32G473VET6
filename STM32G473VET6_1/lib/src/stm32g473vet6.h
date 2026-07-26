@@ -79,6 +79,7 @@ typedef const struct {
 
 typedef const struct {
     RCC_TypeDef* rcc;
+    RCC_BitField_TypeDef* rcc_bf;
     FLASH_TypeDef* flash;
     PWR_TypeDef* pwr;
     SYSCFG_TypeDef* syscfg;
@@ -230,7 +231,8 @@ typedef const struct {
     SPI_TypeDef* spi4;
 #endif
 
-    I2C_BitField_TypeDef* i2c1;
+    I2C_TypeDef* i2c1;
+    I2C_BitField_TypeDef* i2c1_bf;
     I2C_TypeDef* i2c2;
 #ifdef I2C3
     I2C_TypeDef* i2c3;
