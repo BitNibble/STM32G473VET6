@@ -11,6 +11,7 @@ Date:     04062026
 /*** Library ***/
 #include <stm32g4xx.h>
 #include "rcc_bitfield.h"
+#include "gpio_bitfield.h"
 #include "i2c_bitfield.h"
 #include "custom_hal_def.h"
 #include "stm32xtool.h"

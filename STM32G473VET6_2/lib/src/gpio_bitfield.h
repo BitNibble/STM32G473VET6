@@ -220,16 +220,8 @@ typedef union {
 } GPIO_ODR_TypeDef;
 typedef union { 
 	__IO uint32_t reg; 
-	GPIO_BSRR_BitField_TypeDef     par; 
-} GPIO_BSRR_TypeDef;
-typedef union { 
-	__IO uint32_t reg; 
 	GPIO_LCKR_BitField_TypeDef     par; 
 } GPIO_LCKR_TypeDef;
-typedef union { 
-	__IO uint32_t reg; 
-	GPIO_BRR_BitField_TypeDef      par; 
-} GPIO_BRR_TypeDef;
 typedef union {
 	__IO uint32_t             reg[2]; 
 	GPIO_AFR_BitField_TypeDef par;    
@@ -247,7 +239,7 @@ typedef struct {
 	__IO GPIO_LCKR_TypeDef LCKR;
 	__IO GPIO_AFR_TypeDef AFR;
 	__IO uint32_t BRR;
-} GPIO_TypeDef;
+} GPIO_BitField_TypeDef;
 
 #endif /* GPIO_BITFIELD_H */
 
