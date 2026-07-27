@@ -89,22 +89,30 @@ typedef const struct {
 
 typedef const struct {
     GPIO_TypeDef* a;
+    GPIO_BitField_TypeDef* a_bf;
     GPIO_TypeDef* b;
+    GPIO_BitField_TypeDef* b_bf;
     GPIO_TypeDef* c;
+    GPIO_BitField_TypeDef* c_bf;
 #ifdef GPIOD
     GPIO_TypeDef* d;
+    GPIO_BitField_TypeDef* d_bf;
 #endif
 #ifdef GPIOE
     GPIO_TypeDef* e;
+    GPIO_BitField_TypeDef* e_bf;
 #endif
 #ifdef GPIOF
     GPIO_TypeDef* f;
+    GPIO_BitField_TypeDef* f_bf;
 #endif
 #ifdef GPIOG
     GPIO_TypeDef* g;
+    GPIO_BitField_TypeDef* g_bf;
 #endif
 #ifdef GPIOH
     GPIO_TypeDef* h;
+    GPIO_BitField_TypeDef* h_bf;
 #endif
 } GPIO_Block;
 

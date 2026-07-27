@@ -90,8 +90,10 @@ int main(void)
 	speed = 530;
 	uint16_t idle_colour = 0x0000;
 
-	dev()->run->gpio_clock( dev()->gpio->f, 1 );
-	dev()->run->gpio_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
+	dev()->sys->rcc_bf->AHB2ENR.par.GPIOFEN = 1;
+	dev()->gpio->f_bf->MODER.par.MODE2 = MODE_OUTPUT;
+	//dev()->run->gpio_clock( dev()->gpio->f, 1 );
+	//dev()->run->gpio_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
 	rtc_ui_init();
 
 	adc1()->run->temp_init();

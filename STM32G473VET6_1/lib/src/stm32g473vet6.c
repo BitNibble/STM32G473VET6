@@ -30,22 +30,30 @@ static SYSTEM_Block sys = {
 
 static GPIO_Block gpio = {
     .a = GPIOA,
+	.a_bf = (GPIO_BitField_TypeDef*) GPIOA,
     .b = GPIOB,
+	.b_bf = (GPIO_BitField_TypeDef*) GPIOB,
     .c = GPIOC,
+	.c_bf = (GPIO_BitField_TypeDef*) GPIOC,
 #ifdef GPIOD
     .d = GPIOD,
+	.d_bf = (GPIO_BitField_TypeDef*) GPIOD,
 #endif
 #ifdef GPIOE
     .e = GPIOE,
+	.e_bf = (GPIO_BitField_TypeDef*) GPIOE,
 #endif
 #ifdef GPIOF
     .f = GPIOF,
+	.f_bf = (GPIO_BitField_TypeDef*) GPIOF,
 #endif
 #ifdef GPIOG
     .g = GPIOG,
+	.g_bf = (GPIO_BitField_TypeDef*) GPIOG,
 #endif
 #ifdef GPIOH
     .h = GPIOH,
+	.h_bf = (GPIO_BitField_TypeDef*) GPIOH,
 #endif
 };
 
