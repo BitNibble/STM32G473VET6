@@ -783,3 +783,4 @@ STM32_DEVICE* dev(void) { return &device; }
  * Enabling an interrupt and not defining its request procedure blocks the program.
  * RCC only gets a clean slate when powered off.
  **/
+

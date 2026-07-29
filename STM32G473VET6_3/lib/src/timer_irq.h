@@ -10,7 +10,9 @@ Comment:
 #ifndef TIMER_IRQ_H
 	#define TIMER_IRQ_H
 
-#include "stm32gxxx_tim1.h"
+#include <stdint.h>
+#include <inttypes.h>
+#include <stddef.h>
 
 /********************************************************************
  * PER-TIMER INSTANCES (semantic routing layer)
@@ -88,4 +90,6 @@ __attribute__((weak)) void tim20_rep_callback(void);
 __attribute__((weak)) void tim20_dma_callback(void);
 
 #endif
+
+/*** EOF ***/
 

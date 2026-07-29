@@ -9,8 +9,7 @@ Comment:
 *******************************************************************************/
 #include "timer_irq.h"
 #include "stm32_irq.h"
-
-
+#include <stm32g4xx.h>
 
 /********************************************************************
  * HELPERS
@@ -174,23 +173,11 @@ void TIM1_BRK_TIM15_IRQHandler(void)
     }
 }
 
-/**
 void TIM1_UP_TIM16_IRQHandler(void)
 {
-    uint32_t sr = TIM1->SR;
-
-    if (sr & TIM_SR_UIF) {
-        CLEAR_FLAG(TIM1->SR, TIM_SR_UIF);
-        tim1_u_callback();
-    }
-}
-**/
-
-void TIM1_UP_TIM16_IRQHandler(void)
-{
-    if (exe()->_mask(TIM1->SR, TIM_SR_UIF))
+    if (TIM1->SR & TIM_SR_UIF)
     {
-        exe()->clear_reg(&TIM1->SR, TIM_SR_UIF);
+    	CLEAR_FLAG(TIM1->SR, TIM_SR_UIF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -206,23 +193,6 @@ void TIM1_UP_TIM16_IRQHandler(void)
     }
 }
 
-/**
-void TIM1_TRG_COM_TIM17_IRQHandler(void)
-{
-    uint32_t sr = TIM1->SR;
-
-    if (sr & TIM_SR_TIF) {
-        CLEAR_FLAG(TIM1->SR, TIM_SR_TIF);
-        tim1_trg_callback();
-    }
-
-    if (sr & TIM_SR_COMIF) {
-        CLEAR_FLAG(TIM1->SR, TIM_SR_COMIF);
-        tim1_com_callback();
-    }
-}
-**/
-
 void TIM1_TRG_COM_TIM17_IRQHandler(void)
 {
     uint32_t sr = TIM1->SR;
@@ -230,7 +200,7 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void)
     /* Trigger */
     if (sr & TIM_SR_TIF)
     {
-        TIM1->SR = ~TIM_SR_TIF;
+    	CLEAR_FLAG(TIM1->SR, TIM_SR_TIF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -248,7 +218,7 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void)
     /* Commutation */
     if (sr & TIM_SR_COMIF)
     {
-        TIM1->SR = ~TIM_SR_COMIF;
+    	CLEAR_FLAG(TIM1->SR, TIM_SR_COMIF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -264,33 +234,6 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void)
     }
 }
 
-/**
-void TIM1_CC_IRQHandler(void)
-{
-    uint32_t sr = TIM1->SR;
-
-    if (sr & TIM_SR_CC1IF) {
-        CLEAR_FLAG(TIM1->SR, TIM_SR_CC1IF);
-        tim1_cc1_callback();
-    }
-
-    if (sr & TIM_SR_CC2IF) {
-        CLEAR_FLAG(TIM1->SR, TIM_SR_CC2IF);
-        tim1_cc2_callback();
-    }
-
-    if (sr & TIM_SR_CC3IF) {
-        CLEAR_FLAG(TIM1->SR, TIM_SR_CC3IF);
-        tim1_cc3_callback();
-    }
-
-    if (sr & TIM_SR_CC4IF) {
-        CLEAR_FLAG(TIM1->SR, TIM_SR_CC4IF);
-        tim1_cc4_callback();
-    }
-}
-**/
-
 void TIM1_CC_IRQHandler(void)
 {
     uint32_t sr = TIM1->SR;
@@ -298,7 +241,7 @@ void TIM1_CC_IRQHandler(void)
     /* Capture / Compare 1 */
     if (sr & TIM_SR_CC1IF)
     {
-        TIM1->SR = ~TIM_SR_CC1IF;
+    	CLEAR_FLAG(TIM1->SR, TIM_SR_CC1IF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -316,7 +259,7 @@ void TIM1_CC_IRQHandler(void)
     /* Capture / Compare 2 */
     if (sr & TIM_SR_CC2IF)
     {
-        TIM1->SR = ~TIM_SR_CC2IF;
+    	CLEAR_FLAG(TIM1->SR, TIM_SR_CC2IF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -334,7 +277,7 @@ void TIM1_CC_IRQHandler(void)
     /* Capture / Compare 3 */
     if (sr & TIM_SR_CC3IF)
     {
-        TIM1->SR = ~TIM_SR_CC3IF;
+    	CLEAR_FLAG(TIM1->SR, TIM_SR_CC3IF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -352,7 +295,7 @@ void TIM1_CC_IRQHandler(void)
     /* Capture / Compare 4 */
     if (sr & TIM_SR_CC4IF)
     {
-        TIM1->SR = ~TIM_SR_CC4IF;
+    	CLEAR_FLAG(TIM1->SR, TIM_SR_CC4IF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -852,6 +795,23 @@ void TIM5_IRQHandler(void)
 /********************************************************************
  * TIM6–TIM7 (BASIC TIMERS)
  ********************************************************************/
+void TIM6_IRQHandler(void)
+{
+    if (TIM6->SR & TIM_SR_UIF)
+    {
+        CLEAR_FLAG(TIM6->SR, TIM_SR_UIF);
+
+        if (irq()->tim->tim6->update != NULL)
+        {
+            irq()->tim->tim6->update();
+        }
+        else
+        {
+            tim6_u_callback();
+        }
+    }
+}
+
 void TIM7_IRQHandler(void)
 {
     if (TIM7->SR & TIM_SR_UIF)
