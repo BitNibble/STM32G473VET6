@@ -10,8 +10,9 @@ Date:     04062026
 
 /*** Library ***/
 #include <stm32g4xx.h>
-#include "stm32g4_instance.h"
 #include "custom_hal_def.h"
+#include "stm32g4_instance.h"
+#include "stm32_irq.h"
 #include "stm32xtool.h"
 
 // Clamping wrappers

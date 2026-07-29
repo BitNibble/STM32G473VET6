@@ -78,6 +78,8 @@ void select_mode(EXPLODE_Handler active_press);
 void adjust_active_field(EXPLODE_Handler active_press);
 void speed_inc(void);
 
+void blink(void);
+
 int main(void)
 {
 	rcc()->run->inic();
@@ -105,6 +107,12 @@ int main(void)
 	(void) lcd1;
 
 	drive = l293d_enable(GPIOE, ZERO);
+
+	tim1()->run->clock_enable();
+	tim1()->run->init_by_ticks(tim1()->par->prescaler,tim1()->par->autoreload);
+	tim1()->run->nvic_u_enable(3);
+	irq()->tim->tim1->update = blink;
+	//tim1()->run->start();
 
 	lcd1.run->start(&lcd1.par);
 	lcd1.run->draw_circle(&lcd1.par,220,300,15,ST77XX_CYAN);
@@ -287,4 +295,9 @@ void adjust_active_field(EXPLODE_Handler active_press)
 void speed_inc(void) {
 	exe()->increment(&speed, 530, drive.par.tim_arr);
 }
+
+void blink(void){
+	dev()->run->toggle_hpin(dev()->gpio->f, 1 << 2);
+}
+
 

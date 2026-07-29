@@ -1,6 +1,10 @@
 #ifndef STM32_IRQ_H
 	#define STM32_IRQ_H
 
+#include <stdint.h>
+#include <inttypes.h>
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C"
 {

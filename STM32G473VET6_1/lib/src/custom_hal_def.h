@@ -10,6 +10,8 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <inttypes.h>
+#include <stddef.h>
 
 #if !defined  (HSE_VALUE)
 #define HSE_VALUE    (8000000UL) /*!< Value of the External oscillator in Hz */
