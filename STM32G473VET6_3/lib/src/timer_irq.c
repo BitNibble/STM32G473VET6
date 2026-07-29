@@ -12,11 +12,6 @@ Comment:
 #include <stm32g4xx.h>
 
 /********************************************************************
- * HELPERS
- ********************************************************************/
-#define CLEAR_FLAG(REG, MASK)   ((REG) &= ~(MASK))
-
-/********************************************************************
  * TIM1
  ********************************************************************/
 
@@ -115,7 +110,7 @@ void TIM1_BRK_TIM15_IRQHandler(void)
     /* Break */
     if (sr & TIM_SR_BIF)
     {
-        CLEAR_FLAG(TIM1->SR, TIM_SR_BIF);
+        CLEAR_BIT(TIM1->SR, TIM_SR_BIF);
 
         if (irq()->tim->tim1->break_event != NULL)
         {
@@ -130,7 +125,7 @@ void TIM1_BRK_TIM15_IRQHandler(void)
     /* Break 2 (STM32G4 uses B2IF) */
     if (sr & TIM_SR_B2IF)
     {
-        CLEAR_FLAG(TIM1->SR, TIM_SR_B2IF);
+        CLEAR_BIT(TIM1->SR, TIM_SR_B2IF);
 
         if (irq()->tim->tim1->break2 != NULL)
         {
@@ -145,7 +140,7 @@ void TIM1_BRK_TIM15_IRQHandler(void)
     /* Commutation */
     if (sr & TIM_SR_COMIF)
     {
-        CLEAR_FLAG(TIM1->SR, TIM_SR_COMIF);
+        CLEAR_BIT(TIM1->SR, TIM_SR_COMIF);
 
         if (irq()->tim->tim1->commutation != NULL)
         {
@@ -160,7 +155,7 @@ void TIM1_BRK_TIM15_IRQHandler(void)
     /* Update */
     if (sr & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM1->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM1->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim1->update != NULL)
         {
@@ -177,7 +172,7 @@ void TIM1_UP_TIM16_IRQHandler(void)
 {
     if (TIM1->SR & TIM_SR_UIF)
     {
-    	CLEAR_FLAG(TIM1->SR, TIM_SR_UIF);
+    	CLEAR_BIT(TIM1->SR, TIM_SR_UIF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -200,7 +195,7 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void)
     /* Trigger */
     if (sr & TIM_SR_TIF)
     {
-    	CLEAR_FLAG(TIM1->SR, TIM_SR_TIF);
+    	CLEAR_BIT(TIM1->SR, TIM_SR_TIF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -218,7 +213,7 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void)
     /* Commutation */
     if (sr & TIM_SR_COMIF)
     {
-    	CLEAR_FLAG(TIM1->SR, TIM_SR_COMIF);
+    	CLEAR_BIT(TIM1->SR, TIM_SR_COMIF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -241,7 +236,7 @@ void TIM1_CC_IRQHandler(void)
     /* Capture / Compare 1 */
     if (sr & TIM_SR_CC1IF)
     {
-    	CLEAR_FLAG(TIM1->SR, TIM_SR_CC1IF);
+    	CLEAR_BIT(TIM1->SR, TIM_SR_CC1IF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -259,7 +254,7 @@ void TIM1_CC_IRQHandler(void)
     /* Capture / Compare 2 */
     if (sr & TIM_SR_CC2IF)
     {
-    	CLEAR_FLAG(TIM1->SR, TIM_SR_CC2IF);
+    	CLEAR_BIT(TIM1->SR, TIM_SR_CC2IF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -277,7 +272,7 @@ void TIM1_CC_IRQHandler(void)
     /* Capture / Compare 3 */
     if (sr & TIM_SR_CC3IF)
     {
-    	CLEAR_FLAG(TIM1->SR, TIM_SR_CC3IF);
+    	CLEAR_BIT(TIM1->SR, TIM_SR_CC3IF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -295,7 +290,7 @@ void TIM1_CC_IRQHandler(void)
     /* Capture / Compare 4 */
     if (sr & TIM_SR_CC4IF)
     {
-    	CLEAR_FLAG(TIM1->SR, TIM_SR_CC4IF);
+    	CLEAR_BIT(TIM1->SR, TIM_SR_CC4IF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -321,7 +316,7 @@ void TIM8_BRK_IRQHandler(void)
     /* Break */
     if (sr & TIM_SR_BIF)
     {
-        CLEAR_FLAG(TIM8->SR, TIM_SR_BIF);
+        CLEAR_BIT(TIM8->SR, TIM_SR_BIF);
 
         if (irq()->tim->tim8->break_event != NULL)
         {
@@ -336,7 +331,7 @@ void TIM8_BRK_IRQHandler(void)
     /* Commutation */
     if (sr & TIM_SR_COMIF)
     {
-        CLEAR_FLAG(TIM8->SR, TIM_SR_COMIF);
+        CLEAR_BIT(TIM8->SR, TIM_SR_COMIF);
 
         if (irq()->tim->tim8->commutation != NULL)
         {
@@ -356,7 +351,7 @@ void TIM8_UP_IRQHandler(void)
     /* Update */
     if (sr & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM8->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM8->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim8->update != NULL)
         {
@@ -376,7 +371,7 @@ void TIM8_TRG_COM_IRQHandler(void)
     /* Trigger */
     if (sr & TIM_SR_TIF)
     {
-        CLEAR_FLAG(TIM8->SR, TIM_SR_TIF);
+        CLEAR_BIT(TIM8->SR, TIM_SR_TIF);
 
         if (irq()->tim->tim8->trigger != NULL)
         {
@@ -391,7 +386,7 @@ void TIM8_TRG_COM_IRQHandler(void)
     /* Commutation */
     if (sr & TIM_SR_COMIF)
     {
-        CLEAR_FLAG(TIM8->SR, TIM_SR_COMIF);
+        CLEAR_BIT(TIM8->SR, TIM_SR_COMIF);
 
         if (irq()->tim->tim8->commutation != NULL)
         {
@@ -411,7 +406,7 @@ void TIM8_CC_IRQHandler(void)
     /* Capture / Compare 1 */
     if (sr & TIM_SR_CC1IF)
     {
-        CLEAR_FLAG(TIM8->SR, TIM_SR_CC1IF);
+        CLEAR_BIT(TIM8->SR, TIM_SR_CC1IF);
 
         if (irq()->tim->tim8->cc1 != NULL)
         {
@@ -426,7 +421,7 @@ void TIM8_CC_IRQHandler(void)
     /* Capture / Compare 2 */
     if (sr & TIM_SR_CC2IF)
     {
-        CLEAR_FLAG(TIM8->SR, TIM_SR_CC2IF);
+        CLEAR_BIT(TIM8->SR, TIM_SR_CC2IF);
 
         if (irq()->tim->tim8->cc2 != NULL)
         {
@@ -441,7 +436,7 @@ void TIM8_CC_IRQHandler(void)
     /* Capture / Compare 3 */
     if (sr & TIM_SR_CC3IF)
     {
-        CLEAR_FLAG(TIM8->SR, TIM_SR_CC3IF);
+        CLEAR_BIT(TIM8->SR, TIM_SR_CC3IF);
 
         if (irq()->tim->tim8->cc3 != NULL)
         {
@@ -456,7 +451,7 @@ void TIM8_CC_IRQHandler(void)
     /* Capture / Compare 4 */
     if (sr & TIM_SR_CC4IF)
     {
-        CLEAR_FLAG(TIM8->SR, TIM_SR_CC4IF);
+        CLEAR_BIT(TIM8->SR, TIM_SR_CC4IF);
 
         if (irq()->tim->tim8->cc4 != NULL)
         {
@@ -479,7 +474,7 @@ void TIM2_IRQHandler(void)
     /* Update */
     if (sr & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM2->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM2->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim2->update != NULL)
         {
@@ -494,7 +489,7 @@ void TIM2_IRQHandler(void)
     /* Capture / Compare 1 */
     if (sr & TIM_SR_CC1IF)
     {
-        CLEAR_FLAG(TIM2->SR, TIM_SR_CC1IF);
+        CLEAR_BIT(TIM2->SR, TIM_SR_CC1IF);
 
         if (irq()->tim->tim2->cc1 != NULL)
         {
@@ -509,7 +504,7 @@ void TIM2_IRQHandler(void)
     /* Capture / Compare 2 */
     if (sr & TIM_SR_CC2IF)
     {
-        CLEAR_FLAG(TIM2->SR, TIM_SR_CC2IF);
+        CLEAR_BIT(TIM2->SR, TIM_SR_CC2IF);
 
         if (irq()->tim->tim2->cc2 != NULL)
         {
@@ -524,7 +519,7 @@ void TIM2_IRQHandler(void)
     /* Capture / Compare 3 */
     if (sr & TIM_SR_CC3IF)
     {
-        CLEAR_FLAG(TIM2->SR, TIM_SR_CC3IF);
+        CLEAR_BIT(TIM2->SR, TIM_SR_CC3IF);
 
         if (irq()->tim->tim2->cc3 != NULL)
         {
@@ -539,7 +534,7 @@ void TIM2_IRQHandler(void)
     /* Capture / Compare 4 */
     if (sr & TIM_SR_CC4IF)
     {
-        CLEAR_FLAG(TIM2->SR, TIM_SR_CC4IF);
+        CLEAR_BIT(TIM2->SR, TIM_SR_CC4IF);
 
         if (irq()->tim->tim2->cc4 != NULL)
         {
@@ -559,7 +554,7 @@ void TIM3_IRQHandler(void)
     /* Update */
     if (sr & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM3->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM3->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim3->update != NULL)
         {
@@ -574,7 +569,7 @@ void TIM3_IRQHandler(void)
     /* Capture / Compare 1 */
     if (sr & TIM_SR_CC1IF)
     {
-        CLEAR_FLAG(TIM3->SR, TIM_SR_CC1IF);
+        CLEAR_BIT(TIM3->SR, TIM_SR_CC1IF);
 
         if (irq()->tim->tim3->cc1 != NULL)
         {
@@ -589,7 +584,7 @@ void TIM3_IRQHandler(void)
     /* Capture / Compare 2 */
     if (sr & TIM_SR_CC2IF)
     {
-        CLEAR_FLAG(TIM3->SR, TIM_SR_CC2IF);
+        CLEAR_BIT(TIM3->SR, TIM_SR_CC2IF);
 
         if (irq()->tim->tim3->cc2 != NULL)
         {
@@ -604,7 +599,7 @@ void TIM3_IRQHandler(void)
     /* Capture / Compare 3 */
     if (sr & TIM_SR_CC3IF)
     {
-        CLEAR_FLAG(TIM3->SR, TIM_SR_CC3IF);
+        CLEAR_BIT(TIM3->SR, TIM_SR_CC3IF);
 
         if (irq()->tim->tim3->cc3 != NULL)
         {
@@ -619,7 +614,7 @@ void TIM3_IRQHandler(void)
     /* Capture / Compare 4 */
     if (sr & TIM_SR_CC4IF)
     {
-        CLEAR_FLAG(TIM3->SR, TIM_SR_CC4IF);
+        CLEAR_BIT(TIM3->SR, TIM_SR_CC4IF);
 
         if (irq()->tim->tim3->cc4 != NULL)
         {
@@ -639,7 +634,7 @@ void TIM4_IRQHandler(void)
     /* Update */
     if (sr & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM4->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM4->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim4->update != NULL)
         {
@@ -654,7 +649,7 @@ void TIM4_IRQHandler(void)
     /* Capture / Compare 1 */
     if (sr & TIM_SR_CC1IF)
     {
-        CLEAR_FLAG(TIM4->SR, TIM_SR_CC1IF);
+        CLEAR_BIT(TIM4->SR, TIM_SR_CC1IF);
 
         if (irq()->tim->tim4->cc1 != NULL)
         {
@@ -669,7 +664,7 @@ void TIM4_IRQHandler(void)
     /* Capture / Compare 2 */
     if (sr & TIM_SR_CC2IF)
     {
-        CLEAR_FLAG(TIM4->SR, TIM_SR_CC2IF);
+        CLEAR_BIT(TIM4->SR, TIM_SR_CC2IF);
 
         if (irq()->tim->tim4->cc2 != NULL)
         {
@@ -684,7 +679,7 @@ void TIM4_IRQHandler(void)
     /* Capture / Compare 3 */
     if (sr & TIM_SR_CC3IF)
     {
-        CLEAR_FLAG(TIM4->SR, TIM_SR_CC3IF);
+        CLEAR_BIT(TIM4->SR, TIM_SR_CC3IF);
 
         if (irq()->tim->tim4->cc3 != NULL)
         {
@@ -699,7 +694,7 @@ void TIM4_IRQHandler(void)
     /* Capture / Compare 4 */
     if (sr & TIM_SR_CC4IF)
     {
-        CLEAR_FLAG(TIM4->SR, TIM_SR_CC4IF);
+        CLEAR_BIT(TIM4->SR, TIM_SR_CC4IF);
 
         if (irq()->tim->tim4->cc4 != NULL)
         {
@@ -719,7 +714,7 @@ void TIM5_IRQHandler(void)
     /* Update */
     if (sr & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM5->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM5->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim5->update != NULL)
         {
@@ -734,7 +729,7 @@ void TIM5_IRQHandler(void)
     /* Capture / Compare 1 */
     if (sr & TIM_SR_CC1IF)
     {
-        CLEAR_FLAG(TIM5->SR, TIM_SR_CC1IF);
+        CLEAR_BIT(TIM5->SR, TIM_SR_CC1IF);
 
         if (irq()->tim->tim5->cc1 != NULL)
         {
@@ -749,7 +744,7 @@ void TIM5_IRQHandler(void)
     /* Capture / Compare 2 */
     if (sr & TIM_SR_CC2IF)
     {
-        CLEAR_FLAG(TIM5->SR, TIM_SR_CC2IF);
+        CLEAR_BIT(TIM5->SR, TIM_SR_CC2IF);
 
         if (irq()->tim->tim5->cc2 != NULL)
         {
@@ -764,7 +759,7 @@ void TIM5_IRQHandler(void)
     /* Capture / Compare 3 */
     if (sr & TIM_SR_CC3IF)
     {
-        CLEAR_FLAG(TIM5->SR, TIM_SR_CC3IF);
+        CLEAR_BIT(TIM5->SR, TIM_SR_CC3IF);
 
         if (irq()->tim->tim5->cc3 != NULL)
         {
@@ -779,7 +774,7 @@ void TIM5_IRQHandler(void)
     /* Capture / Compare 4 */
     if (sr & TIM_SR_CC4IF)
     {
-        CLEAR_FLAG(TIM5->SR, TIM_SR_CC4IF);
+        CLEAR_BIT(TIM5->SR, TIM_SR_CC4IF);
 
         if (irq()->tim->tim5->cc4 != NULL)
         {
@@ -799,7 +794,7 @@ void TIM6_IRQHandler(void)
 {
     if (TIM6->SR & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM6->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM6->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim6->update != NULL)
         {
@@ -816,7 +811,7 @@ void TIM7_IRQHandler(void)
 {
     if (TIM7->SR & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM7->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM7->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim7->update != NULL)
         {
@@ -836,7 +831,7 @@ void TIM15_IRQHandler(void)
 {
     if (TIM15->SR & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM15->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM15->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim15->update != NULL)
         {
@@ -853,7 +848,7 @@ void TIM16_IRQHandler(void)
 {
     if (TIM16->SR & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM16->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM16->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim16->update != NULL)
         {
@@ -870,7 +865,7 @@ void TIM17_IRQHandler(void)
 {
     if (TIM17->SR & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM17->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM17->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim17->update != NULL)
         {
@@ -890,7 +885,7 @@ void TIM20_UP_IRQHandler(void)
 {
     if (TIM20->SR & TIM_SR_UIF)
     {
-        CLEAR_FLAG(TIM20->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM20->SR, TIM_SR_UIF);
 
         if (irq()->tim->tim20->update != NULL)
         {
@@ -910,7 +905,7 @@ void TIM20_CC_IRQHandler(void)
     /* Capture / Compare 1 */
     if (sr & TIM_SR_CC1IF)
     {
-        CLEAR_FLAG(TIM20->SR, TIM_SR_CC1IF);
+        CLEAR_BIT(TIM20->SR, TIM_SR_CC1IF);
 
         if (irq()->tim->tim20->cc1 != NULL)
         {
@@ -925,7 +920,7 @@ void TIM20_CC_IRQHandler(void)
     /* Capture / Compare 2 */
     if (sr & TIM_SR_CC2IF)
     {
-        CLEAR_FLAG(TIM20->SR, TIM_SR_CC2IF);
+        CLEAR_BIT(TIM20->SR, TIM_SR_CC2IF);
 
         if (irq()->tim->tim20->cc2 != NULL)
         {
@@ -940,7 +935,7 @@ void TIM20_CC_IRQHandler(void)
     /* Capture / Compare 3 */
     if (sr & TIM_SR_CC3IF)
     {
-        CLEAR_FLAG(TIM20->SR, TIM_SR_CC3IF);
+        CLEAR_BIT(TIM20->SR, TIM_SR_CC3IF);
 
         if (irq()->tim->tim20->cc3 != NULL)
         {
@@ -955,7 +950,7 @@ void TIM20_CC_IRQHandler(void)
     /* Capture / Compare 4 */
     if (sr & TIM_SR_CC4IF)
     {
-        CLEAR_FLAG(TIM20->SR, TIM_SR_CC4IF);
+        CLEAR_BIT(TIM20->SR, TIM_SR_CC4IF);
 
         if (irq()->tim->tim20->cc4 != NULL)
         {
@@ -972,7 +967,7 @@ void TIM20_TRG_IRQHandler(void)
 {
     if (TIM20->SR & TIM_SR_TIF)
     {
-        CLEAR_FLAG(TIM20->SR, TIM_SR_TIF);
+        CLEAR_BIT(TIM20->SR, TIM_SR_TIF);
 
         if (irq()->tim->tim20->trigger != NULL)
         {
@@ -989,7 +984,7 @@ void TIM20_BRK_IRQHandler(void)
 {
     if (TIM20->SR & TIM_SR_BIF)
     {
-        CLEAR_FLAG(TIM20->SR, TIM_SR_BIF);
+        CLEAR_BIT(TIM20->SR, TIM_SR_BIF);
 
         if (irq()->tim->tim20->break_event != NULL)
         {
