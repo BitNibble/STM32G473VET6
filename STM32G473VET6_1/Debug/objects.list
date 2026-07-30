@@ -23,4 +23,5 @@
 "./lib/src/template_instance.o"
 "./lib/src/template_singleton.o"
 "./lib/src/timer_irq.o"
+"./lib/src/usart_irq.o"
 "./lib/src/znpid.o"

@@ -14,7 +14,7 @@ Date:     23/01/2026
 #include "st7789_font.h"
 
 #define ST7789_WIDTH  240
-#define ST7789_HEIGHT 320 // Changed from 240
+#define ST7789_HEIGHT 240 // 240 or 320
 
 /*** Define & Macro ***/
 // RGB to RGB656

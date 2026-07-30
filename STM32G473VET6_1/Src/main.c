@@ -8,6 +8,9 @@ SDA - PC12
 RST - PC9
 DC - PC8
 CS - PC7
+	USART
+TX - GPIOA9
+RX - GPIOA10
 ************************************************************************/
 #include "stm32gxxx_rcc.h"
 #include "arm_systick.h"

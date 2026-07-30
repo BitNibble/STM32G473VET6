@@ -1356,7 +1356,7 @@ void LPUART1_IRQHandler(void)
         }
     }
 
-    // Wakeup from Stop
+    // Wake up from Stop
     if (isr & USART_ISR_WUF)
     {
         LPUART1->ICR = USART_ICR_WUCF;

@@ -41,10 +41,8 @@ static USART1_par par_setup = { // DEFAULT
 	.buff_tx        = u1_tx_raw
 };
 
-
-static void default_idle_irq(void);
-static void default_dma_tx_irq(void);
-
+static void default_usart1_idle_irq(void);
+static void default_usart1_ore_irq(void);
 
 /* ============================================================================
    DRIVER CODE IMPLEMENTATIONS
@@ -173,7 +171,8 @@ static void impl_init(void) {
     NVIC_SetPriority(DMA1_Channel2_IRQn, par_setup.dma_priority);
     NVIC_EnableIRQ(DMA1_Channel2_IRQn);
 
-    irq()->uart->usart1->idle = default_idle_irq;
+    irq()->uart->usart1->idle = default_usart1_idle_irq;
+    irq()->uart->usart1->ore = default_usart1_ore_irq;
 
 }
 
@@ -313,17 +312,25 @@ static uint16_t impl_rx_available(void) {
 /* ============================================================================
    INTERRUPT VECTOR LAYER DRIVER CONNECTIONS
    ============================================================================ */
-static void default_idle_irq(void) {
+static void default_usart1_idle_irq(void) {
+	dev()->comm->usart1->ICR = USART_ICR_IDLECF;
+	par_setup.rx_write_index = _rx_dma_write_snapshot();
+	par_setup.rx_available = impl_rx_available();
+}
+
+static void default_usart1_ore_irq(void) {
+	dev()->comm->usart1->ICR = USART_ICR_ORECF;
+}
+
+static void default_usart1_irq(void) {
     uint32_t isr = dev()->comm->usart1->ISR;
 
     if (isr & USART_ISR_ORE) {
-        dev()->comm->usart1->ICR = USART_ICR_ORECF;
+        default_usart1_ore_irq();
     }
 
     if (isr & USART_ISR_IDLE) {
-        dev()->comm->usart1->ICR = USART_ICR_IDLECF;
-        par_setup.rx_write_index = _rx_dma_write_snapshot();
-        par_setup.rx_available = impl_rx_available();
+        default_usart1_idle_irq();
     }
 }
 
@@ -357,7 +364,7 @@ static USART1_set set_setup = {
 
 /*** USART1 CALLBACK ***/
 static USART1_irq	irq_setup = {
-	.idle    = default_idle_irq,
+	.idle    = default_usart1_irq,
 	.dma_tx = default_dma_tx_irq,
 };
 
