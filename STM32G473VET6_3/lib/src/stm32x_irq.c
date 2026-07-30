@@ -1,10 +1,10 @@
 /******************************************************************************
-	stm32_irq.c
+	stm32x_irq.c
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
 Hardware: STM32GXXX
 *******************************************************************************/
-#include "stm32_irq.h"
+#include "stm32x_irq.h"
 
 /*-------------------------------------------------------------
     TIM

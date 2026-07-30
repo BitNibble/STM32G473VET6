@@ -70,28 +70,28 @@ uint16_t _glyph_size_bytes(uint16_t width, uint16_t height){
 }
 
 static inline void st7789_cs_low(ST7789_par* par) {
-	dev()->run->clear_pin(par->scl_gpio, par->cs_pin);
+	gpio()->clear_pin(par->scl_gpio, par->cs_pin);
 }
 
 static inline void st7789_cs_high(ST7789_par* par) {
-	dev()->run->set_pin(par->scl_gpio, par->cs_pin);
+	gpio()->set_pin(par->scl_gpio, par->cs_pin);
 }
 
 static inline void st7789_dc_data(ST7789_par* par) {
-	dev()->run->set_pin(par->scl_gpio, par->dc_pin);
+	gpio()->set_pin(par->scl_gpio, par->dc_pin);
 }
 
 static inline void st7789_dc_cmd(ST7789_par* par) {
-	dev()->run->clear_pin(par->scl_gpio, par->dc_pin);
+	gpio()->clear_pin(par->scl_gpio, par->dc_pin);
 }
 
 
 static inline void st7789_rst_low(ST7789_par* par) {
-	dev()->run->clear_pin(par->scl_gpio, par->rst_pin);
+	gpio()->clear_pin(par->scl_gpio, par->rst_pin);
 }
 
 static inline void st7789_rst_high(ST7789_par* par) {
-	dev()->run->set_pin(par->scl_gpio, par->rst_pin);
+	gpio()->set_pin(par->scl_gpio, par->rst_pin);
 }
 
 // Reset the display
@@ -261,7 +261,7 @@ static void st7789_init_seq(ST7789_par* par) {
 
     // --- COLOR INVERSION ---
     st7789_cs_low(par);
-    st7789_cmd(par, ST77XX_INVOFF);
+    st7789_cmd(par, ST77XX_INVOFF); // INVON or INVOFF
     st7789_spi_flush(par);
     st7789_cs_high(par);
 
@@ -1032,9 +1032,9 @@ static void st7789_dump_image( ST7789_par* par, uint16_t x0, uint16_t y0, const 
 static void st7789_test_pin(ST7789_par* par, uint8_t pin) {
 	if(pin >= 8) return;
 	for(uint8_t repeat = 0; repeat < 10; repeat++) {
-		dev()->run->set_pin(par->scl_gpio, pin);
+		gpio()->set_pin(par->scl_gpio, pin);
 		_delay_ms(200);
-		dev()->run->clear_pin(par->scl_gpio, pin);
+		gpio()->clear_pin(par->scl_gpio, pin);
 		_delay_ms(200);
 	}
 }
@@ -1043,48 +1043,48 @@ static void st7789_test_pin(ST7789_par* par, uint8_t pin) {
 void st7789_setup_gpio(ST7789_par* par)
 {
     // Enable GPIO clocks
-    if(par->scl_gpio) dev()->run->gpio_clock(par->scl_gpio, 1);  // SCL port also holds CS/DC/RST
-    if(par->sda_gpio) dev()->run->gpio_clock(par->sda_gpio, 1);  // SDA port
+    if(par->scl_gpio) gpio()->clock(par->scl_gpio, 1);  // SCL port also holds CS/DC/RST
+    if(par->sda_gpio) gpio()->clock(par->sda_gpio, 1);  // SDA port
 
     // CS, DC, RST -> Output
     if(par->cmd_gpio) {
-    	dev()->run->gpio_moder(par->cmd_gpio, par->cs_pin, MODE_OUTPUT);
-    	dev()->run->gpio_moder(par->cmd_gpio, par->dc_pin, MODE_OUTPUT);
-    	dev()->run->gpio_moder(par->cmd_gpio, par->rst_pin, MODE_OUTPUT);
+    	gpio()->moder(par->cmd_gpio, par->cs_pin, MODE_OUTPUT);
+    	gpio()->moder(par->cmd_gpio, par->dc_pin, MODE_OUTPUT);
+    	gpio()->moder(par->cmd_gpio, par->rst_pin, MODE_OUTPUT);
         //GPIO_moder(par->scl_gpio, par->miso, MODE_INPUT);
 
-    	dev()->run->gpio_otype(par->cmd_gpio, par->cs_pin, 0);
-    	dev()->run->gpio_otype(par->cmd_gpio, par->dc_pin, 0);
-    	dev()->run->gpio_otype(par->cmd_gpio, par->rst_pin, 0);
+    	gpio()->otype(par->cmd_gpio, par->cs_pin, 0);
+    	gpio()->otype(par->cmd_gpio, par->dc_pin, 0);
+    	gpio()->otype(par->cmd_gpio, par->rst_pin, 0);
         //GPIO_otype(par->scl_gpio, par->miso, 1);
 
-    	dev()->run->gpio_pupd(par->cmd_gpio, par->cs_pin, 0);
-    	dev()->run->gpio_pupd(par->cmd_gpio, par->dc_pin, 0);
-    	dev()->run->gpio_pupd(par->cmd_gpio, par->rst_pin, 0);
+    	gpio()->pupd(par->cmd_gpio, par->cs_pin, 0);
+    	gpio()->pupd(par->cmd_gpio, par->dc_pin, 0);
+    	gpio()->pupd(par->cmd_gpio, par->rst_pin, 0);
         //GPIO_pupd(par->scl_gpio, par->miso, 1);
     }
 
     // SPI pins -> Alternate Function
     if(par->sda_gpio) {
-    	dev()->run->gpio_moder(par->sda_gpio, par->sda_pin, MODE_AF);
-    	dev()->run->gpio_otype(par->sda_gpio, par->sda_pin, 0);
-    	dev()->run->gpio_ospeed(par->sda_gpio, par->sda_pin, 3);
-    	dev()->run->gpio_pupd(par->sda_gpio, par->sda_pin, 0);
-    	dev()->run->gpio_af(par->sda_gpio, par->sda_pin, par->af);
+    	gpio()->moder(par->sda_gpio, par->sda_pin, MODE_AF);
+    	gpio()->otype(par->sda_gpio, par->sda_pin, 0);
+    	gpio()->ospeed(par->sda_gpio, par->sda_pin, 3);
+    	gpio()->pupd(par->sda_gpio, par->sda_pin, 0);
+    	gpio()->af(par->sda_gpio, par->sda_pin, par->af);
     }
 
     if(par->scl_gpio) {
-    	dev()->run->gpio_moder(par->scl_gpio, par->scl_pin, MODE_AF);
-    	dev()->run->gpio_otype(par->scl_gpio, par->scl_pin, 0);
-    	dev()->run->gpio_ospeed(par->scl_gpio, par->scl_pin, 3);
-    	dev()->run->gpio_pupd(par->scl_gpio, par->scl_pin, 0);
-    	dev()->run->gpio_af(par->scl_gpio, par->scl_pin, par->af);
+    	gpio()->moder(par->scl_gpio, par->scl_pin, MODE_AF);
+    	gpio()->otype(par->scl_gpio, par->scl_pin, 0);
+    	gpio()->ospeed(par->scl_gpio, par->scl_pin, 3);
+    	gpio()->pupd(par->scl_gpio, par->scl_pin, 0);
+    	gpio()->af(par->scl_gpio, par->scl_pin, par->af);
     }
 
     // Initial pin states
     if(par->cmd_gpio) {
-        dev()->run->set_hpin(par->cmd_gpio, (1 << par->cs_pin) | (1 << par->rst_pin)); // CS & RST high
-        dev()->run->clear_hpin(par->cmd_gpio, (1 << par->dc_pin));                     // DC low
+        gpio()->set_hpin(par->cmd_gpio, (1 << par->cs_pin) | (1 << par->rst_pin)); // CS & RST high
+        gpio()->clear_hpin(par->cmd_gpio, (1 << par->dc_pin));                     // DC low
     }
 }
 

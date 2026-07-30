@@ -34,7 +34,7 @@ void rtc_ui_init(void);
 int main(void)
 {
 	rcc()->run->inic();
-	dev()->run->fpu_enable();
+	dev()->get->fpu_enable();
 
 	uint32_t count = 0;
 
@@ -42,8 +42,8 @@ int main(void)
 
 	rtc_ui_init();
 
-	dev()->run->gpio_clock( dev()->gpio->f, 1 ); //
-	dev()->run->gpio_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
+	gpio()->clock( dev()->gpio->f, 1 ); //
+	gpio()->hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
 
 	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
 	(void) lcd1;
@@ -73,11 +73,11 @@ int main(void)
 void rtc_ui_init(void)
 {
     // Enable GPIO Port D Clock via your helper
-	dev()->run->gpio_clock(dev()->gpio->d, 1);
+	gpio()->clock(dev()->gpio->d, 1);
     // Batch set PD8-PD13 to Input Mode (0)
-	dev()->run->gpio_hmoder(dev()->gpio->d, BTN_ALL_PINS_MASK, 0);
+	gpio()->hmoder(dev()->gpio->d, BTN_ALL_PINS_MASK, 0);
     // Batch set PD8-PD13 to internal Pull-Up (1)
-    dev()->run->gpio_hpupd(dev()->gpio->d, BTN_ALL_PINS_MASK, 1);
+    gpio()->hpupd(dev()->gpio->d, BTN_ALL_PINS_MASK, 1);
     // Initialize the edge detector tracking instance
     btn_engine = EXPLODE_enable();
 }

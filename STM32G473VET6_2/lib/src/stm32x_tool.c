@@ -5,7 +5,7 @@ License:  GNU General Public License
 Hardware: STM32
 Update:   15/11/2025
 *****************************************/
-#include "stm32xtool.h"
+#include "stm32x_tool.h"
 
 #include <stdio.h>
 #include <stdlib.h>

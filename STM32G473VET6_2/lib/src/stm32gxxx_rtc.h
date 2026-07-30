@@ -10,7 +10,6 @@ Date:     08/06/2026
 
 /*** Libraries ***/
 #include "stm32g473vet6.h"
-#include "stm32xtool.h"
 
 /*** Define & Macro ***/
 #ifndef RTC_KEY1

@@ -13,7 +13,6 @@ CH2 - PA7 - M1.2 PWM Reverse
 
 /*** LIBRARY ***/
 #include "stm32g473vet6.h"
-#include "stm32xtool.h"
 #include <inttypes.h>
 
 /*** Parameter ***/

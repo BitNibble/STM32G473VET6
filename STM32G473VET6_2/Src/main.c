@@ -83,7 +83,7 @@ void blink(void);
 int main(void)
 {
 	rcc()->run->inic();
-	dev()->run->fpu_enable();
+	dev()->get->fpu_enable();
 	rtc()->run->inic();
 
 	char str[32];
@@ -94,8 +94,8 @@ int main(void)
 
 	dev()->sys->rcc_bf->AHB2ENR.par.GPIOFEN = 1;
 	dev()->gpio->f_bf->MODER.par.MODE2 = MODE_OUTPUT;
-	//dev()->run->gpio_clock( dev()->gpio->f, 1 );
-	//dev()->run->gpio_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
+	//gpio()->clock( dev()->gpio->f, 1 );
+	//gpio()->hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
 	rtc_ui_init();
 
 	adc1()->run->temp_init();
@@ -111,7 +111,7 @@ int main(void)
 	tim1()->run->clock_enable();
 	tim1()->run->init_by_ticks(tim1()->par->prescaler,tim1()->par->autoreload);
 	tim1()->run->nvic_u_enable(3);
-	irq()->tim->tim1->update = blink;
+	irq()->timer->tim1->update = blink;
 	//tim1()->run->start();
 
 	lcd1.run->start(&lcd1.par);
@@ -196,11 +196,11 @@ int main(void)
 void rtc_ui_init(void)
 {
     // Enable GPIO Port D Clock via your helper
-	dev()->run->gpio_clock(dev()->gpio->d, 1);
+	gpio()->clock(dev()->gpio->d, 1);
     // Batch set PD8-PD13 to Input Mode (0)
-	dev()->run->gpio_hmoder(dev()->gpio->d, BTN_ALL_PINS_MASK, 0);
+	gpio()->hmoder(dev()->gpio->d, BTN_ALL_PINS_MASK, 0);
     // Batch set PD8-PD13 to internal Pull-Up (1)
-    dev()->run->gpio_hpupd(dev()->gpio->d, BTN_ALL_PINS_MASK, 1);
+    gpio()->hpupd(dev()->gpio->d, BTN_ALL_PINS_MASK, 1);
     // Initialize the edge detector tracking instance
     btn_engine = EXPLODE_enable();
 }
@@ -297,7 +297,7 @@ void speed_inc(void) {
 }
 
 void blink(void){
-	dev()->run->toggle_hpin(dev()->gpio->f, 1 << 2);
+	gpio()->toggle_hpin(dev()->gpio->f, 1 << 2);
 }
 
 

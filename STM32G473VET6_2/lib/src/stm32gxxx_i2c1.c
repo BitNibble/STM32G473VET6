@@ -453,12 +453,12 @@ void init_v1(void) {
 	(void) data;
 
 	/*** SETUP ***/
-	dev()->run->gpio_moder( par_setup.pin_scl_gpio, par_setup.pin_scl, MODE_AF );
-	dev()->run->gpio_moder( par_setup.pin_sda_gpio, par_setup.pin_sda, MODE_AF );
-	dev()->run->gpio_af( par_setup.pin_scl_gpio, par_setup.pin_scl, par_setup.pin_scl_af );
-	dev()->run->gpio_af( par_setup.pin_sda_gpio, par_setup.pin_sda, par_setup.pin_sda_af );
-	dev()->run->gpio_pupd( par_setup.pin_scl_gpio, par_setup.pin_scl, GPIO_PULLUP );
-	dev()->run->gpio_pupd( par_setup.pin_sda_gpio, par_setup.pin_sda, GPIO_PULLUP );
+	gpio()->moder( par_setup.pin_scl_gpio, par_setup.pin_scl, MODE_AF );
+	gpio()->moder( par_setup.pin_sda_gpio, par_setup.pin_sda, MODE_AF );
+	gpio()->af( par_setup.pin_scl_gpio, par_setup.pin_scl, par_setup.pin_scl_af );
+	gpio()->af( par_setup.pin_sda_gpio, par_setup.pin_sda, par_setup.pin_sda_af );
+	gpio()->pupd( par_setup.pin_scl_gpio, par_setup.pin_scl, GPIO_PULLUP );
+	gpio()->pupd( par_setup.pin_sda_gpio, par_setup.pin_sda, GPIO_PULLUP );
 
 	i2c1_clock_enable();
 	i2c1_digital_filter(1);
@@ -491,14 +491,14 @@ void init_v1(void) {
 
 static void init(void) {
 	/*** SETUP ***/
-	dev()->run->gpio_clock( par_setup.pin_scl_gpio, ONE );
-	dev()->run->gpio_clock( par_setup.pin_sda_gpio, ONE );
-	dev()->run->gpio_moder( par_setup.pin_scl_gpio, par_setup.pin_scl, MODE_AF );
-	dev()->run->gpio_moder( par_setup.pin_sda_gpio, par_setup.pin_sda, MODE_AF );
-	dev()->run->gpio_af( par_setup.pin_scl_gpio, par_setup.pin_scl, par_setup.pin_scl_af );
-	dev()->run->gpio_af( par_setup.pin_sda_gpio, par_setup.pin_sda, par_setup.pin_sda_af );
-	dev()->run->gpio_pupd( par_setup.pin_scl_gpio, par_setup.pin_scl, GPIO_PULLUP );
-	dev()->run->gpio_pupd( par_setup.pin_sda_gpio, par_setup.pin_sda, GPIO_PULLUP );
+	gpio()->clock( par_setup.pin_scl_gpio, ONE );
+	gpio()->clock( par_setup.pin_sda_gpio, ONE );
+	gpio()->moder( par_setup.pin_scl_gpio, par_setup.pin_scl, MODE_AF );
+	gpio()->moder( par_setup.pin_sda_gpio, par_setup.pin_sda, MODE_AF );
+	gpio()->af( par_setup.pin_scl_gpio, par_setup.pin_scl, par_setup.pin_scl_af );
+	gpio()->af( par_setup.pin_sda_gpio, par_setup.pin_sda, par_setup.pin_sda_af );
+	gpio()->pupd( par_setup.pin_scl_gpio, par_setup.pin_scl, GPIO_PULLUP );
+	gpio()->pupd( par_setup.pin_sda_gpio, par_setup.pin_sda, GPIO_PULLUP );
 
 	i2c1_clock_enable();
 	i2c1_digital_filter(1);

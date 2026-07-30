@@ -8,7 +8,7 @@ Date:     04062026
 #include "stm32g473vet6.h"
 
 /*** DEV PARAMETER ***/
-static CORE_Block core = {
+static CORE_Block core_setup = {
     .nvic      = NVIC,
     .scb       = SCB,
     .systick   = SysTick,
@@ -19,7 +19,7 @@ static CORE_Block core = {
     .coredebug = CoreDebug
 };
 
-static SYSTEM_Block sys = {
+static SYSTEM_Block sys_setup = {
     .rcc    = RCC,
 	.rcc_bf = (RCC_BitField_TypeDef*) RCC,
     .flash  = FLASH,
@@ -28,7 +28,7 @@ static SYSTEM_Block sys = {
     .crs    = CRS
 };
 
-static GPIO_Block gpio = {
+static GPIO_Block gpio_setup = {
     .a = GPIOA,
 	.a_bf = (GPIO_BitField_TypeDef*) GPIOA,
     .b = GPIOB,
@@ -57,7 +57,7 @@ static GPIO_Block gpio = {
 #endif
 };
 
-static TIM_Block tim = {
+static TIM_Block tim_setup = {
     /* Advanced */
     .tim1  = TIM1,
 #ifdef TIM8
@@ -87,7 +87,7 @@ static TIM_Block tim = {
     .tim17 = TIM17
 };
 
-static DMA_Block dma = {
+static DMA_Block dma_setup = {
     .dma1     = DMA1,
     .dma1_ch1 = DMA1_Channel1,
     .dma1_ch2 = DMA1_Channel2,
@@ -124,7 +124,7 @@ static DMA_Block dma = {
 #endif
 };
 
-static ANALOG_Block analog = {
+static ANALOG_Block analog_setup = {
     .adc1          = ADC1,
 #ifdef ADC2
     .adc2          = ADC2,
@@ -158,7 +158,7 @@ static ANALOG_Block analog = {
     .opamp         = OPAMP
 };
 
-static COMM_Block comm = {
+static COMM_Block comm_setup = {
     .usart1  = USART1,
     .usart2  = USART2,
 #ifdef USART3
@@ -210,7 +210,7 @@ static COMM_Block comm = {
 #endif
 };
 
-static EXT_Block ext = {
+static EXT_Block ext_setup = {
 #ifdef USB
     .usb_fs = USB,
 #endif
@@ -219,19 +219,19 @@ static EXT_Block ext = {
 #endif
 };
 
-static WD_Block wd = {
+static WD_Block wd_setup = {
     .iwdg = IWDG,
     .wwdg = WWDG
 };
 
-static MEMORY_Block memory = {
+static MEMORY_Block memory_setup = {
     .crc = CRC,
 #ifdef FMC_BANK1_R
     .fmc = FMC_BANK1_R
 #endif
 };
 
-static EVENT_Block event = {
+static EVENT_Block event_setup = {
     .exti      = EXTI,
     .dmamux1   = DMAMUX1,
     .dmamux_rg = DMAMUX1_RequestGenerator0
@@ -243,7 +243,7 @@ static EVENT_Block event = {
 =========================================================*/
 static inline uint32_t get_pll_source(void)
 {
-    uint32_t src = exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
+    uint32_t src = exe()->get_field_value(sys_setup.rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
 
     /* On G4: 00=No clock, 01=Reserved, 10=HSI16, 11=HSE */
     return (src == 3U) ? HSE_VALUE : HSI_VALUE;
@@ -255,19 +255,19 @@ static inline uint32_t get_pll_source(void)
 static inline uint8_t get_pllm(void)
 {
     /* PLLM mapping on G4: 0001=/2, 0010=/3... so M = value + 1 */
-    uint32_t m = exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, RCC_PLLCFGR_PLLM_Pos);
+    uint32_t m = exe()->get_field_value(sys_setup.rcc->PLLCFGR, RCC_PLLCFGR_PLLM_Msk, RCC_PLLCFGR_PLLM_Pos);
     return (uint8_t)(m + 1U);
 }
 
 static inline uint16_t get_plln(void)
 {
-    return (uint16_t)exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, RCC_PLLCFGR_PLLN_Pos);
+    return (uint16_t)exe()->get_field_value(sys_setup.rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, RCC_PLLCFGR_PLLN_Pos);
 }
 
 /* PLLP */
 static inline uint8_t get_pllp(void)
 {
-    uint32_t p = exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLP_Msk, RCC_PLLCFGR_PLLP_Pos);
+    uint32_t p = exe()->get_field_value(sys_setup.rcc->PLLCFGR, RCC_PLLCFGR_PLLP_Msk, RCC_PLLCFGR_PLLP_Pos);
     // Hardware rule: values 0 and 1 are invalid/reserved on STM32G4.
     // If read as 0 or 1, the PLLP output clock path is effectively disabled.
     if (p < 2U) return 0;
@@ -278,14 +278,14 @@ static inline uint8_t get_pllp(void)
 static inline uint8_t get_pllq(void)
 {
     /* Output divisor = (value + 1) * 2 */
-    uint32_t q = exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, RCC_PLLCFGR_PLLQ_Pos);
+    uint32_t q = exe()->get_field_value(sys_setup.rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, RCC_PLLCFGR_PLLQ_Pos);
     return (uint8_t)((q + 1U) * 2U);
 }
 
 static inline uint8_t get_pllr(void)
 {
     /* Output divisor = (value + 1) * 2 */
-    uint32_t r = exe()->get_field_value(sys.rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, RCC_PLLCFGR_PLLR_Pos);
+    uint32_t r = exe()->get_field_value(sys_setup.rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, RCC_PLLCFGR_PLLR_Pos);
     return (uint8_t)((r + 1U) * 2U);
 }
 
@@ -316,7 +316,7 @@ static inline uint32_t get_pllclk(void)
 =========================================================*/
 static inline uint32_t get_sysclk(void)
 {
-    uint32_t sws = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos);
+    uint32_t sws = exe()->get_field_value(sys_setup.rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos);
 
     switch (sws)
     {
@@ -338,7 +338,7 @@ static inline uint32_t get_hclk(void)
         2, 4, 8, 16, 64, 128, 256, 512
     };
 
-    uint32_t hpre = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_HPRE_Msk, RCC_CFGR_HPRE_Pos);
+    uint32_t hpre = exe()->get_field_value(sys_setup.rcc->CFGR, RCC_CFGR_HPRE_Msk, RCC_CFGR_HPRE_Pos);
     return get_sysclk() / ahb_presc_table[hpre & 0x0FU];
 }
 
@@ -346,7 +346,7 @@ static inline uint32_t get_hclk(void)
   APB CLOCKS
 =========================================================*/
 static uint8_t get_systickpre(void) {
-    uint32_t value = exe()->get_field_value(core.systick->CTRL, SysTick_CTRL_CLKSOURCE_Msk, SysTick_CTRL_CLKSOURCE_Pos);
+    uint32_t value = exe()->get_field_value(core_setup.systick->CTRL, SysTick_CTRL_CLKSOURCE_Msk, SysTick_CTRL_CLKSOURCE_Pos);
     return value ? 8 : 1;
 }
 
@@ -357,14 +357,14 @@ uint32_t get_systickclk(void) {
 static inline uint32_t get_pclk1(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
-    uint32_t ppre1 = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
+    uint32_t ppre1 = exe()->get_field_value(sys_setup.rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
     return get_hclk() / apb_presc[ppre1 & 0x07U];
 }
 
 static inline uint32_t get_pclk2(void)
 {
     static const uint8_t apb_presc[8] = {1, 1, 1, 1, 2, 4, 8, 16};
-    uint32_t ppre2 = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
+    uint32_t ppre2 = exe()->get_field_value(sys_setup.rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
     return get_hclk() / apb_presc[ppre2 & 0x07U];
 }
 
@@ -373,7 +373,7 @@ static inline uint32_t get_pclk2(void)
 =========================================================*/
 static inline uint32_t get_timclk1(void)
 {
-    uint32_t ppre1 = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
+    uint32_t ppre1 = exe()->get_field_value(sys_setup.rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
     uint32_t pclk1 = get_pclk1();
     uint32_t apb_div = ((ppre1 & 0x04U) == 0U) ? 1U : 2U;
     return pclk1 * apb_div;
@@ -381,7 +381,7 @@ static inline uint32_t get_timclk1(void)
 
 static inline uint32_t get_timclk2(void)
 {
-    uint32_t ppre2 = exe()->get_field_value(sys.rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
+    uint32_t ppre2 = exe()->get_field_value(sys_setup.rcc->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
     uint32_t pclk2 = get_pclk2();
     uint32_t apb_div = ((ppre2 & 0x04U) == 0U) ? 1U : 2U;
     return pclk2 * apb_div;
@@ -394,7 +394,7 @@ static uint32_t get_adc12_hclk(void)
 
 static inline uint32_t _get_adc12_sel(void)
 {
-    return exe()->get_field_value( sys.rcc->CCIPR, RCC_CCIPR_ADC12SEL_Msk, RCC_CCIPR_ADC12SEL_Pos );
+    return exe()->get_field_value( sys_setup.rcc->CCIPR, RCC_CCIPR_ADC12SEL_Msk, RCC_CCIPR_ADC12SEL_Pos );
 }
 
 static uint32_t get_adc12_ker_ck_input(void)
@@ -419,12 +419,12 @@ static uint32_t get_adc12_ker_ck(void)
     if (input == 0)
         return 0;
 
-    uint32_t ckmode = exe()->get_field_value( analog.adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
+    uint32_t ckmode = exe()->get_field_value( analog_setup.adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
 
     /* PRESC only applies in asynchronous mode */
     if (ckmode == 0)
     {
-        uint32_t presc = exe()->get_field_value( analog.adc12_common->CCR, ADC_CCR_PRESC_Msk, ADC_CCR_PRESC_Pos );
+        uint32_t presc = exe()->get_field_value( analog_setup.adc12_common->CCR, ADC_CCR_PRESC_Msk, ADC_CCR_PRESC_Pos );
 
         uint32_t div = 1U << presc;
         return input / div;
@@ -438,7 +438,7 @@ static uint32_t get_freq_adc12(void)
 {
     uint32_t hclk = get_hclk();
 
-    uint32_t ckmode = exe()->get_field_value( analog.adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
+    uint32_t ckmode = exe()->get_field_value( analog_setup.adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
 
     switch (ckmode)
     {
@@ -459,242 +459,6 @@ static uint32_t get_freq_adc12(void)
     }
 }
 
-/************************** GPIO UTILS *****************************/
-/*** STM32G473VET6 ***/
-#ifndef TWO
-	#define TWO 2UL
-#endif
-#ifndef NIBBLE_BITS
-	#define NIBBLE_BITS 4UL
-#endif
-#ifndef WORD_BITS
-	#define WORD_BITS 16UL
-#endif
-#ifndef DWORD_BITS
-	#define DWORD_BITS 32UL
-#endif
-
-void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable)
-{
-    uint32_t mask = 0;
-
-    if (GPIO == GPIOA)      mask = RCC_AHB2ENR_GPIOAEN;
-    else if (GPIO == GPIOB) mask = RCC_AHB2ENR_GPIOBEN;
-    else if (GPIO == GPIOC) mask = RCC_AHB2ENR_GPIOCEN;
-    else if (GPIO == GPIOD) mask = RCC_AHB2ENR_GPIODEN;
-    else if (GPIO == GPIOE) mask = RCC_AHB2ENR_GPIOEEN;
-    else if (GPIO == GPIOF) mask = RCC_AHB2ENR_GPIOFEN;
-#ifdef GPIOG
-    else if (GPIO == GPIOG) mask = RCC_AHB2ENR_GPIOGEN;
-#endif
-#ifdef GPIOH
-    else if (GPIO == GPIOH) mask = RCC_AHB2ENR_GPIOHEN;
-#endif
-    else return;
-
-    if (enable)
-        sys.rcc->AHB2ENR |= mask;
-    else
-    	sys.rcc->AHB2ENR &= ~mask;
-}
-
-void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode )
-{
-	if(pin < WORD_BITS && mode < NIBBLE_BITS){
-		const uint8_t BLOCK_SIZE = TWO;
-		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-		const uint8_t Pos = pin * BLOCK_SIZE;
-
-		uint32_t temp = GPIO->MODER;
-		temp &= ~(BLOCK << Pos);
-		temp |= ((uint32_t)mode << Pos);
-		GPIO->MODER = temp;
-	}
-}
-
-void GPIO_otype( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t otype )
-{
-    if(pin < WORD_BITS && otype < TWO){
-        uint32_t temp = GPIO->OTYPER;
-    	temp &= ~(1UL << pin);
-    	temp |= ( (uint32_t)otype << pin );
-    	GPIO->OTYPER = temp;
-    }
-}
-
-void GPIO_ospeed( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t ospeed )
-{
-	if(pin < WORD_BITS && ospeed < NIBBLE_BITS){
-		const uint8_t BLOCK_SIZE = TWO;
-		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-		const uint8_t Pos = (pin * BLOCK_SIZE);
-
-		uint32_t temp = GPIO->OSPEEDR;
-		temp &= ~( BLOCK << Pos );
-		temp |= ( (uint32_t)ospeed << Pos );
-		GPIO->OSPEEDR = temp;
-	}
-}
-
-void GPIO_pupd( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t pupd )
-{
-	if(pin < WORD_BITS && pupd < NIBBLE_BITS){
-		const uint8_t BLOCK_SIZE = TWO;
-		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-		const uint8_t Pos = (pin * BLOCK_SIZE);
-
-		uint32_t temp = GPIO->PUPDR;
-		temp &= ~( BLOCK << Pos );
-		temp |= ( (uint32_t)pupd << Pos );
-		GPIO->PUPDR = temp;
-	}
-}
-
-void GPIO_hmoder( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t mode )
-{
-	if(mode < NIBBLE_BITS) {
-		uint32_t hmoder = GPIO->MODER;
-		const uint8_t BLOCK_SIZE = TWO;
-		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-		for (uint8_t pin = 0; pin < WORD_BITS; pin++)
-		{
-			if (hpin & (1UL << pin)) {
-				uint8_t Pos = pin * BLOCK_SIZE;
-				hmoder &= ~(BLOCK << Pos);
-				hmoder |= ((uint32_t)mode << Pos);
-			}
-		}
-		GPIO->MODER = hmoder;
-	}
-}
-
-void GPIO_hotype( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t otype )
-{
-	if(otype < TWO) {
-		uint32_t hotype = GPIO->OTYPER;
-		for(uint8_t pin = 0; pin < WORD_BITS; pin++)
-		{
-			if(hpin & (1UL << pin)) {
-				hotype &= ~(1UL << pin);
-				hotype |= ( (uint32_t)otype << pin );
-			}
-		}
-		GPIO->OTYPER = hotype;
-	}
-}
-
-void GPIO_hospeed( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t ospeed )
-{
-	if(ospeed < NIBBLE_BITS) {
-		uint32_t hospeed = GPIO->OSPEEDR;
-		const uint8_t BLOCK_SIZE = TWO;
-		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-		for(uint8_t pin = 0; pin < WORD_BITS; pin++)
-		{
-			if (hpin & (1UL << pin)) {
-				uint8_t Pos = (pin * BLOCK_SIZE);
-				hospeed &= ~( BLOCK << Pos );
-				hospeed |= ( (uint32_t)ospeed << Pos );
-			}
-		}
-		GPIO->OSPEEDR = hospeed;
-	}
-}
-
-void GPIO_hpupd( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t pupd )
-{
-	if(pupd < NIBBLE_BITS){
-		uint32_t hpupd = GPIO->PUPDR;
-		const uint8_t BLOCK_SIZE = TWO;
-		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-		for(uint8_t pin = 0; pin < WORD_BITS; pin++)
-		{
-			if (hpin & (1UL << pin)) {
-				const uint8_t Pos = (pin * BLOCK_SIZE);
-				hpupd &= ~( BLOCK << Pos );
-				hpupd |= ( (uint32_t)pupd << Pos );
-			}
-		}
-		GPIO->PUPDR = hpupd;
-	}
-}
-
-void GPIO_lck(GPIO_TypeDef* GPIO, uint16_t hpin)
-{
-    uint32_t tmp;
-
-    GPIO->LCKR = hpin | (1UL << 16);
-    GPIO->LCKR = hpin;
-    GPIO->LCKR = hpin | (1UL << 16);
-
-    tmp = GPIO->LCKR;
-    (void)tmp;
-
-    tmp = GPIO->LCKR;
-    (void)tmp;
-}
-
-void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af )
-{
-	if(pin < WORD_BITS && af < WORD_BITS){
-		const uint8_t BLOCK_SIZE = NIBBLE_BITS;
-    	const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-    	const uint8_t index = (pin * BLOCK_SIZE) / DWORD_BITS;
-    	const uint16_t Pos = (pin * BLOCK_SIZE) % DWORD_BITS;
-
-    	if(index < TWO){
-    	    uint32_t temp = GPIO->AFR[index];
-    		temp &= ~( BLOCK << Pos );
-    		temp |= ( ((uint32_t)af & BLOCK) << Pos );
-    		GPIO->AFR[index] = temp;
-    	}
-	}
-}
-
-void GPIO_haf( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t af )
-{
-    if(af < WORD_BITS) {
-        const uint8_t BLOCK_SIZE = NIBBLE_BITS;
-        const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-
-        // Cache both AFR array masks to run modifications locally before write back
-        uint32_t hafr[2] = { GPIO->AFR[0], GPIO->AFR[1] };
-
-        for(uint8_t pin = 0; pin < WORD_BITS; pin++)
-        {
-            if(hpin & (1UL << pin)) {
-                const uint8_t index = (pin * BLOCK_SIZE) / DWORD_BITS;
-                const uint16_t Pos = (pin * BLOCK_SIZE) % DWORD_BITS;
-
-                hafr[index] &= ~( BLOCK << Pos );
-                hafr[index] |= ( ((uint32_t)af & BLOCK) << Pos );
-            }
-        }
-
-        // Atomic memory block write updates the physical GPIO hardware register layout
-        GPIO->AFR[0] = hafr[0];
-        GPIO->AFR[1] = hafr[1];
-    }
-}
-
-static inline void SET_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
-    reg->BSRR = hpin;
-}
-static inline void CLEAR_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
-    // Cast hpin to 32-bit first, then safely shift into the upper 16 bits
-    reg->BSRR = ((uint32_t)hpin << WORD_BITS);
-}
-static inline void TOGGLE_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
-    reg->ODR ^= hpin;
-}
-static inline void SET_pin(GPIO_TypeDef* reg, uint8_t pin) {
-    // 1UL guarantees safe, unsigned 32-bit shifting
-    reg->BSRR = (1UL << pin);
-}
-static inline void CLEAR_pin(GPIO_TypeDef* reg, uint8_t pin) {
-    // Directly shift 1UL to its final destination in the upper BRy half (pin + 16)
-    reg->BSRR = (1UL << (pin + WORD_BITS));
-}
 /************************* Generic UTILS ***************************/
 U_word writeHLbyte(uint16_t v)
 {
@@ -707,7 +471,7 @@ U_word writeHLbyte(uint16_t v)
 static inline void fpu_enable(void)
 {
     /* Enable full access to CP10 and CP11 (FPU) */
-    core.scb->CPACR |= (0xFU << 20);
+    core_setup.scb->CPACR |= (0xFU << 20);
 
     /* Optional: instruction barrier */
     __DSB();
@@ -735,44 +499,23 @@ static DEV_get get_setup = {
 	.adc12_hclk = get_adc12_hclk,
 	.adc12_ker_ck_input = get_adc12_ker_ck_input,
 	.adc12_ker_ck = get_adc12_ker_ck,
-	.freq_adc12 = get_freq_adc12
-};
-/*** DEV V-TABLE ***/
-static DEV_run run_setup = {
-	.gpio_clock = GPIO_clock,
-	.gpio_moder = GPIO_moder,
-	.gpio_otype = GPIO_otype,
-	.gpio_ospeed = GPIO_ospeed,
-	.gpio_pupd = GPIO_pupd,
-	.gpio_hmoder = GPIO_hmoder,
-	.gpio_hotype = GPIO_hotype,
-	.gpio_hospeed = GPIO_hospeed,
-	.gpio_hpupd = GPIO_hpupd,
-	.gpio_lck = GPIO_lck,
-	.gpio_af = GPIO_af,
-	.gpio_haf = GPIO_haf,
-	.set_hpin = SET_hpin,
-	.clear_hpin = CLEAR_hpin,
-	.toggle_hpin = TOGGLE_hpin,
-	.set_pin = SET_pin,
-	.clear_pin = CLEAR_pin,
+	.freq_adc12 = get_freq_adc12,
 	.fpu_enable = fpu_enable
 };
 /*** DEV HANDLER ***/
 static STM32_DEVICE device = {
-    .core   = &core,
-    .sys = &sys,
-    .gpio   = &gpio,
-    .timer  = &tim,
-    .dma    = &dma,
-    .analog = &analog,
-    .comm   = &comm,
-    .ext    = &ext,
-    .wd     = &wd,
-    .memory = &memory,
-    .event  = &event,
+    .core   = &core_setup,
+    .sys = &sys_setup,
+    .gpio   = &gpio_setup,
+    .timer  = &tim_setup,
+    .dma    = &dma_setup,
+    .analog = &analog_setup,
+    .comm   = &comm_setup,
+    .ext    = &ext_setup,
+    .wd     = &wd_setup,
+    .memory = &memory_setup,
+    .event  = &event_setup,
 	.get = &get_setup,
-	.run = &run_setup,
 };
 /*** DEV ACCESSOR FUNCTION ***/
 STM32_DEVICE* dev(void) { return &device; }

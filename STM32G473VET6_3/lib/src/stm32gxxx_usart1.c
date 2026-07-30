@@ -119,25 +119,25 @@ static void impl_set_baudrate(uint32_t baudrate) {
 
 static void impl_init(void) {
     // Gating Clocks via Native GPIO and Clock System tree APIs
-	dev()->run->gpio_clock(par_setup.rx_gpio, ONE);
-	dev()->run->gpio_clock(par_setup.tx_gpio, ONE);
+	gpio()->clock(par_setup.rx_gpio, ONE);
+	gpio()->clock(par_setup.tx_gpio, ONE);
     exe()->set_reg(&(dev()->sys->rcc->AHB1ENR), RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMAMUX1EN);
     exe()->set_reg(&(dev()->sys->rcc->APB2ENR), RCC_APB2ENR_USART1EN);
 
     // Configure Alternate Pin Functions using your tool functions (AF7 for USART1)
-    dev()->run->gpio_moder(par_setup.tx_gpio, par_setup.tx_pin,  MODE_AF);  // PA9  -> TX Line
-    dev()->run->gpio_moder(par_setup.rx_gpio, par_setup.rx_pin, MODE_AF);  // PA10 -> RX Line
-    dev()->run->gpio_af(par_setup.tx_gpio, par_setup.tx_pin,  7);
-    dev()->run->gpio_af(par_setup.rx_gpio, par_setup.rx_pin, 7);
+    gpio()->moder(par_setup.tx_gpio, par_setup.tx_pin,  MODE_AF);  // PA9  -> TX Line
+    gpio()->moder(par_setup.rx_gpio, par_setup.rx_pin, MODE_AF);  // PA10 -> RX Line
+    gpio()->af(par_setup.tx_gpio, par_setup.tx_pin,  7);
+    gpio()->af(par_setup.rx_gpio, par_setup.rx_pin, 7);
 
-    dev()->run->gpio_ospeed(par_setup.tx_gpio, par_setup.tx_pin,  3);
-    dev()->run->gpio_ospeed(par_setup.rx_gpio, par_setup.rx_pin, 3);
+    gpio()->ospeed(par_setup.tx_gpio, par_setup.tx_pin,  3);
+    gpio()->ospeed(par_setup.rx_gpio, par_setup.rx_pin, 3);
 
-    dev()->run->gpio_otype(par_setup.tx_gpio, par_setup.tx_pin,  0);
-    dev()->run->gpio_otype(par_setup.rx_gpio, par_setup.rx_pin, 0);
+    gpio()->otype(par_setup.tx_gpio, par_setup.tx_pin,  0);
+    gpio()->otype(par_setup.rx_gpio, par_setup.rx_pin, 0);
 
-    dev()->run->gpio_pupd(par_setup.tx_gpio, par_setup.tx_pin,  0);
-    dev()->run->gpio_pupd(par_setup.rx_gpio, par_setup.rx_pin, 1);
+    gpio()->pupd(par_setup.tx_gpio, par_setup.tx_pin,  0);
+    gpio()->pupd(par_setup.rx_gpio, par_setup.rx_pin, 1);
 
     // Routing Peripheral Signals into DMAMUX Matrices (Ch1=RX, Ch2=TX)
     exe()->write_field_value(&(dev()->dma->dmamux1_ch1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.rx_dma_ch);

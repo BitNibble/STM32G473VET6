@@ -1,11 +1,11 @@
 /******************************************************************************
-	stm32_irq.h
+	stm32x_irq.h
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
 Hardware: STM32GXXX
 *******************************************************************************/
-#ifndef STM32_IRQ_H
-	#define STM32_IRQ_H
+#ifndef STM32X_IRQ_H
+	#define STM32X_IRQ_H
 
 #include <stdint.h>
 #include <inttypes.h>
@@ -228,7 +228,7 @@ typedef struct
 
 typedef struct
 {
-    irq_tim_t  *tim;
+    irq_tim_t  *timer;
     irq_uart_t *uart;
     irq_i2c_t  *i2c;
     irq_spi_t  *spi;

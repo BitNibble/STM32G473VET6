@@ -23,6 +23,9 @@ RX - GPIOA10
 
 #define BG_colour 0x0000
 
+//typedef struct TIM1_Handler TIM1_Handler;
+//TIM1_Handler* tim1(void);
+
 // Retrieve global reference to layout instance
 static const USARTG4_Handle* Serial1;
 char* token[4];
@@ -33,13 +36,13 @@ char* ptr = NULL;
 
 void tim1_blink_setup(void)
 {
-    tim1()->run->init_by_ticks(119,1999999);
+    tim1()->run->init_by_ticks(1000,16699999);
     tim1()->run->nvic_u_enable(2);
     tim1()->run->start();
 }
 void tim1_u_callback(void)
 {
-	dev()->run->toggle_hpin(dev()->gpio->f, 1 << 2);
+	gpio()->toggle_hpin(dev()->gpio->f, 1 << 2);
 }
 
 void application_init(void)
@@ -47,13 +50,13 @@ void application_init(void)
     // Define target pins for TIM1 CH1, CH2, CH3 (PA8 | PA9 | PA10)
     uint16_t tim1_pins = (1UL << 8) | (1UL << 9) | (1UL << 10);
     // 1. Fire up the clock gating blocks through the accessors
-    dev()->run->gpio_clock(dev()->gpio->a, 1);
+    gpio()->clock(dev()->gpio->a, 1);
     // 2. Multi-pin batch setup: Mode = Alternate Function (0x02)
-    dev()->run->gpio_hmoder(dev()->gpio->a, tim1_pins, MODE_AF);
+    gpio()->hmoder(dev()->gpio->a, tim1_pins, MODE_AF);
     // 3. Speed selection: Very High Speed (0x03) for crisp PWM edges
-    dev()->run->gpio_hospeed(dev()->gpio->a, tim1_pins, 3);
+    gpio()->hospeed(dev()->gpio->a, tim1_pins, 3);
     // 4. Batch assign Alternate Function 6 (AF6 = TIM1) across your target array
-    dev()->run->gpio_haf(dev()->gpio->a, tim1_pins, 6);
+    gpio()->haf(dev()->gpio->a, tim1_pins, 6);
     // 5. Initialize TIM1 to fire at a clean 20kHz target using your frequency tool
     tim1()->run->init_by_freq(0, 20000);
     // 6. Set initial 50% duty cycle pulses (assuming ARR configured via auto calculation)
@@ -68,15 +71,15 @@ void application_init(void)
 int main(void)
 {
 	rcc()->run->inic();
-	dev()->run->fpu_enable();
+	dev()->get->fpu_enable();
 	rtc()->run->inic();
 
 	//char str[32];
 	//char vecD[8]; // for calendar date
 	//char vecT[8]; // for calendar time
 
-	dev()->run->gpio_clock( dev()->gpio->f, 1 );
-	dev()->run->gpio_hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
+	gpio()->clock( dev()->gpio->f, 1 );
+	gpio()->hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
 
 	//clear_pin(dev()->gpio->f, 1 << 2);
 
@@ -99,7 +102,7 @@ int main(void)
 	lcd1.run->stop(&lcd1.par);
 
 	tim1_blink_setup();
-	tim1()->irq->u = tim1_u_callback;
+	irq()->timer->tim1->update = tim1_u_callback;
 
 	while(1)
 	{
@@ -156,7 +159,7 @@ int main(void)
 
 				// Safe command structure execution context
 				if (strcmp(token[0], "s00") == 0) {
-					dev()->run->toggle_hpin(dev()->gpio->f, 1 << 2);
+					gpio()->toggle_hpin(dev()->gpio->f, 1 << 2);
 					Serial1->run->send((uint8_t *) "ACK: Pin Toggled\r\n", 18);
 				}
 			}

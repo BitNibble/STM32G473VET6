@@ -12,8 +12,9 @@ Date:     04062026
 #include <stm32g4xx.h>
 #include "custom_hal_def.h"
 #include "stm32g4_instance.h"
-#include "stm32_irq.h"
-#include "stm32xtool.h"
+#include "stm32x_irq.h"
+#include "stm32x_tool.h"
+#include "stm32x_gpio.h"
 
 // Clamping wrappers
 #define LIMIT_INC(val, max, min)  ((val) >= (max) ? (min) : (val) + 1)
@@ -316,28 +317,8 @@ typedef const struct {
 	uint32_t (*adc12_ker_ck_input)(void);
 	uint32_t (*adc12_ker_ck)(void);
 	uint32_t (*freq_adc12)(void);
-}DEV_get;
-/*** DEV V-TABLE ***/
-typedef const struct {
-	void (*gpio_clock)(GPIO_TypeDef* GPIO, uint8_t enable);
-	void (*gpio_moder)( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode );
-	void (*gpio_otype)( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t otype );
-	void (*gpio_ospeed)( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t ospeed );
-	void (*gpio_pupd)( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t pupd );
-	void (*gpio_hmoder)( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t mode );
-	void (*gpio_hotype)( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t otype );
-	void (*gpio_hospeed)( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t ospeed );
-	void (*gpio_hpupd)( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t pupd );
-	void (*gpio_lck)(GPIO_TypeDef* GPIO, uint16_t hpin);
-	void (*gpio_af)( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af );
-	void (*gpio_haf)( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t af );
-	void (*set_hpin)(GPIO_TypeDef* reg, uint16_t hpin);
-	void (*clear_hpin)(GPIO_TypeDef* reg, uint16_t hpin);
-	void (*toggle_hpin)(GPIO_TypeDef* reg, uint16_t hpin);
-	void (*set_pin)(GPIO_TypeDef* reg, uint8_t pin);
-	void (*clear_pin)(GPIO_TypeDef* reg, uint8_t pin);
 	void (*fpu_enable)(void);
-}DEV_run;
+}DEV_get;
 /*** DEV HANDLER ***/
 typedef const struct {
 	CORE_Block* core;
@@ -352,7 +333,6 @@ typedef const struct {
 	MEMORY_Block* memory;
 	EVENT_Block* event;
 	DEV_get* get;
-	DEV_run* run;
 } STM32_DEVICE;
 /*** DEV ACCESSOR FUNCTION ***/
 STM32_DEVICE* dev(void);

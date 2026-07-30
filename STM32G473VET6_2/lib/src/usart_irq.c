@@ -5,7 +5,7 @@ License:  GNU General Public License
 Hardware: STM32GXXX
 *******************************************************************************/
 #include "usart_irq.h"
-#include "stm32_irq.h"
+#include "stm32x_irq.h"
 #include <stm32g4xx.h>
 /******************************************************************************
  * USART1
