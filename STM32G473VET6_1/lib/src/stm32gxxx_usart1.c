@@ -43,6 +43,7 @@ static USART1_par par_setup = { // DEFAULT
 
 static void default_usart1_idle_irq(void);
 static void default_usart1_ore_irq(void);
+static void default_usart1_dma_tx_irq(void);
 
 /* ============================================================================
    DRIVER CODE IMPLEMENTATIONS
@@ -173,6 +174,7 @@ static void impl_init(void) {
 
     irq()->uart->usart1->idle = default_usart1_idle_irq;
     irq()->uart->usart1->ore = default_usart1_ore_irq;
+    irq()->dma->dma1->ch2->tc = default_usart1_dma_tx_irq;
 
 }
 
@@ -322,28 +324,10 @@ static void default_usart1_ore_irq(void) {
 	dev()->comm->usart1->ICR = USART_ICR_ORECF;
 }
 
-static void default_usart1_irq(void) {
-    uint32_t isr = dev()->comm->usart1->ISR;
-
-    if (isr & USART_ISR_ORE) {
-        default_usart1_ore_irq();
-    }
-
-    if (isr & USART_ISR_IDLE) {
-        default_usart1_idle_irq();
-    }
-}
-
-static void default_dma_tx_irq(void) {
-    // Read the DMA channel 2 status using your framework layout
-    uint32_t isr = dev()->dma->dma1->ISR; // double check your framework's name for global ISR
-
-    if (isr & DMA_ISR_TCIF2) {
-        // Clear the Channel 2 Transfer Complete flag using your native helper/register
-        dev()->dma->dma1->IFCR = DMA_IFCR_CTCIF2;
-
-        par_setup.tx_busy = ZERO; // Release the lock so next transfers can happen
-    }
+static void default_usart1_dma_tx_irq(void) {
+	// Clear the Channel 2 Transfer Complete flag using your native helper/register
+	dev()->dma->dma1->IFCR = DMA_IFCR_CTCIF2;
+	par_setup.tx_busy = ZERO; // Release the lock so next transfers can happen
 }
 
 /*** USART1 GET ***/
@@ -360,12 +344,6 @@ static USART1_set set_setup = {
 	.stopbit = impl_set_stopbit,
 	.samplingmode = impl_set_samplingmode,
 	.baudrate = impl_set_baudrate
-};
-
-/*** USART1 CALLBACK ***/
-static USART1_irq	irq_setup = {
-	.idle    = default_usart1_irq,
-	.dma_tx = default_dma_tx_irq,
 };
 
 /*** USART1 V-TABLE ***/
@@ -389,28 +367,11 @@ static USARTG4_Handle handle_instance = {
 		.par = &par_setup,
 		.get = &get_setup,
 		.set = &set_setup,
-		.irq = &irq_setup,
 		.run = &run_setup
 };
 
 /*** USART1 ACCESSOR FUNCTION ***/
 USARTG4_Handle* usart1(void) { return &handle_instance; }
-
-/*** USART1 INTERRUPT ***
-void USART1_IRQHandler(void) {
-	USART1_irq* req = usart1()->irq;
-	//clear_pin( dev()->gpio->f, 2 );
-    // Call high level driver singleton entry hook
-    if(req->idle) req->idle();
-}
-***/
-
-void DMA1_CH2_IRQHandler(void) {
-	USART1_irq* req = usart1()->irq;
-	//set_pin( dev()->gpio->f, 2 );
-    // Call DMA TX completion tracker hook
-    if(req->dma_tx) req->dma_tx();
-}
 
 /*** EOF ***/
 

@@ -86,11 +86,9 @@ typedef struct
     callback_t framing_error;
     callback_t noise_error;
     callback_t overrun_error;
-    callback_t rx;
     callback_t receiver_timeout;
     callback_t end_of_block;
     callback_t wake_up;
-    callback_t tx;
     callback_t character_match;
 
 } irq_usart_event_t;
@@ -112,12 +110,12 @@ typedef struct
 
 typedef struct
 {
-    callback_t txis;
-    callback_t rxne;
-    callback_t stop;
-    callback_t nack;
-    callback_t tc;
-    callback_t error;
+    callback_t txis;      /* TX Interrupt Status */
+    callback_t rxne;      /* RX Data Ready */
+    callback_t stop;      /* STOP Detected */
+    callback_t nack;      /* NACK Received */
+    callback_t tc;        /* Transfer Complete */
+    callback_t error;     /* Error IRQ */
 
 } irq_i2c_event_t;
 
@@ -136,10 +134,10 @@ typedef struct
 
 typedef struct
 {
-    callback_t txe;
-    callback_t rxne;
-    callback_t eot;
-    callback_t error;
+    callback_t txe;      /* TX FIFO Empty / TX Buffer Empty */
+    callback_t rxne;     /* RX FIFO Not Empty / RX Buffer Not Empty */
+    callback_t eot;      /* End Of Transfer */
+    callback_t error;    /* Any SPI error */
 
 } irq_spi_event_t;
 
@@ -158,9 +156,10 @@ typedef struct
 
 typedef struct
 {
-    callback_t complete;
-    callback_t half;
-    callback_t error;
+    callback_t tc;     /* Transfer Complete */
+    callback_t ht;     /* Half Transfer */
+    callback_t te;     /* Transfer Error */
+    callback_t gif;    /* Global Interrupt */
 
 } irq_dma_channel_t;
 
@@ -189,10 +188,10 @@ typedef struct
 
 typedef struct
 {
-    callback_t eoc;
-    callback_t eos;
-    callback_t awd;
-    callback_t overrun;
+    callback_t eoc;       /* End Of Conversion */
+    callback_t eos;       /* End Of Sequence */
+    callback_t awd;       /* Analog Watchdog */
+    callback_t overrun;   /* Data Overrun */
 
 } irq_adc_event_t;
 

@@ -55,13 +55,6 @@ typedef const struct {
 	void (*baudrate)(uint32_t value);
 } USART1_set;
 
-/*** USART1 CALLBACK ***/
-typedef struct {
-	/* Hardware Interrupt Entry hooks */
-	void (*idle)(void);
-	void (*dma_tx)(void);
-} USART1_irq;
-
 /*** USART1 V-TABLE ***/
 typedef const struct {
     /* Lifecycle */
@@ -90,7 +83,6 @@ typedef const struct {
 	USART1_par* par;
 	USART1_get* get;
 	USART1_set* set;
-	USART1_irq* irq;
 	USART1_run* run;
 } USARTG4_Handle;
 

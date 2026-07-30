@@ -489,9 +489,9 @@ void USART2_IRQHandler(void)
     /* RX Not Empty */
     if (isr & USART_ISR_RXNE_RXFNE)
     {
-        if (irq()->uart->usart2->rx != NULL)
+        if (irq()->uart->usart2->rxne != NULL)
         {
-            irq()->uart->usart2->rx();
+            irq()->uart->usart2->rxne();
         }
         else
         {
@@ -680,9 +680,9 @@ void USART3_IRQHandler(void)
     /* RX Not Empty */
     if (isr & USART_ISR_RXNE_RXFNE)
     {
-        if (irq()->uart->usart3->rx != NULL)
+        if (irq()->uart->usart3->rxne != NULL)
         {
-            irq()->uart->usart3->rx();
+            irq()->uart->usart3->rxne();
         }
         else
         {
@@ -866,9 +866,9 @@ void UART4_IRQHandler(void)
     /* RX Not Empty */
     if (isr & USART_ISR_RXNE_RXFNE)
     {
-        if (irq()->uart->uart4->rx != NULL)
+        if (irq()->uart->uart4->rxne != NULL)
         {
-            irq()->uart->uart4->rx();
+            irq()->uart->uart4->rxne();
         }
         else
         {
@@ -879,9 +879,9 @@ void UART4_IRQHandler(void)
     /* TX Empty */
     if (isr & USART_ISR_TXE_TXFNF)
     {
-        if (irq()->uart->uart4->tx != NULL)
+        if (irq()->uart->uart4->txe != NULL)
         {
-            irq()->uart->uart4->tx();
+            irq()->uart->uart4->txe();
         }
         else
         {
@@ -1062,9 +1062,9 @@ void UART5_IRQHandler(void)
     // RX Not Empty
     if (isr & USART_ISR_RXNE_RXFNE)
     {
-        if (irq()->uart->uart5->rx != NULL)
+        if (irq()->uart->uart5->rxne != NULL)
         {
-            irq()->uart->uart5->rx();
+            irq()->uart->uart5->rxne();
         }
         else
         {
@@ -1075,9 +1075,9 @@ void UART5_IRQHandler(void)
     // TX Empty
     if (isr & USART_ISR_TXE_TXFNF)
     {
-        if (irq()->uart->uart5->tx != NULL)
+        if (irq()->uart->uart5->txe != NULL)
         {
-            irq()->uart->uart5->tx();
+            irq()->uart->uart5->txe();
         }
         else
         {
@@ -1258,9 +1258,9 @@ void LPUART1_IRQHandler(void)
     // RX Not Empty
     if (isr & USART_ISR_RXNE_RXFNE)
     {
-        if (irq()->uart->lpuart1->rx != NULL)
+        if (irq()->uart->lpuart1->rxne != NULL)
         {
-            irq()->uart->lpuart1->rx();
+            irq()->uart->lpuart1->rxne();
         }
         else
         {
@@ -1271,9 +1271,9 @@ void LPUART1_IRQHandler(void)
     // TX Empty
     if (isr & USART_ISR_TXE_TXFNF)
     {
-        if (irq()->uart->lpuart1->tx != NULL)
+        if (irq()->uart->lpuart1->txe != NULL)
         {
-            irq()->uart->lpuart1->tx();
+            irq()->uart->lpuart1->txe();
         }
         else
         {
