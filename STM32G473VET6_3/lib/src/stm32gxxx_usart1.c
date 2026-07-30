@@ -41,6 +41,11 @@ static USART1_par par_setup = { // DEFAULT
 	.buff_tx        = u1_tx_raw
 };
 
+
+static void default_idle_irq(void);
+static void default_dma_tx_irq(void);
+
+
 /* ============================================================================
    DRIVER CODE IMPLEMENTATIONS
    ============================================================================ */
@@ -167,6 +172,9 @@ static void impl_init(void) {
     NVIC_EnableIRQ(USART1_IRQn);
     NVIC_SetPriority(DMA1_Channel2_IRQn, par_setup.dma_priority);
     NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+
+    irq()->uart->usart1->idle = default_idle_irq;
+
 }
 
 static void impl_start_rx(void) {
@@ -381,13 +389,14 @@ static USARTG4_Handle handle_instance = {
 /*** USART1 ACCESSOR FUNCTION ***/
 USARTG4_Handle* usart1(void) { return &handle_instance; }
 
-/*** USART1 INTERRUPT ***/
+/*** USART1 INTERRUPT ***
 void USART1_IRQHandler(void) {
 	USART1_irq* req = usart1()->irq;
 	//clear_pin( dev()->gpio->f, 2 );
     // Call high level driver singleton entry hook
     if(req->idle) req->idle();
 }
+***/
 
 void DMA1_CH2_IRQHandler(void) {
 	USART1_irq* req = usart1()->irq;

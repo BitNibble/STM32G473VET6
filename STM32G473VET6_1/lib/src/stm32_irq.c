@@ -1,3 +1,9 @@
+/******************************************************************************
+	stm32_irq.c
+Author:   <sergio.salazar.santos@gmail.com>
+License:  GNU General Public License
+Hardware: STM32GXXX
+*******************************************************************************/
 #include "stm32_irq.h"
 
 /*-------------------------------------------------------------
@@ -42,6 +48,7 @@ static irq_usart_event_t usart2 = {0};
 static irq_usart_event_t usart3 = {0};
 static irq_usart_event_t uart4  = {0};
 static irq_usart_event_t uart5  = {0};
+static irq_usart_event_t lpuart1  = {0};
 
 static irq_uart_t uart =
 {
@@ -49,7 +56,8 @@ static irq_uart_t uart =
     &usart2,
     &usart3,
     &uart4,
-    &uart5
+    &uart5,
+	&lpuart1
 };
 
 /*-------------------------------------------------------------

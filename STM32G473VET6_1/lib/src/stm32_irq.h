@@ -1,3 +1,9 @@
+/******************************************************************************
+	stm32_irq.h
+Author:   <sergio.salazar.santos@gmail.com>
+License:  GNU General Public License
+Hardware: STM32GXXX
+*******************************************************************************/
 #ifndef STM32_IRQ_H
 	#define STM32_IRQ_H
 
@@ -57,11 +63,35 @@ typedef struct
 
 typedef struct
 {
-    callback_t rxne;
-    callback_t txe;
-    callback_t tc;
-    callback_t idle;
-    callback_t error;
+    callback_t rxne;       // RX not empty
+    callback_t txe;        // TX empty
+    callback_t tc;         // Transmission complete
+    callback_t idle;       // Idle line detected
+
+    callback_t ore;        // Overrun error
+    callback_t ne;         // Noise error
+    callback_t fe;         // Framing error
+    callback_t pe;         // Parity error
+
+    callback_t cts;        // CTS change
+    callback_t wakeup;     // Wakeup from stop mode
+
+    callback_t rtof;
+    callback_t eob;
+    callback_t cmf;
+    callback_t wuf;
+    callback_t txfe;
+    callback_t rxff;
+    callback_t parity_error;
+    callback_t framing_error;
+    callback_t noise_error;
+    callback_t overrun_error;
+    callback_t rx;
+    callback_t receiver_timeout;
+    callback_t end_of_block;
+    callback_t wake_up;
+    callback_t tx;
+    callback_t character_match;
 
 } irq_usart_event_t;
 
@@ -72,6 +102,7 @@ typedef struct
     irq_usart_event_t *usart3;
     irq_usart_event_t *uart4;
     irq_usart_event_t *uart5;
+    irq_usart_event_t *lpuart1;
 
 } irq_uart_t;
 

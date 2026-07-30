@@ -1,5 +1,5 @@
 /******************************************************************************
-	STM32 XXX TIM IRQ
+	timer_irq.h
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
 Hardware: STM32-XXX
@@ -28,8 +28,6 @@ __attribute__((weak)) void tim1_trg_callback(void);
 __attribute__((weak)) void tim1_brk_callback(void);
 __attribute__((weak)) void tim1_brk2_callback(void);
 __attribute__((weak)) void tim1_com_callback(void);
-__attribute__((weak)) void tim1_rep_callback(void);
-__attribute__((weak)) void tim1_dma_callback(void);
 
 /*** TIM8 ***/
 __attribute__((weak)) void tim8_u_callback(void);
@@ -74,8 +72,19 @@ __attribute__((weak)) void tim7_u_callback(void);
 
 /*** TIM15–TIM17 (low power timers) ***/
 __attribute__((weak)) void tim15_u_callback(void);
+__attribute__((weak)) void tim15_cc1_callback(void);
+__attribute__((weak)) void tim15_cc2_callback(void);
+__attribute__((weak)) void tim15_trg_callback(void);
+__attribute__((weak)) void tim15_com_callback(void);
+__attribute__((weak)) void tim15_brk_callback(void);
+
 __attribute__((weak)) void tim16_u_callback(void);
+__attribute__((weak)) void tim16_cc1_callback(void);
+__attribute__((weak)) void tim16_brk_callback(void);
+
 __attribute__((weak)) void tim17_u_callback(void);
+__attribute__((weak)) void tim17_cc1_callback(void);
+__attribute__((weak)) void tim17_brk_callback(void);
 
 /*** TIM20 (advanced / high resolution) ***/
 __attribute__((weak)) void tim20_u_callback(void);
@@ -85,9 +94,8 @@ __attribute__((weak)) void tim20_cc3_callback(void);
 __attribute__((weak)) void tim20_cc4_callback(void);
 __attribute__((weak)) void tim20_trg_callback(void);
 __attribute__((weak)) void tim20_brk_callback(void);
+__attribute__((weak)) void tim20_brk2_callback(void);
 __attribute__((weak)) void tim20_com_callback(void);
-__attribute__((weak)) void tim20_rep_callback(void);
-__attribute__((weak)) void tim20_dma_callback(void);
 
 #endif
 

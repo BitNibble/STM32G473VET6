@@ -1,5 +1,5 @@
 /******************************************************************************
-	STM32 XXX TIM IRQ
+	timer_irq.c
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
 Hardware: STM32-XXX
@@ -24,8 +24,6 @@ void tim1_trg_callback(void) {}
 void tim1_brk_callback(void) {}
 void tim1_brk2_callback(void) {}
 void tim1_com_callback(void) {}
-void tim1_rep_callback(void) {}
-void tim1_dma_callback(void) {}
 
 /********************************************************************
  * TIM8
@@ -82,8 +80,19 @@ void tim7_u_callback(void) {}
  ********************************************************************/
 
 void tim15_u_callback(void) {}
+void tim15_cc1_callback(void) {}
+void tim15_cc2_callback(void) {}
+void tim15_trg_callback(void) {}
+void tim15_com_callback(void) {}
+void tim15_brk_callback(void) {}
+
 void tim16_u_callback(void) {}
+void tim16_cc1_callback(void) {}
+void tim16_brk_callback(void) {}
+
 void tim17_u_callback(void) {}
+void tim17_cc1_callback(void) {}
+void tim17_brk_callback(void) {}
 
 /********************************************************************
  * TIM20 (ADVANCED / HIGH RESOLUTION)
@@ -96,21 +105,28 @@ void tim20_cc3_callback(void) {}
 void tim20_cc4_callback(void) {}
 void tim20_trg_callback(void) {}
 void tim20_brk_callback(void) {}
+void tim20_brk2_callback(void) {}
 void tim20_com_callback(void) {}
-void tim20_rep_callback(void) {}
-void tim20_dma_callback(void) {}
 
 /********************************************************************
  * TIM1 (ADVANCED TIMER)
  ********************************************************************/
 void TIM1_BRK_TIM15_IRQHandler(void)
 {
-    uint32_t sr = TIM1->SR;
+    uint32_t sr;
+
+    /****************************************************************
+     * TIM1
+     ****************************************************************/
+    sr = TIM1->SR;
 
     /* Break */
     if (sr & TIM_SR_BIF)
     {
         CLEAR_BIT(TIM1->SR, TIM_SR_BIF);
+
+        /* Bus synchronization barrier */
+        (void)TIM1->SR;
 
         if (irq()->tim->tim1->break_event != NULL)
         {
@@ -122,10 +138,13 @@ void TIM1_BRK_TIM15_IRQHandler(void)
         }
     }
 
-    /* Break 2 (STM32G4 uses B2IF) */
+    /* Break 2 (STM32G4) */
     if (sr & TIM_SR_B2IF)
     {
         CLEAR_BIT(TIM1->SR, TIM_SR_B2IF);
+
+        /* Bus synchronization barrier */
+        (void)TIM1->SR;
 
         if (irq()->tim->tim1->break2 != NULL)
         {
@@ -137,42 +156,133 @@ void TIM1_BRK_TIM15_IRQHandler(void)
         }
     }
 
-    /* Commutation */
-    if (sr & TIM_SR_COMIF)
-    {
-        CLEAR_BIT(TIM1->SR, TIM_SR_COMIF);
-
-        if (irq()->tim->tim1->commutation != NULL)
-        {
-            irq()->tim->tim1->commutation();
-        }
-        else
-        {
-            tim1_com_callback();
-        }
-    }
+    /****************************************************************
+     * TIM15
+     ****************************************************************/
+    sr = TIM15->SR;
 
     /* Update */
     if (sr & TIM_SR_UIF)
     {
-        CLEAR_BIT(TIM1->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM15->SR, TIM_SR_UIF);
 
-        if (irq()->tim->tim1->update != NULL)
+        /* Bus synchronization barrier */
+        (void)TIM15->SR;
+
+        if (irq()->tim->tim15->update != NULL)
         {
-            irq()->tim->tim1->update();
+            irq()->tim->tim15->update();
         }
         else
         {
-            tim1_u_callback();
+            tim15_u_callback();
+        }
+    }
+
+    /* Capture / Compare 1 */
+    if (sr & TIM_SR_CC1IF)
+    {
+        CLEAR_BIT(TIM15->SR, TIM_SR_CC1IF);
+
+        /* Bus synchronization barrier */
+        (void)TIM15->SR;
+
+        if (irq()->tim->tim15->cc1 != NULL)
+        {
+            irq()->tim->tim15->cc1();
+        }
+        else
+        {
+            tim15_cc1_callback();
+        }
+    }
+
+    /* Capture / Compare 2 */
+    if (sr & TIM_SR_CC2IF)
+    {
+        CLEAR_BIT(TIM15->SR, TIM_SR_CC2IF);
+
+        /* Bus synchronization barrier */
+        (void)TIM15->SR;
+
+        if (irq()->tim->tim15->cc2 != NULL)
+        {
+            irq()->tim->tim15->cc2();
+        }
+        else
+        {
+            tim15_cc2_callback();
+        }
+    }
+
+    /* Trigger */
+    if (sr & TIM_SR_TIF)
+    {
+        CLEAR_BIT(TIM15->SR, TIM_SR_TIF);
+
+        /* Bus synchronization barrier */
+        (void)TIM15->SR;
+
+        if (irq()->tim->tim15->trigger != NULL)
+        {
+            irq()->tim->tim15->trigger();
+        }
+        else
+        {
+            tim15_trg_callback();
+        }
+    }
+
+    /* Commutation */
+    if (sr & TIM_SR_COMIF)
+    {
+        CLEAR_BIT(TIM15->SR, TIM_SR_COMIF);
+
+        /* Bus synchronization barrier */
+        (void)TIM15->SR;
+
+        if (irq()->tim->tim15->commutation != NULL)
+        {
+            irq()->tim->tim15->commutation();
+        }
+        else
+        {
+            tim15_com_callback();
+        }
+    }
+
+    /* Break */
+    if (sr & TIM_SR_BIF)
+    {
+        CLEAR_BIT(TIM15->SR, TIM_SR_BIF);
+
+        /* Bus synchronization barrier */
+        (void)TIM15->SR;
+
+        if (irq()->tim->tim15->break_event != NULL)
+        {
+            irq()->tim->tim15->break_event();
+        }
+        else
+        {
+            tim15_brk_callback();
         }
     }
 }
 
 void TIM1_UP_TIM16_IRQHandler(void)
 {
-    if (TIM1->SR & TIM_SR_UIF)
+    uint32_t sr;
+
+    /****************************************************************
+     * TIM1
+     ****************************************************************/
+    sr = TIM1->SR;
+
+    /* Update */
+    if (sr & TIM_SR_UIF)
     {
-    	CLEAR_BIT(TIM1->SR, TIM_SR_UIF);
+        CLEAR_BIT(TIM1->SR, TIM_SR_UIF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -186,16 +296,80 @@ void TIM1_UP_TIM16_IRQHandler(void)
             tim1_u_callback();
         }
     }
+
+    /****************************************************************
+     * TIM16
+     ****************************************************************/
+    sr = TIM16->SR;
+
+    /* Update */
+    if (sr & TIM_SR_UIF)
+    {
+        CLEAR_BIT(TIM16->SR, TIM_SR_UIF);
+
+        /* Bus synchronization barrier */
+        (void)TIM16->SR;
+
+        if (irq()->tim->tim16->update != NULL)
+        {
+            irq()->tim->tim16->update();
+        }
+        else
+        {
+            tim16_u_callback();
+        }
+    }
+
+    /* Capture / Compare 1 */
+    if (sr & TIM_SR_CC1IF)
+    {
+        CLEAR_BIT(TIM16->SR, TIM_SR_CC1IF);
+
+        /* Bus synchronization barrier */
+        (void)TIM16->SR;
+
+        if (irq()->tim->tim16->cc1 != NULL)
+        {
+            irq()->tim->tim16->cc1();
+        }
+        else
+        {
+            tim16_cc1_callback();
+        }
+    }
+
+    /* Break */
+    if (sr & TIM_SR_BIF)
+    {
+        CLEAR_BIT(TIM16->SR, TIM_SR_BIF);
+
+        /* Bus synchronization barrier */
+        (void)TIM16->SR;
+
+        if (irq()->tim->tim16->break_event != NULL)
+        {
+            irq()->tim->tim16->break_event();
+        }
+        else
+        {
+            tim16_brk_callback();
+        }
+    }
 }
 
 void TIM1_TRG_COM_TIM17_IRQHandler(void)
 {
-    uint32_t sr = TIM1->SR;
+    uint32_t sr;
+
+    /****************************************************************
+     * TIM1
+     ****************************************************************/
+    sr = TIM1->SR;
 
     /* Trigger */
     if (sr & TIM_SR_TIF)
     {
-    	CLEAR_BIT(TIM1->SR, TIM_SR_TIF);
+        CLEAR_BIT(TIM1->SR, TIM_SR_TIF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -213,7 +387,7 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void)
     /* Commutation */
     if (sr & TIM_SR_COMIF)
     {
-    	CLEAR_BIT(TIM1->SR, TIM_SR_COMIF);
+        CLEAR_BIT(TIM1->SR, TIM_SR_COMIF);
 
         /* Bus synchronization barrier */
         (void)TIM1->SR;
@@ -225,6 +399,65 @@ void TIM1_TRG_COM_TIM17_IRQHandler(void)
         else
         {
             tim1_com_callback();
+        }
+    }
+
+    /****************************************************************
+     * TIM17
+     ****************************************************************/
+    sr = TIM17->SR;
+
+    /* Update */
+    if (sr & TIM_SR_UIF)
+    {
+        CLEAR_BIT(TIM17->SR, TIM_SR_UIF);
+
+        /* Bus synchronization barrier */
+        (void)TIM17->SR;
+
+        if (irq()->tim->tim17->update != NULL)
+        {
+            irq()->tim->tim17->update();
+        }
+        else
+        {
+            tim17_u_callback();
+        }
+    }
+
+    /* Capture / Compare 1 */
+    if (sr & TIM_SR_CC1IF)
+    {
+        CLEAR_BIT(TIM17->SR, TIM_SR_CC1IF);
+
+        /* Bus synchronization barrier */
+        (void)TIM17->SR;
+
+        if (irq()->tim->tim17->cc1 != NULL)
+        {
+            irq()->tim->tim17->cc1();
+        }
+        else
+        {
+            tim17_cc1_callback();
+        }
+    }
+
+    /* Break */
+    if (sr & TIM_SR_BIF)
+    {
+        CLEAR_BIT(TIM17->SR, TIM_SR_BIF);
+
+        /* Bus synchronization barrier */
+        (void)TIM17->SR;
+
+        if (irq()->tim->tim17->break_event != NULL)
+        {
+            irq()->tim->tim17->break_event();
+        }
+        else
+        {
+            tim17_brk_callback();
         }
     }
 }
@@ -317,6 +550,7 @@ void TIM8_BRK_IRQHandler(void)
     if (sr & TIM_SR_BIF)
     {
         CLEAR_BIT(TIM8->SR, TIM_SR_BIF);
+        (void)TIM8->SR;
 
         if (irq()->tim->tim8->break_event != NULL)
         {
@@ -325,21 +559,6 @@ void TIM8_BRK_IRQHandler(void)
         else
         {
             tim8_brk_callback();
-        }
-    }
-
-    /* Commutation */
-    if (sr & TIM_SR_COMIF)
-    {
-        CLEAR_BIT(TIM8->SR, TIM_SR_COMIF);
-
-        if (irq()->tim->tim8->commutation != NULL)
-        {
-            irq()->tim->tim8->commutation();
-        }
-        else
-        {
-            tim8_com_callback();
         }
     }
 }
@@ -352,6 +571,7 @@ void TIM8_UP_IRQHandler(void)
     if (sr & TIM_SR_UIF)
     {
         CLEAR_BIT(TIM8->SR, TIM_SR_UIF);
+        (void)TIM8->SR;
 
         if (irq()->tim->tim8->update != NULL)
         {
@@ -372,6 +592,7 @@ void TIM8_TRG_COM_IRQHandler(void)
     if (sr & TIM_SR_TIF)
     {
         CLEAR_BIT(TIM8->SR, TIM_SR_TIF);
+        (void)TIM8->SR;
 
         if (irq()->tim->tim8->trigger != NULL)
         {
@@ -387,6 +608,7 @@ void TIM8_TRG_COM_IRQHandler(void)
     if (sr & TIM_SR_COMIF)
     {
         CLEAR_BIT(TIM8->SR, TIM_SR_COMIF);
+        (void)TIM8->SR;
 
         if (irq()->tim->tim8->commutation != NULL)
         {
@@ -407,6 +629,7 @@ void TIM8_CC_IRQHandler(void)
     if (sr & TIM_SR_CC1IF)
     {
         CLEAR_BIT(TIM8->SR, TIM_SR_CC1IF);
+        (void)TIM8->SR;
 
         if (irq()->tim->tim8->cc1 != NULL)
         {
@@ -422,6 +645,7 @@ void TIM8_CC_IRQHandler(void)
     if (sr & TIM_SR_CC2IF)
     {
         CLEAR_BIT(TIM8->SR, TIM_SR_CC2IF);
+        (void)TIM8->SR;
 
         if (irq()->tim->tim8->cc2 != NULL)
         {
@@ -437,6 +661,7 @@ void TIM8_CC_IRQHandler(void)
     if (sr & TIM_SR_CC3IF)
     {
         CLEAR_BIT(TIM8->SR, TIM_SR_CC3IF);
+        (void)TIM8->SR;
 
         if (irq()->tim->tim8->cc3 != NULL)
         {
@@ -452,6 +677,7 @@ void TIM8_CC_IRQHandler(void)
     if (sr & TIM_SR_CC4IF)
     {
         CLEAR_BIT(TIM8->SR, TIM_SR_CC4IF);
+        (void)TIM8->SR;
 
         if (irq()->tim->tim8->cc4 != NULL)
         {
@@ -475,6 +701,7 @@ void TIM2_IRQHandler(void)
     if (sr & TIM_SR_UIF)
     {
         CLEAR_BIT(TIM2->SR, TIM_SR_UIF);
+        (void)TIM2->SR;
 
         if (irq()->tim->tim2->update != NULL)
         {
@@ -490,6 +717,7 @@ void TIM2_IRQHandler(void)
     if (sr & TIM_SR_CC1IF)
     {
         CLEAR_BIT(TIM2->SR, TIM_SR_CC1IF);
+        (void)TIM2->SR;
 
         if (irq()->tim->tim2->cc1 != NULL)
         {
@@ -505,6 +733,7 @@ void TIM2_IRQHandler(void)
     if (sr & TIM_SR_CC2IF)
     {
         CLEAR_BIT(TIM2->SR, TIM_SR_CC2IF);
+        (void)TIM2->SR;
 
         if (irq()->tim->tim2->cc2 != NULL)
         {
@@ -520,6 +749,7 @@ void TIM2_IRQHandler(void)
     if (sr & TIM_SR_CC3IF)
     {
         CLEAR_BIT(TIM2->SR, TIM_SR_CC3IF);
+        (void)TIM2->SR;
 
         if (irq()->tim->tim2->cc3 != NULL)
         {
@@ -535,6 +765,7 @@ void TIM2_IRQHandler(void)
     if (sr & TIM_SR_CC4IF)
     {
         CLEAR_BIT(TIM2->SR, TIM_SR_CC4IF);
+        (void)TIM2->SR;
 
         if (irq()->tim->tim2->cc4 != NULL)
         {
@@ -555,6 +786,7 @@ void TIM3_IRQHandler(void)
     if (sr & TIM_SR_UIF)
     {
         CLEAR_BIT(TIM3->SR, TIM_SR_UIF);
+        (void)TIM3->SR;
 
         if (irq()->tim->tim3->update != NULL)
         {
@@ -570,6 +802,7 @@ void TIM3_IRQHandler(void)
     if (sr & TIM_SR_CC1IF)
     {
         CLEAR_BIT(TIM3->SR, TIM_SR_CC1IF);
+        (void)TIM3->SR;
 
         if (irq()->tim->tim3->cc1 != NULL)
         {
@@ -585,6 +818,7 @@ void TIM3_IRQHandler(void)
     if (sr & TIM_SR_CC2IF)
     {
         CLEAR_BIT(TIM3->SR, TIM_SR_CC2IF);
+        (void)TIM3->SR;
 
         if (irq()->tim->tim3->cc2 != NULL)
         {
@@ -600,6 +834,7 @@ void TIM3_IRQHandler(void)
     if (sr & TIM_SR_CC3IF)
     {
         CLEAR_BIT(TIM3->SR, TIM_SR_CC3IF);
+        (void)TIM3->SR;
 
         if (irq()->tim->tim3->cc3 != NULL)
         {
@@ -615,6 +850,7 @@ void TIM3_IRQHandler(void)
     if (sr & TIM_SR_CC4IF)
     {
         CLEAR_BIT(TIM3->SR, TIM_SR_CC4IF);
+        (void)TIM3->SR;
 
         if (irq()->tim->tim3->cc4 != NULL)
         {
@@ -635,6 +871,7 @@ void TIM4_IRQHandler(void)
     if (sr & TIM_SR_UIF)
     {
         CLEAR_BIT(TIM4->SR, TIM_SR_UIF);
+        (void)TIM4->SR;
 
         if (irq()->tim->tim4->update != NULL)
         {
@@ -650,6 +887,7 @@ void TIM4_IRQHandler(void)
     if (sr & TIM_SR_CC1IF)
     {
         CLEAR_BIT(TIM4->SR, TIM_SR_CC1IF);
+        (void)TIM4->SR;
 
         if (irq()->tim->tim4->cc1 != NULL)
         {
@@ -665,6 +903,7 @@ void TIM4_IRQHandler(void)
     if (sr & TIM_SR_CC2IF)
     {
         CLEAR_BIT(TIM4->SR, TIM_SR_CC2IF);
+        (void)TIM4->SR;
 
         if (irq()->tim->tim4->cc2 != NULL)
         {
@@ -680,6 +919,7 @@ void TIM4_IRQHandler(void)
     if (sr & TIM_SR_CC3IF)
     {
         CLEAR_BIT(TIM4->SR, TIM_SR_CC3IF);
+        (void)TIM4->SR;
 
         if (irq()->tim->tim4->cc3 != NULL)
         {
@@ -695,6 +935,7 @@ void TIM4_IRQHandler(void)
     if (sr & TIM_SR_CC4IF)
     {
         CLEAR_BIT(TIM4->SR, TIM_SR_CC4IF);
+        (void)TIM4->SR;
 
         if (irq()->tim->tim4->cc4 != NULL)
         {
@@ -715,6 +956,7 @@ void TIM5_IRQHandler(void)
     if (sr & TIM_SR_UIF)
     {
         CLEAR_BIT(TIM5->SR, TIM_SR_UIF);
+        (void)TIM5->SR;
 
         if (irq()->tim->tim5->update != NULL)
         {
@@ -730,6 +972,7 @@ void TIM5_IRQHandler(void)
     if (sr & TIM_SR_CC1IF)
     {
         CLEAR_BIT(TIM5->SR, TIM_SR_CC1IF);
+        (void)TIM5->SR;
 
         if (irq()->tim->tim5->cc1 != NULL)
         {
@@ -745,6 +988,7 @@ void TIM5_IRQHandler(void)
     if (sr & TIM_SR_CC2IF)
     {
         CLEAR_BIT(TIM5->SR, TIM_SR_CC2IF);
+        (void)TIM5->SR;
 
         if (irq()->tim->tim5->cc2 != NULL)
         {
@@ -760,6 +1004,7 @@ void TIM5_IRQHandler(void)
     if (sr & TIM_SR_CC3IF)
     {
         CLEAR_BIT(TIM5->SR, TIM_SR_CC3IF);
+        (void)TIM5->SR;
 
         if (irq()->tim->tim5->cc3 != NULL)
         {
@@ -775,6 +1020,7 @@ void TIM5_IRQHandler(void)
     if (sr & TIM_SR_CC4IF)
     {
         CLEAR_BIT(TIM5->SR, TIM_SR_CC4IF);
+        (void)TIM5->SR;
 
         if (irq()->tim->tim5->cc4 != NULL)
         {
@@ -792,26 +1038,28 @@ void TIM5_IRQHandler(void)
  ********************************************************************/
 void TIM6_IRQHandler(void)
 {
-    if (TIM6->SR & TIM_SR_UIF)
+    uint32_t sr = TIM6->SR;
+
+    if (sr & TIM_SR_UIF)
     {
         CLEAR_BIT(TIM6->SR, TIM_SR_UIF);
+        (void)TIM6->SR;
 
-        if (irq()->tim->tim6->update != NULL)
-        {
+        if (irq()->tim->tim6->update)
             irq()->tim->tim6->update();
-        }
         else
-        {
             tim6_u_callback();
-        }
     }
 }
 
 void TIM7_IRQHandler(void)
 {
-    if (TIM7->SR & TIM_SR_UIF)
+	uint32_t sr = TIM7->SR;
+
+    if (sr & TIM_SR_UIF)
     {
         CLEAR_BIT(TIM7->SR, TIM_SR_UIF);
+        (void)TIM7->SR;
 
         if (irq()->tim->tim7->update != NULL)
         {
@@ -825,67 +1073,16 @@ void TIM7_IRQHandler(void)
 }
 
 /********************************************************************
- * TIM15–TIM17 (LOW POWER TIMERS)
- ********************************************************************/
-void TIM15_IRQHandler(void)
-{
-    if (TIM15->SR & TIM_SR_UIF)
-    {
-        CLEAR_BIT(TIM15->SR, TIM_SR_UIF);
-
-        if (irq()->tim->tim15->update != NULL)
-        {
-            irq()->tim->tim15->update();
-        }
-        else
-        {
-            tim15_u_callback();
-        }
-    }
-}
-
-void TIM16_IRQHandler(void)
-{
-    if (TIM16->SR & TIM_SR_UIF)
-    {
-        CLEAR_BIT(TIM16->SR, TIM_SR_UIF);
-
-        if (irq()->tim->tim16->update != NULL)
-        {
-            irq()->tim->tim16->update();
-        }
-        else
-        {
-            tim16_u_callback();
-        }
-    }
-}
-
-void TIM17_IRQHandler(void)
-{
-    if (TIM17->SR & TIM_SR_UIF)
-    {
-        CLEAR_BIT(TIM17->SR, TIM_SR_UIF);
-
-        if (irq()->tim->tim17->update != NULL)
-        {
-            irq()->tim->tim17->update();
-        }
-        else
-        {
-            tim17_u_callback();
-        }
-    }
-}
-
-/********************************************************************
  * TIM20 (ADVANCED TIMER - G473)
  ********************************************************************/
 void TIM20_UP_IRQHandler(void)
 {
-    if (TIM20->SR & TIM_SR_UIF)
+	uint32_t sr = TIM20->SR;
+
+    if (sr & TIM_SR_UIF)
     {
         CLEAR_BIT(TIM20->SR, TIM_SR_UIF);
+        (void)TIM20->SR;
 
         if (irq()->tim->tim20->update != NULL)
         {
@@ -906,6 +1103,7 @@ void TIM20_CC_IRQHandler(void)
     if (sr & TIM_SR_CC1IF)
     {
         CLEAR_BIT(TIM20->SR, TIM_SR_CC1IF);
+        (void)TIM20->SR;
 
         if (irq()->tim->tim20->cc1 != NULL)
         {
@@ -921,6 +1119,7 @@ void TIM20_CC_IRQHandler(void)
     if (sr & TIM_SR_CC2IF)
     {
         CLEAR_BIT(TIM20->SR, TIM_SR_CC2IF);
+        (void)TIM20->SR;
 
         if (irq()->tim->tim20->cc2 != NULL)
         {
@@ -936,6 +1135,7 @@ void TIM20_CC_IRQHandler(void)
     if (sr & TIM_SR_CC3IF)
     {
         CLEAR_BIT(TIM20->SR, TIM_SR_CC3IF);
+        (void)TIM20->SR;
 
         if (irq()->tim->tim20->cc3 != NULL)
         {
@@ -951,6 +1151,7 @@ void TIM20_CC_IRQHandler(void)
     if (sr & TIM_SR_CC4IF)
     {
         CLEAR_BIT(TIM20->SR, TIM_SR_CC4IF);
+        (void)TIM20->SR;
 
         if (irq()->tim->tim20->cc4 != NULL)
         {
@@ -965,9 +1166,13 @@ void TIM20_CC_IRQHandler(void)
 
 void TIM20_TRG_IRQHandler(void)
 {
-    if (TIM20->SR & TIM_SR_TIF)
+    uint32_t sr = TIM20->SR;
+
+    /* Trigger */
+    if (sr & TIM_SR_TIF)
     {
         CLEAR_BIT(TIM20->SR, TIM_SR_TIF);
+        (void)TIM20->SR;
 
         if (irq()->tim->tim20->trigger != NULL)
         {
@@ -978,13 +1183,33 @@ void TIM20_TRG_IRQHandler(void)
             tim20_trg_callback();
         }
     }
+
+    /* Commutation */
+    if (sr & TIM_SR_COMIF)
+    {
+        CLEAR_BIT(TIM20->SR, TIM_SR_COMIF);
+        (void)TIM20->SR;
+
+        if (irq()->tim->tim20->commutation != NULL)
+        {
+            irq()->tim->tim20->commutation();
+        }
+        else
+        {
+            tim20_com_callback();
+        }
+    }
 }
 
 void TIM20_BRK_IRQHandler(void)
 {
-    if (TIM20->SR & TIM_SR_BIF)
+    uint32_t sr = TIM20->SR;
+
+    /* Break */
+    if (sr & TIM_SR_BIF)
     {
         CLEAR_BIT(TIM20->SR, TIM_SR_BIF);
+        (void)TIM20->SR;
 
         if (irq()->tim->tim20->break_event != NULL)
         {
@@ -993,6 +1218,22 @@ void TIM20_BRK_IRQHandler(void)
         else
         {
             tim20_brk_callback();
+        }
+    }
+
+    /* Break 2 */
+    if (sr & TIM_SR_B2IF)
+    {
+        CLEAR_BIT(TIM20->SR, TIM_SR_B2IF);
+        (void)TIM20->SR;
+
+        if (irq()->tim->tim20->break2 != NULL)
+        {
+            irq()->tim->tim20->break2();
+        }
+        else
+        {
+            tim20_brk2_callback();
         }
     }
 }
