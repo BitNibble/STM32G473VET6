@@ -2,7 +2,7 @@
 	stm32x_irq.c
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
-Hardware: STM32GXXX
+Hardware: STM32
 *******************************************************************************/
 #include "stm32x_irq.h"
 

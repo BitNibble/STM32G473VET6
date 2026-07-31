@@ -22,8 +22,6 @@
 "./lib/src/stm32x_gpio.o"
 "./lib/src/stm32x_irq.o"
 "./lib/src/stm32x_tool.o"
-"./lib/src/template_instance.o"
-"./lib/src/template_singleton.o"
 "./lib/src/timer_irq.o"
 "./lib/src/usart_irq.o"
 "./lib/src/znpid.o"

@@ -1,3 +1,9 @@
+/***************************************************
+	stm32g4_instance.h
+Author:   <sergio.salazar.santos@gmail.com>
+License:  GNU General Public License
+Hardware: STM32
+****************************************************/
 #ifndef STM32G4_INSTANCE_H
 	#define STM32G4_INSTANCE_H
 

@@ -2,7 +2,7 @@
 	stm32x_gpio.c
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
-Hardware: STM32X
+Hardware: STM32
 *******************************************************************************/
 #include "stm32x_gpio.h"
 

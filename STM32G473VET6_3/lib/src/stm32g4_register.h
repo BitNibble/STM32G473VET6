@@ -1,3 +1,9 @@
+/***************************************************
+	stm32g4_register.h
+Author:   <sergio.salazar.santos@gmail.com>
+License:  GNU General Public License
+Hardware: STM32
+****************************************************/
 #ifndef STM32G4_REGISTER_H
 	#define STM32G4_REGISTER_H
 

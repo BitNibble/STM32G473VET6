@@ -2,10 +2,7 @@
 	timer_irq.c
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
-Hardware: STM32-XXX
-Date:     05062026
-Comment:
-	
+Hardware: STM32GXXX
 *******************************************************************************/
 #include "timer_irq.h"
 #include "stm32x_irq.h"
