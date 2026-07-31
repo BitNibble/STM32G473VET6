@@ -83,7 +83,7 @@ void blink(void);
 int main(void)
 {
 	rcc()->run->inic();
-	dev()->get->fpu_enable();
+	dev()->enable->fpu();
 	rtc()->run->inic();
 
 	char str[32];

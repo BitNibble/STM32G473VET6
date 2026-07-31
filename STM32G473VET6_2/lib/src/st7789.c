@@ -196,8 +196,8 @@ static void st7789_set_caset(ST7789_par* par, uint16_t x0, uint16_t x1)
 	U_word w;
 	
 	st7789_cmd(par, ST77XX_CASET);
-	w = writeHLbyte(x0 + ST7789_X_OFFSET); st7789_data(par, w.par.h); st7789_data(par, w.par.l);
-	w = writeHLbyte(x1 + ST7789_X_OFFSET); st7789_data(par, w.par.h); st7789_data(par, w.par.l);
+	w.var = (x0 + ST7789_X_OFFSET); st7789_data(par, w.par.h); st7789_data(par, w.par.l);
+	w.var = (x1 + ST7789_X_OFFSET); st7789_data(par, w.par.h); st7789_data(par, w.par.l);
 	st7789_spi_flush(par);
 }
 
@@ -206,8 +206,8 @@ static void st7789_set_raset(ST7789_par* par, uint16_t y0, uint16_t y1)
 	U_word w;
 
 	st7789_cmd(par, ST77XX_RASET);
-	w = writeHLbyte(y0 + ST7789_Y_OFFSET); st7789_data(par, w.par.h); st7789_data(par, w.par.l);
-	w = writeHLbyte(y1 + ST7789_Y_OFFSET); st7789_data(par, w.par.h); st7789_data(par, w.par.l);
+	w.var = (y0 + ST7789_Y_OFFSET); st7789_data(par, w.par.h); st7789_data(par, w.par.l);
+	w.var = (y1 + ST7789_Y_OFFSET); st7789_data(par, w.par.h); st7789_data(par, w.par.l);
 	st7789_spi_flush(par);
 }
 

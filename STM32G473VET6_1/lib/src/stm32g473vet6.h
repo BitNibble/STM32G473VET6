@@ -317,8 +317,12 @@ typedef const struct {
 	uint32_t (*adc12_ker_ck_input)(void);
 	uint32_t (*adc12_ker_ck)(void);
 	uint32_t (*freq_adc12)(void);
-	void (*fpu_enable)(void);
 }DEV_get;
+/*** DEV ENABLE ***/
+typedef const struct {
+	void (*fpu)(void);
+	void (*tim1)(void);
+}DEV_enable;
 /*** DEV HANDLER ***/
 typedef const struct {
 	CORE_Block* core;
@@ -333,6 +337,7 @@ typedef const struct {
 	MEMORY_Block* memory;
 	EVENT_Block* event;
 	DEV_get* get;
+	DEV_enable* enable;
 } STM32_DEVICE;
 /*** DEV ACCESSOR FUNCTION ***/
 STM32_DEVICE* dev(void);

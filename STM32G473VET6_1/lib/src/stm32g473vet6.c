@@ -459,15 +459,7 @@ static uint32_t get_freq_adc12(void)
     }
 }
 
-/************************* Generic UTILS ***************************/
-U_word writeHLbyte(uint16_t v)
-{
-    U_word w;
-    w.par.h = v >> 8;
-    w.par.l = v & 0xFF;
-    return w;
-}
-/************************** FPU ENABLE *****************************/
+/**************************** ENABLE *******************************/
 static inline void fpu_enable(void)
 {
     /* Enable full access to CP10 and CP11 (FPU) */
@@ -478,6 +470,9 @@ static inline void fpu_enable(void)
     __ISB();
 }
 
+static void tim1_start(void) {
+    exe()->set_reg(&TIM1->CR1, TIM_CR1_CEN);
+}
 /*** DEV GET PARAMETER ***/
 static DEV_get get_setup = {
 	.pll_source = get_pll_source,
@@ -499,8 +494,12 @@ static DEV_get get_setup = {
 	.adc12_hclk = get_adc12_hclk,
 	.adc12_ker_ck_input = get_adc12_ker_ck_input,
 	.adc12_ker_ck = get_adc12_ker_ck,
-	.freq_adc12 = get_freq_adc12,
-	.fpu_enable = fpu_enable
+	.freq_adc12 = get_freq_adc12
+};
+/*** DEV GET PARAMETER ***/
+static DEV_enable enable_setup = {
+	.fpu = fpu_enable,
+	.tim1 = tim1_start
 };
 /*** DEV HANDLER ***/
 static STM32_DEVICE device = {
@@ -516,6 +515,7 @@ static STM32_DEVICE device = {
     .memory = &memory_setup,
     .event  = &event_setup,
 	.get = &get_setup,
+	.enable = &enable_setup
 };
 /*** DEV ACCESSOR FUNCTION ***/
 STM32_DEVICE* dev(void) { return &device; }
