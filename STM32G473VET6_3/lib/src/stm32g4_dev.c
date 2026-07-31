@@ -1,11 +1,11 @@
 /**********************************************************************
-Family:   STM32G4xx Universal Accessor Library
+	stm32g4_dev.c
 Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
-Hardware: Fits entire STM32G4 Family (G431, G441, G471, G473, G474, etc.)
-Date:     04062026
+Hardware: STM32G4 Family
 **********************************************************************/
-#include "stm32g473vet6.h"
+#include "stm32g4_dev.h"
+#include "stm32x_tool.h"
 
 /*** DEV PARAMETER ***/
 static CORE_Block core_setup = {
@@ -473,6 +473,7 @@ static inline void fpu_enable(void)
 static void tim1_start(void) {
     exe()->set_reg(&TIM1->CR1, TIM_CR1_CEN);
 }
+
 /*** DEV GET PARAMETER ***/
 static DEV_get get_setup = {
 	.pll_source = get_pll_source,
@@ -496,11 +497,13 @@ static DEV_get get_setup = {
 	.adc12_ker_ck = get_adc12_ker_ck,
 	.freq_adc12 = get_freq_adc12
 };
+
 /*** DEV GET PARAMETER ***/
 static DEV_enable enable_setup = {
 	.fpu = fpu_enable,
 	.tim1 = tim1_start
 };
+
 /*** DEV HANDLER ***/
 static STM32_DEVICE device = {
     .core   = &core_setup,
@@ -517,13 +520,9 @@ static STM32_DEVICE device = {
 	.get = &get_setup,
 	.enable = &enable_setup
 };
+
 /*** DEV ACCESSOR FUNCTION ***/
 STM32_DEVICE* dev(void) { return &device; }
 
 /*** EOF ***/
-/**
- * Singleton and Multiple Independent Instance objects.
- * Enabling an interrupt and not defining its request procedure blocks the program.
- * RCC only gets a clean slate when powered off.
- **/
 
