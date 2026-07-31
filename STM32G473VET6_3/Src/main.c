@@ -34,7 +34,7 @@ void rtc_ui_init(void);
 int main(void)
 {
 	rcc()->run->inic();
-	dev()->get->fpu_enable();
+	dev()->enable->fpu();
 
 	uint32_t count = 0;
 

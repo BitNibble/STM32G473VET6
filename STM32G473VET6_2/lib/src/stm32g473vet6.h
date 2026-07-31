@@ -342,9 +342,6 @@ typedef const struct {
 /*** DEV ACCESSOR FUNCTION ***/
 STM32_DEVICE* dev(void);
 
-/************************* Generic UTILS ***************************/
-U_word writeHLbyte(uint16_t v);
-
 #endif
 
 /*** EOF ***/
