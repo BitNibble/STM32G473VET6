@@ -7,10 +7,10 @@ Hardware: STM32
 #ifndef STM32X_GPIO_H
 	#define STM32X_GPIO_H
 
+#include <stm32g4xx.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <stddef.h>
-#include <stm32g4xx.h>
 
 /*** DEV V-TABLE ***/
 typedef const struct {

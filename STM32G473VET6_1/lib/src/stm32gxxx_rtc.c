@@ -213,22 +213,22 @@ static uint16_t RTC_get_ss(void) {
 }
 
 static void pwr_clock_enable(void) {
-	exe()->set_reg(&(dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
+	SET_BIT((dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
 }
 
 static void pwr_clock_disable(void) {
-	exe()->clear_reg(&(dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
+	CLEAR_BIT((dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
 }
 
 static void RTC_clock_enable(void) {
     RTC_Write_enable();
-    exe()->set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
+    SET_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
     RTC_Write_disable();
 }
 
 static void RTC_clock_disable(void) {
     RTC_Write_enable();
-    exe()->clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
+    CLEAR_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
     RTC_Write_disable();
 }
 
@@ -245,10 +245,10 @@ static void RTC_irq_enable(uint8_t type) {
     RTC_Write_enable();
     RTC_Reg_unlock();
     switch (type) {
-        case RTC_IRQ_ALARM:  exe()->set_reg(&(RTC->CR), RTC_CR_ALRAIE); break;
-        case RTC_IRQ_WAKEUP: exe()->set_reg(&(RTC->CR), RTC_CR_WUTIE);  break;
-        case RTC_IRQ_TS:     exe()->set_reg(&(RTC->CR), RTC_CR_TSIE);   break;
-        case RTC_IRQ_TAMPER: exe()->set_reg(&(TAMP->IER), TAMP_IER_TAMP1IE); break;
+        case RTC_IRQ_ALARM:  SET_BIT((RTC->CR), RTC_CR_ALRAIE); break;
+        case RTC_IRQ_WAKEUP: SET_BIT((RTC->CR), RTC_CR_WUTIE);  break;
+        case RTC_IRQ_TS:     SET_BIT((RTC->CR), RTC_CR_TSIE);   break;
+        case RTC_IRQ_TAMPER: SET_BIT((TAMP->IER), TAMP_IER_TAMP1IE); break;
     }
     RTC_Write_disable();
 }
@@ -257,10 +257,10 @@ static void RTC_irq_disable(uint8_t type) {
     RTC_Write_enable();
     RTC_Reg_unlock();
     switch (type) {
-        case RTC_IRQ_ALARM:  exe()->clear_reg(&(RTC->CR), RTC_CR_ALRAIE); break;
-        case RTC_IRQ_WAKEUP: exe()->clear_reg(&(RTC->CR), RTC_CR_WUTIE);  break;
-        case RTC_IRQ_TS:     exe()->clear_reg(&(RTC->CR), RTC_CR_TSIE);   break;
-        case RTC_IRQ_TAMPER: exe()->clear_reg(&(TAMP->IER), TAMP_IER_TAMP1IE); break;
+        case RTC_IRQ_ALARM:  CLEAR_BIT((RTC->CR), RTC_CR_ALRAIE); break;
+        case RTC_IRQ_WAKEUP: CLEAR_BIT((RTC->CR), RTC_CR_WUTIE);  break;
+        case RTC_IRQ_TS:     CLEAR_BIT((RTC->CR), RTC_CR_TSIE);   break;
+        case RTC_IRQ_TAMPER: CLEAR_BIT((TAMP->IER), TAMP_IER_TAMP1IE); break;
     }
     RTC_Write_disable();
 }
@@ -271,15 +271,15 @@ static void RTC_inic(void) {
     RTC_Write_enable();
 
     if (exe()->get_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos) == RTCSEL_NONE) {
-        exe()->set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
-        exe()->clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
+        SET_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
+        CLEAR_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
         
-        exe()->set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_LSEON);
+        SET_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_LSEON);
         uint32_t timeout = RTC_INIT_TIMEOUT;
         while(!exe()->get_field_value(dev()->sys->rcc->BDCR, RCC_BDCR_LSERDY_Msk, RCC_BDCR_LSERDY_Pos) && --timeout);
 
         if (timeout == 0) { 
-            exe()->set_reg(&(dev()->sys->rcc->CSR), RCC_CSR_LSION);
+            SET_BIT((dev()->sys->rcc->CSR), RCC_CSR_LSION);
             while(!exe()->get_field_value(dev()->sys->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
             exe()->write_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSI);
         } else {
@@ -298,11 +298,11 @@ static void RTC_inic(void) {
     RTC_Write_enable();    // Unprotect the backup domain registers (PWR->CR1 |= PWR_CR1_DBP)
 
     // Force a clean, deterministic Backup Domain Reset to unlock the routing multiplexer
-    exe()->set_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
-    exe()->clear_reg(&(dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
+    SET_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
+    CLEAR_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
 
     // Turn on the internal LSI (Safe, stable internal clock source)
-    exe()->set_reg(&(dev()->sys->rcc->CSR), RCC_CSR_LSION);
+    SET_BIT((dev()->sys->rcc->CSR), RCC_CSR_LSION);
     while(!get_reg_field_value(dev()->sys->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
 
     // Route RTC to use LSI (0x02)
@@ -319,11 +319,11 @@ static void RTC_inic(void) {
 /*** Under-The-Hood Private Utilities ***/
 
 static void RTC_Write_enable(void) {
-    exe()->set_reg(&(dev()->sys->pwr->CR1), PWR_CR1_DBP);
+    SET_BIT((dev()->sys->pwr->CR1), PWR_CR1_DBP);
 }
 
 static void RTC_Write_disable(void) {
-    exe()->clear_reg(&(dev()->sys->pwr->CR1), PWR_CR1_DBP);
+    CLEAR_BIT((dev()->sys->pwr->CR1), PWR_CR1_DBP);
 }
 
 static void RTC_Reg_unlock(void) {
@@ -333,13 +333,13 @@ static void RTC_Reg_unlock(void) {
 
 /**
 static void RTC_Wait_sync(void) {
-    exe()->clear_reg(&(RTC->ICSR), RTC_ICSR_RSF);
+    CLEAR_BIT((RTC->ICSR), RTC_ICSR_RSF);
     while(!get_reg_field_value(RTC->ICSR, RTC_ICSR_RSF_Msk, RTC_ICSR_RSF_Pos));
 }
 **/
 
 static void RTC_Wait_sync(void) {
-    exe()->clear_reg(&(RTC->ICSR), RTC_ICSR_RSF);
+    CLEAR_BIT((RTC->ICSR), RTC_ICSR_RSF);
     volatile uint32_t timeout = 50000U; // Hardware safety counter
     while(!exe()->get_field_value(RTC->ICSR, RTC_ICSR_RSF_Msk, RTC_ICSR_RSF_Pos) && --timeout);
 }
@@ -348,7 +348,7 @@ static void RTC_Set_tr(uint32_t value) {
     RTC_Write_enable();
     RTC_Reg_unlock();
     
-    exe()->set_reg(&(RTC->ICSR), RTC_ICSR_INIT);
+    SET_BIT((RTC->ICSR), RTC_ICSR_INIT);
     uint32_t timeout = RTC_INIT_TIMEOUT;
     while(!exe()->get_field_value(RTC->ICSR, RTC_ICSR_INITF_Msk, RTC_ICSR_INITF_Pos) && --timeout);
     
@@ -356,7 +356,7 @@ static void RTC_Set_tr(uint32_t value) {
         RTC->TR = value;
     }
     
-    exe()->clear_reg(&(RTC->ICSR), RTC_ICSR_INIT);
+    CLEAR_BIT((RTC->ICSR), RTC_ICSR_INIT);
     RTC_Write_disable();
 }
 
@@ -364,7 +364,7 @@ static void RTC_Set_dr(uint32_t value) {
     RTC_Write_enable();
     RTC_Reg_unlock();
     
-    exe()->set_reg(&(RTC->ICSR), RTC_ICSR_INIT);
+    SET_BIT((RTC->ICSR), RTC_ICSR_INIT);
     uint32_t timeout = RTC_INIT_TIMEOUT;
     while(!exe()->get_field_value(RTC->ICSR, RTC_ICSR_INITF_Msk, RTC_ICSR_INITF_Pos) && --timeout);
     
@@ -372,7 +372,7 @@ static void RTC_Set_dr(uint32_t value) {
         RTC->DR = value;
     }
     
-    exe()->clear_reg(&(RTC->ICSR), RTC_ICSR_INIT);
+    CLEAR_BIT((RTC->ICSR), RTC_ICSR_INIT);
     RTC_Write_disable();
 }
 

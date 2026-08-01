@@ -261,7 +261,7 @@ static void st7789_init_seq(ST7789_par* par) {
 
     // --- COLOR INVERSION ---
     st7789_cs_low(par);
-    st7789_cmd(par, ST77XX_INVON); // INVON or INVOFF
+    st7789_cmd(par, ST77XX_INVOFF); // INVON or INVOFF
     st7789_spi_flush(par);
     st7789_cs_high(par);
 

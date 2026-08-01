@@ -50,14 +50,6 @@ static inline uint32_t _mask_data(uint32_t Msk, uint32_t data){
 	return _mask(data << _mask_pos(Msk), Msk);
 }
 
-/*** Tools ***/
-static void set_reg(volatile uint32_t* reg, uint32_t hbits){
-	*reg |= hbits;
-}
-static void clear_reg(volatile uint32_t* reg, uint32_t hbits){
-	*reg &= ~hbits;
-}
-
 /*** ToolSet ***/
 // field
 static inline uint32_t get_field_value(uint32_t reg, uint32_t Msk, uint32_t Pos)
@@ -71,7 +63,7 @@ static inline void write_field_value(volatile uint32_t* reg, uint32_t Msk, uint3
 }
 static inline void set_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data)
 {
-	clear_reg(reg, Msk); set_reg(reg, _mask((data << Pos), Msk));
+	CLEAR_BIT(*reg, Msk); SET_BIT(*reg, _mask((data << Pos), Msk));
 }
 static inline void write_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData)
 {
@@ -180,9 +172,6 @@ static tool_handler tool_setup = {
 		._block_pos = _block_pos,
 		._mask = _mask,
 		._imask = _imask,
-
-		.set_reg = set_reg,
-		.clear_reg = clear_reg,
 
 		.get_field_value = get_field_value,
 		.write_field_value = write_field_value,

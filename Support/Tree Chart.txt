@@ -35,6 +35,7 @@ stm32g473vet6.h--|
 				 |
 				 |
 				 |<-----stm32x_tool.h--|
+				 |                     |<-stm32g4xx.h
 				 |                     |<-stdint.h
 				 |                     |<-inttypes.h
 				 |                     |<-stddef.h
@@ -43,10 +44,11 @@ stm32g473vet6.h--|
 				 |
 				 |
 				 |<-----stm32x_gpio.h--|
+				 |                     |<-stm32g4xx.h
 				 |                     |<-stdint.h
 				 |                     |<-inttypes.h
 				 |                     |<-stddef.h
-				 |                     |<-stm32g4xx.h
+				 |
 				 |                      
 				 |
 				 |--------> ALL Handlers and Drivers                    

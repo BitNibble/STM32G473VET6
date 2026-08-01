@@ -471,7 +471,7 @@ static inline void fpu_enable(void)
 }
 
 static void tim1_start(void) {
-    exe()->set_reg(&TIM1->CR1, TIM_CR1_CEN);
+    SET_BIT(TIM1->CR1, TIM_CR1_CEN);
 }
 
 /*** DEV GET PARAMETER ***/

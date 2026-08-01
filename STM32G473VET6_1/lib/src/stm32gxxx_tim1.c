@@ -12,11 +12,11 @@ static tim1_par t1_par = { // Default
 };
 
 static void t1_clk_en(void) {
-    exe()->set_reg(&dev()->sys->rcc->APB2ENR, RCC_APB2ENR_TIM1EN);
+    SET_BIT(dev()->sys->rcc->APB2ENR, RCC_APB2ENR_TIM1EN);
 }
 
 static void t1_clk_di(void) {
-    exe()->clear_reg(&dev()->sys->rcc->APB2ENR, RCC_APB2ENR_TIM1EN);
+    CLEAR_BIT(dev()->sys->rcc->APB2ENR, RCC_APB2ENR_TIM1EN);
 }
 
 static void t1_init_by_ticks(uint16_t prescaler, uint32_t autoreload) {
@@ -27,9 +27,9 @@ static void t1_init_by_ticks(uint16_t prescaler, uint32_t autoreload) {
     t1_par.prescaler = prescaler;
     t1_par.autoreload = autoreload;
 
-    exe()->set_reg(&dev()->timer->tim1->BDTR, TIM_BDTR_MOE);
-    exe()->set_reg(&dev()->timer->tim1->EGR, TIM_EGR_UG);
-    exe()->clear_reg(&dev()->timer->tim1->SR, TIM_SR_UIF);
+    SET_BIT(dev()->timer->tim1->BDTR, TIM_BDTR_MOE);
+    SET_BIT(dev()->timer->tim1->EGR, TIM_EGR_UG);
+    CLEAR_BIT(dev()->timer->tim1->SR, TIM_SR_UIF);
 
     (void)TIM1->SR; // Sync barrier
 }
@@ -48,57 +48,57 @@ static void t1_init_by_freq(uint16_t prescaler, uint32_t target_freq_hz) {
 }
 
 static void t1_nvic_u_en(uint8_t p) {
-    exe()->set_reg(&dev()->timer->tim1->DIER, TIM_DIER_UIE);
+    SET_BIT(dev()->timer->tim1->DIER, TIM_DIER_UIE);
     uint32_t irq = (uint32_t)TIM1_UP_TIM16_IRQn;
     
     dev()->core->nvic->IP[irq] = (uint8_t)(p << 4U);
-    exe()->set_reg(&dev()->core->nvic->ISER[irq >> 5U], (1U << (irq & 0x1FU)));
+    SET_BIT(dev()->core->nvic->ISER[irq >> 5U], (1U << (irq & 0x1FU)));
 }
 
 static void t1_nvic_u_di(void) {
-    exe()->clear_reg(&dev()->timer->tim1->DIER, TIM_DIER_UIE);
+    CLEAR_BIT(dev()->timer->tim1->DIER, TIM_DIER_UIE);
     uint32_t irq = (uint32_t)TIM1_UP_TIM16_IRQn;
-    exe()->set_reg(&dev()->core->nvic->ICER[irq >> 5U], (1U << (irq & 0x1FU)));
+    SET_BIT(dev()->core->nvic->ICER[irq >> 5U], (1U << (irq & 0x1FU)));
 }
 
 static void t1_nvic_t_en(uint8_t p) {
-    exe()->set_reg(&dev()->timer->tim1->DIER, TIM_DIER_TIE);
+    SET_BIT(dev()->timer->tim1->DIER, TIM_DIER_TIE);
     uint32_t irq = (uint32_t)TIM1_TRG_COM_TIM17_IRQn;
 
     dev()->core->nvic->IP[irq] = (uint8_t)(p << 4U);
-    exe()->set_reg(&dev()->core->nvic->ISER[irq >> 5U], (1U << (irq & 0x1FU)));
+    SET_BIT(dev()->core->nvic->ISER[irq >> 5U], (1U << (irq & 0x1FU)));
 }
 
 static void t1_nvic_t_di(void) {
-    exe()->clear_reg(&dev()->timer->tim1->DIER, TIM_DIER_TIE);
+    CLEAR_BIT(dev()->timer->tim1->DIER, TIM_DIER_TIE);
     uint32_t irq = (uint32_t)TIM1_TRG_COM_TIM17_IRQn;
-    exe()->set_reg(&dev()->core->nvic->ICER[irq >> 5U], (1U << (irq & 0x1FU)));
+    SET_BIT(dev()->core->nvic->ICER[irq >> 5U], (1U << (irq & 0x1FU)));
 }
 
 static void t1_nvic_cc_en(uint8_t p) {
-    exe()->set_reg(&dev()->timer->tim1->DIER, (TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC3IE | TIM_DIER_CC4IE));
+    SET_BIT(dev()->timer->tim1->DIER, (TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC3IE | TIM_DIER_CC4IE));
     uint32_t irq = (uint32_t)TIM1_CC_IRQn;
 
     dev()->core->nvic->IP[irq] = (uint8_t)(p << 4U);
-    exe()->set_reg(&dev()->core->nvic->ISER[irq >> 5U], (1U << (irq & 0x1FU)));
+    SET_BIT(dev()->core->nvic->ISER[irq >> 5U], (1U << (irq & 0x1FU)));
 }
 
 static void t1_nvic_cc_di(void) {
-    exe()->clear_reg(&dev()->timer->tim1->DIER, (TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC3IE | TIM_DIER_CC4IE));
+    CLEAR_BIT(dev()->timer->tim1->DIER, (TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC3IE | TIM_DIER_CC4IE));
     uint32_t irq = (uint32_t)TIM1_CC_IRQn;
-    exe()->set_reg(&dev()->core->nvic->ICER[irq >> 5U], (1U << (irq & 0x1FU)));
+    SET_BIT(dev()->core->nvic->ICER[irq >> 5U], (1U << (irq & 0x1FU)));
 }
 
 static void t1_start(void) { 
-    exe()->set_reg(&TIM1->CR1, TIM_CR1_CEN);
+    SET_BIT(TIM1->CR1, TIM_CR1_CEN);
 }
 
 static void t1_stop(void)  { 
-    exe()->clear_reg(&TIM1->CR1, TIM_CR1_CEN);
+    CLEAR_BIT(TIM1->CR1, TIM_CR1_CEN);
 }
 
 static void t1_config_pwm(tim1_ch_t ch, pwm_mode_t mode, uint32_t pulse_width) {
-    exe()->clear_reg(&dev()->timer->tim1->CCER, (TIM_CCER_CC1E << (ch * 4U)));
+    CLEAR_BIT(dev()->timer->tim1->CCER, (TIM_CCER_CC1E << (ch * 4U)));
 
     volatile uint32_t* ccmr = (ch < TIM1_CH3) ? &dev()->timer->tim1->CCMR1 : &dev()->timer->tim1->CCMR2;
     uint32_t shift = (ch == TIM1_CH1 || ch == TIM1_CH3) ? 0U : 8U;
@@ -110,7 +110,7 @@ static void t1_config_pwm(tim1_ch_t ch, pwm_mode_t mode, uint32_t pulse_width) {
     *ccmr = (tmp & ~ccmr_mask) | ccmr_val;
 
     *(&dev()->timer->tim1->CCR1 + ch) = pulse_width;
-    exe()->set_reg(&dev()->timer->tim1->CCER, (TIM_CCER_CC1E << (ch * 4U)));
+    SET_BIT(dev()->timer->tim1->CCER, (TIM_CCER_CC1E << (ch * 4U)));
 }
 
 static void t1_enable_complementary(tim1_ch_t ch, uint8_t enable_main, uint8_t enable_comp) {
@@ -121,8 +121,8 @@ static void t1_enable_complementary(tim1_ch_t ch, uint8_t enable_main, uint8_t e
     if (enable_main) target_bits |= TIM_CCER_CC1E;  else clear_bits |= TIM_CCER_CC1E;
     if (enable_comp) target_bits |= TIM_CCER_CC1NE; else clear_bits |= TIM_CCER_CC1NE;
 
-    exe()->clear_reg(&dev()->timer->tim1->CCER, (clear_bits << shift));
-    exe()->set_reg(&dev()->timer->tim1->CCER, (target_bits << shift));
+    CLEAR_BIT(dev()->timer->tim1->CCER, (clear_bits << shift));
+    SET_BIT(dev()->timer->tim1->CCER, (target_bits << shift));
 }
 
 static void t1_config_deadtime(uint8_t deadtime_value) {
@@ -136,7 +136,7 @@ static void t1_set_pulse(tim1_ch_t ch, uint32_t pulse_width) {
 /* --- Input Capture Implementation --- */
 
 static void t1_config_capture(tim1_ch_t ch, ic_edge_t edge) {
-    exe()->clear_reg(&dev()->timer->tim1->CCER, (TIM_CCER_CC1E << (ch * 4U)));
+    CLEAR_BIT(dev()->timer->tim1->CCER, (TIM_CCER_CC1E << (ch * 4U)));
 
     volatile uint32_t* ccmr = (ch < TIM1_CH3) ? &dev()->timer->tim1->CCMR1 : &dev()->timer->tim1->CCMR2;
     uint32_t shift = (ch == TIM1_CH1 || ch == TIM1_CH3) ? 0U : 8U;
@@ -156,9 +156,9 @@ static void t1_config_capture(tim1_ch_t ch, ic_edge_t edge) {
         polarity_bits |= (TIM_CCER_CC1P | TIM_CCER_CC1NP);
     }
 
-    exe()->clear_reg(&dev()->timer->tim1->CCER, ((TIM_CCER_CC1P | TIM_CCER_CC1NP) << ccer_shift));
-    exe()->set_reg(&dev()->timer->tim1->CCER, (polarity_bits << ccer_shift));
-    exe()->set_reg(&dev()->timer->tim1->CCER, (TIM_CCER_CC1E << ccer_shift));
+    CLEAR_BIT(dev()->timer->tim1->CCER, ((TIM_CCER_CC1P | TIM_CCER_CC1NP) << ccer_shift));
+    SET_BIT(dev()->timer->tim1->CCER, (polarity_bits << ccer_shift));
+    SET_BIT(dev()->timer->tim1->CCER, (TIM_CCER_CC1E << ccer_shift));
 }
 
 static uint32_t t1_get_capture(tim1_ch_t ch) {

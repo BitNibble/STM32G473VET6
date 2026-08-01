@@ -6,6 +6,7 @@ Hardware: STM32
 ****************************************************/
 #pragma once
 
+#include <stm32g4xx.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <stddef.h>
@@ -25,9 +26,6 @@ typedef const struct {
 	uint32_t (*_block_pos)(uint32_t size_block, uint32_t block_n);
 	uint32_t (*_mask)(uint32_t var, uint32_t Msk);
 	uint32_t (*_imask)(uint32_t var, uint32_t Msk);
-
-	void (*set_reg)(volatile uint32_t* reg, uint32_t hbits);
-	void (*clear_reg)(volatile uint32_t* reg, uint32_t hbits);
 
 	uint32_t (*get_field_value)(uint32_t reg, uint32_t Msk, uint32_t Pos);
 	void (*write_field_value)(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
