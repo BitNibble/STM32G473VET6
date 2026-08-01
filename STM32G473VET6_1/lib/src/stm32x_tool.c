@@ -61,10 +61,6 @@ static inline void write_field_value(volatile uint32_t* reg, uint32_t Msk, uint3
 	uint32_t tmp = *reg;
 	*reg = _imask(tmp, Msk) | _mask((data << Pos), Msk);
 }
-static inline void set_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data)
-{
-	CLEAR_BIT(*reg, Msk); SET_BIT(*reg, _mask((data << Pos), Msk));
-}
 static inline void write_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData)
 {
 	uint32_t tmp = *reg;
@@ -79,10 +75,6 @@ static void write_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_
 {
 	write_field_value(reg, _block_mask(size_block, Pos), Pos, data);
 }
-static void set_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data)
-{
-	set_field_value(reg, _block_mask(size_block, Pos), Pos, data);
-}
 // bit_block
 static uint32_t get_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos)
 {
@@ -94,11 +86,6 @@ static void write_bit_block_value(volatile uint32_t* reg, uint8_t size_block, ui
 	uint32_t n = Pos / DWORD_BITS; Pos = Pos % DWORD_BITS;
 	write_field_value((reg + n), _block_mask(size_block, Pos), Pos, data);
 }
-static void set_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data)
-{
-	uint32_t n = Pos / DWORD_BITS; Pos = Pos % DWORD_BITS;
-	set_field_value((reg + n), _block_mask(size_block, Pos), Pos, data);
-}
 
 /****************************************/
 static inline void increment(uint16_t* value, uint16_t min, uint16_t max) {
@@ -107,7 +94,7 @@ static inline void increment(uint16_t* value, uint16_t min, uint16_t max) {
 	if(*value > max){*value = min;}else if(*value < min){*value=min;}
 }
 static inline uint8_t toggle(uint8_t n) {
-	if (n < TOGGLE_SIZE){
+	if (n < TOGGLE_SIZE) {
 		toggle_flag[n] &= ONE;
 		toggle_flag[n] ^= ONE;
 		return toggle_flag[n];
@@ -175,16 +162,13 @@ static tool_handler tool_setup = {
 
 		.get_field_value = get_field_value,
 		.write_field_value = write_field_value,
-		.set_field_value = set_field_value,
 		.write_field_encoded = write_field_encoded,
 
 		.get_block_value = get_block_value,
 		.write_block_value = write_block_value,
-		.set_block_value = set_block_value,
 
 		.get_bit_block_value = get_bit_block_value,
 		.write_bit_block_value = write_bit_block_value,
-		.set_bit_block_value = set_bit_block_value,
 		/****************************************/
 		.increment = increment,
 		.toggle = toggle,

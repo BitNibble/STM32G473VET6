@@ -300,4 +300,5 @@ void blink(void){
 	gpio()->toggle_hpin(dev()->gpio->f, 1 << 2);
 }
 
+/*** EOF ***/
 

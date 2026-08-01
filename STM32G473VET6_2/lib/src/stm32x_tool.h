@@ -6,7 +6,6 @@ Hardware: STM32
 ****************************************************/
 #pragma once
 
-#include <stm32g4xx.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <stddef.h>
@@ -21,6 +20,31 @@ Hardware: STM32
 #define DWORD_BITS 32UL
 #define QWORD_BITS 64UL
 
+#ifndef SET_BIT
+	#define SET_BIT(REG, BIT)                    ((REG) |= (BIT))
+#endif
+#ifndef CLEAR_BIT
+	#define CLEAR_BIT(REG, BIT)                  ((REG) &= ~(BIT))
+#endif
+#ifndef READ_BIT
+	#define READ_BIT(REG, BIT)                   ((REG) & (BIT))
+#endif
+#ifndef CLEAR_REG
+	#define CLEAR_REG(REG)                       ((REG) = (0x0))
+#endif
+#ifndef WRITE_REG
+	#define WRITE_REG(REG, VAL)                  ((REG) = (VAL))
+#endif
+#ifndef READ_REG
+	#define READ_REG(REG)                        ((REG))
+#endif
+#ifndef MODIFY_REG
+	#define MODIFY_REG(REG, CLEARMASK, SETMASK)  WRITE_REG((REG), (((READ_REG(REG)) & (~(CLEARMASK))) | (SETMASK)))
+#endif
+#ifndef POSITION_VAL
+	#define POSITION_VAL(VAL)                    (__CLZ(__RBIT(VAL)))
+#endif
+
 /*** TOOL HANDLER ***/
 typedef const struct {
 	uint32_t (*_block_pos)(uint32_t size_block, uint32_t block_n);
@@ -29,16 +53,13 @@ typedef const struct {
 
 	uint32_t (*get_field_value)(uint32_t reg, uint32_t Msk, uint32_t Pos);
 	void (*write_field_value)(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
-	void (*set_field_value)(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
 	void (*write_field_encoded)(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData);
 
 	uint32_t (*get_block_value)(uint32_t reg, uint8_t size_block, uint8_t Pos);
 	void (*write_block_value)(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
-	void (*set_block_value)(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 
 	uint32_t (*get_bit_block_value)(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos);
 	void (*write_bit_block_value)(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
-	void (*set_bit_block_value)(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 	/****************************************/
 	void (*increment)(uint16_t* value, uint16_t min, uint16_t max);
 	uint8_t (*toggle)(uint8_t n);
