@@ -607,13 +607,6 @@ static void init(void) {
 	i2c1_digital_filter(1);
 	i2c1_analog_filter_disable();
 
-	/*** tSCL Calculation Layout (48MHZ - 100KHZ Specification Metrics) ***/
-	//i2c1_timing_prescaler(0xB);
-	//i2c1_low_period(0x13);
-	//i2c1_high_period(0xF);
-	//i2c1_hold_timing(0x2);
-	//i2c1_setup_timing(0x4);
-
 	i2c1_calculate_and_apply_timing(par_setup.bus_speed);
 
 	i2c1_addressing_mode(par_setup.address_mode);
