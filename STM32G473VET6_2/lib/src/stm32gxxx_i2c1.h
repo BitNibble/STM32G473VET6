@@ -61,8 +61,7 @@ typedef const struct {
 /*** i2c1 SET ***/
 typedef const struct {
 	void (*digital_filter)(uint8_t filter);
-	void (*slave_address)(uint16_t device_ID);
-	void (*direction)(i2c_direction_t r_w);
+	void (*slave_address_direction)(uint16_t device_ID, i2c_direction_t r_w);
 	void (*addressing_mode)(i2c_addr_mode_t mode);
 	void (*nbytes)(uint8_t nbytes);
 	void (*own_address)(uint8_t address);
@@ -119,6 +118,8 @@ typedef const struct {
 	void (*reset)(void);
 	uint8_t (*wait_for_bus_idle)(uint32_t timeout_loops);
 	void (*calculate_and_apply_timing)(i2c_bus_speed_t target_bus_speed_hz);
+	uint8_t (*read_register)(uint16_t device_id, uint8_t reg_addr, uint8_t* p_buffer, uint8_t length);
+	uint8_t (*write_register)(uint16_t device_id, uint8_t reg_addr, uint8_t* p_data, uint8_t length);
 	uint8_t (*write_buffer)(uint16_t device_id, uint8_t* p_data, uint8_t length);
 	uint8_t (*read_buffer)(uint16_t device_id, uint8_t* p_buffer, uint8_t length);
 	uint8_t (*test)(void);

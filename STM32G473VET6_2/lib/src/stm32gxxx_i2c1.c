@@ -157,15 +157,17 @@ static void i2c1_pec_disable(void) {
 }
 
 /******************  Bit definition for I2C_CR2 register  ********************/
-static void i2c1_slave_address(uint16_t device_ID) {
-	uint16_t shifted_address = (device_ID << 1);
-	exe()->write_field_value(&I2C1->CR2, I2C_CR2_SADD, I2C_CR2_SADD_Pos, shifted_address);
-}
-static void i2c1_direction(uint8_t r_w) {
-	if(r_w)
-		SET_BIT(I2C1->CR2, I2C_CR2_RD_WRN);
-	else
-		CLEAR_BIT(I2C1->CR2, I2C_CR2_RD_WRN);
+static void slave_address_direction(uint16_t device_ID, i2c_direction_t r_w) {
+	switch(r_w) {
+		case I2C_DIR_READ:
+			exe()->write_field_value(&I2C1->CR2, I2C_CR2_RD_WRN, I2C_CR2_RD_WRN_Pos, 1);
+			exe()->write_field_value(&I2C1->CR2, I2C_CR2_SADD, I2C_CR2_SADD_Pos, device_ID);
+			break;
+		case I2C_DIR_WRITE:
+			exe()->write_field_value(&I2C1->CR2, I2C_CR2_RD_WRN, I2C_CR2_RD_WRN_Pos, 0);
+			exe()->write_field_value(&I2C1->CR2, I2C_CR2_SADD, I2C_CR2_SADD_Pos, device_ID);
+			break;
+	}
 }
 static void i2c1_addressing_mode(i2c_addr_mode_t mode) {
 	if(mode == I2C_ADDR_10BIT)
@@ -200,20 +202,33 @@ static void i2c1_pecbyte_enable(void) {
 static void i2c1_pecbyte_disable(void) {
 	CLEAR_BIT(I2C1->CR2, I2C_CR2_PECBYTE);
 }
-static void i2c1_start(void) {
+void i2c1_start_v1(void) {
 	uint32_t final_hardware_cmd = I2C1->CR2 | I2C_CR2_START;
 	exe()->write_field_encoded(&dev()->comm->i2c1_bf->CR2.val, 0xFFFFFFFFU, final_hardware_cmd);
 
 	uint32_t persistent_mask = I2C_CR2_NBYTES | I2C_CR2_RD_WRN | I2C_CR2_START;
 	I2C1->CR2 = exe()->_imask(I2C1->CR2, persistent_mask);
 }
+static void i2c1_start(void) {
+    // Safely assert only the START bit on top of your existing CR2 register layout
+    SET_BIT(dev()->comm->i2c1_bf->CR2.val, I2C_CR2_START);
+}
+
 static uint8_t i2c1_get_start(void) {
 	return exe()->get_field_value(dev()->comm->i2c1_bf->CR2.val, I2C_CR2_START, I2C_CR2_START_Pos);
 }
-static void i2c1_stop(void) {
+void i2c1_stop_v1(void) {
 	// STOP can be asserted directly to hardware safely to terminate/abort sequences
 	SET_BIT(dev()->comm->i2c1_bf->CR2.val, I2C_CR2_STOP);
 }
+static void i2c1_stop(void) {
+    SET_BIT(dev()->comm->i2c1_bf->CR2.val, I2C_CR2_STOP);
+    // Wait for the stop condition to actually clear the bus safely
+    while (!_i2c1_get_status_flag(I2C_ISR_STOPF));
+    // Immediately clear the stop detection flag to leave a pristine state
+    SET_BIT(dev()->comm->i2c1_bf->ICR.val, I2C_ICR_STOPCF);
+}
+
 
 /*******************  Bit definition for I2C_OAR1 register  ******************/
 static void i2c1_own_address(uint8_t address) {
@@ -397,13 +412,105 @@ static void i2c1_calculate_and_apply_timing(i2c_bus_speed_t target_bus_speed_hz)
 	}
 }
 
+// Combined Register Reader using a hardware Repeated Start
+static uint8_t i2c1_read_register(uint16_t device_id, uint8_t reg_addr, uint8_t* p_buffer, uint8_t length) {
+	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
+
+	// Make sure AUTOEND is disabled so we can issue a Repeated Start
+	CLEAR_BIT(dev()->comm->i2c1_bf->CR2.val, I2C_CR2_AUTOEND);
+
+	// Phase 1: Write the target register address
+	slave_address_direction(device_id, I2C_DIR_WRITE);
+	i2c1_nbytes(1);
+	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U); // Clear status flags
+	i2c1_start();
+
+	// Wait for TXIS to safely load the target register pointer
+	if (!_i2c1_wait_status_flag(I2C_ISR_TXIS, 1, 100000UL)) {
+		i2c1_stop();
+		return 0;
+	}
+	i2c1_set_txdata(reg_addr);
+
+	// Wait for Transfer Complete (TC) - meaning the address was transmitted, but NO stop is sent
+	if (!_i2c1_wait_status_flag(I2C_ISR_TC, 1, 100000UL)) {
+		i2c1_stop();
+		return 0;
+	}
+
+	// Phase 2: Issue Repeated Start by switching to READ mode and updating bytes
+	slave_address_direction(device_id, I2C_DIR_READ);
+	i2c1_nbytes(length);
+	i2c1_start(); // Toggling START while TC is set generates a Repeated Start
+
+	// Stream incoming data from the device
+	for (uint8_t i = 0; i < length; i++) {
+		if (!_i2c1_wait_status_flag(I2C_ISR_RXNE, 1, 100000UL)) {
+			i2c1_stop();
+			return 0;
+		}
+		p_buffer[i] = i2c1_get_rxdata();
+	}
+
+	// Finalize sequence safely
+	if (!_i2c1_wait_status_flag(I2C_ISR_TC, 1, 100000UL)) {
+		i2c1_stop();
+		return 0;
+	}
+
+	i2c1_stop();
+	return 1;
+}
+
+// Universal single or multi-byte register writer function
+static uint8_t i2c1_write_register(uint16_t device_id, uint8_t reg_addr, uint8_t* p_data, uint8_t length) {
+	if (length == 0 || exe()->isPtrNull(p_data)) return 0;
+
+	// 1. Stage transaction parameters
+	slave_address_direction(device_id, I2C_DIR_WRITE);
+
+	// Total bytes = 1 byte for register address + payload length
+	i2c1_nbytes(length + 1U);
+
+	// Clear clearing/status flags before knocking on the wire
+	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U);
+
+	// 2. Fire the hardware start sequence safely
+	i2c1_start();
+
+	// 3. Transmit the target internal register address first
+	if (!_i2c1_wait_status_flag(I2C_ISR_TXIS, 1, 100000UL)) {
+		i2c1_stop(); // Safe abort on timeout or NACK
+		return 0;
+	}
+	i2c1_set_txdata(reg_addr);
+
+	// 4. Stream out the remaining payload data sequentially
+	for (uint8_t i = 0; i < length; i++) {
+		if (!_i2c1_wait_status_flag(I2C_ISR_TXIS, 1, 100000UL)) {
+			i2c1_stop();
+			return 0;
+		}
+		i2c1_set_txdata(p_data[i]);
+	}
+
+	// 5. Wait for the standard Transfer Complete (TC) flag to wrap up
+	if (!_i2c1_wait_status_flag(I2C_ISR_TC, 1, 100000UL)) {
+		i2c1_stop();
+		return 0;
+	}
+
+	// Terminate sequence and free the bus
+	i2c1_stop();
+	return 1;
+}
+
 /******************  High-Level API Functions  *********************/
 // Universal master buffer writer function
 static uint8_t i2c1_write_buffer(uint16_t device_id, uint8_t* p_data, uint8_t length) {
 	if (length == 0 || exe()->isPtrNull(p_data)) return 0;
 	// 1. Stage the transaction parameters into your global shadow register
-	i2c1_slave_address(device_id);
-	i2c1_direction(I2C_DIR_WRITE);
+	slave_address_direction(device_id, I2C_DIR_WRITE);
 	i2c1_nbytes(length);
 	// 2. Clear out any leftover hardware status error flags before starting
 	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U);
@@ -427,8 +534,7 @@ static uint8_t i2c1_write_buffer(uint16_t device_id, uint8_t* p_data, uint8_t le
 static uint8_t i2c1_read_buffer(uint16_t device_id, uint8_t* p_buffer, uint8_t length) {
 	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
 	// 1. Stage parameters
-	i2c1_slave_address(device_id);
-	i2c1_direction(I2C_DIR_READ);
+	slave_address_direction(device_id, I2C_DIR_READ);
 	i2c1_nbytes(length);
 	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U);
 	// 2. Fire Start
@@ -474,8 +580,7 @@ void init_v1(void) {
 
 	if(!i2c1_get_start()){
 		i2c1_addressing_mode(I2C_ADDR_7BIT);
-		i2c1_slave_address(PCF8563);
-		i2c1_direction(I2C_DIR_READ);
+		slave_address_direction(PCF8563,I2C_DIR_READ);
 		i2c1_nbytes(TWO);
 
 		if(i2c1_is_idle()){
@@ -514,7 +619,7 @@ static void init(void) {
 	i2c1_addressing_mode(par_setup.address_mode);
 }
 
-static uint8_t test(void){
+uint8_t test_v1(void){
 	// Local buffer layout to track power-up responses safely
 	uint8_t time_test_buffer[2] = {0};
 	/*** Communication Wakeup ***/
@@ -538,6 +643,22 @@ static uint8_t test(void){
 	return time_test_buffer[1];
 }
 
+static uint8_t test(void) {
+	uint8_t time_test_buffer[2] = {0};
+
+	i2c1_enable();
+
+	// Ensure the physical bus is clear before knocking on the wire
+	if (i2c1_is_idle()) {
+		// Read 2 consecutive bytes starting directly at register 0x02 (Seconds, Minutes)
+		if (i2c1_read_register(PCF8563, 0x02, time_test_buffer, 2U)) {
+			// Success! Data maps out beautifully now
+			(void)time_test_buffer;
+		}
+	}
+	return time_test_buffer[0]; // Returns seconds byte
+}
+
 /*** i2c1 GET ***/
 static i2c1_get get_setup = {
 	.status = i2c1_status,
@@ -554,8 +675,7 @@ static i2c1_get get_setup = {
 /*** i2c1 SET ***/
 static i2c1_set set_setup = {
 	.digital_filter = i2c1_digital_filter,
-	.slave_address = i2c1_slave_address,
-	.direction = i2c1_direction,
+	.slave_address_direction = slave_address_direction,
 	.addressing_mode = i2c1_addressing_mode,
 	.nbytes = i2c1_nbytes,
 	.own_address = i2c1_own_address,
@@ -611,6 +731,8 @@ static i2c1_run run_setup = {
 	.reset = i2c1_reset,
 	.wait_for_bus_idle = wait_for_bus_idle,
 	.calculate_and_apply_timing = i2c1_calculate_and_apply_timing,
+	.read_register = i2c1_read_register,
+	.write_register = i2c1_write_register,
 	.write_buffer = i2c1_write_buffer,
 	.read_buffer = i2c1_read_buffer,
 	.test = test,
