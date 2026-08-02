@@ -33,17 +33,20 @@ EN - PE0
 
 #define BG_colour 0x0000
 
-// Define a unified bitmask for PD8, PD9, PD10, PD11, PD12, and PD13
-// Binary: 0011 1111 0000 0000 -> Hex: 0x3F00
+// Unified bitmask for PD8 through PD13 (0x3F00)
 #define BTN_ALL_PINS_MASK    (0x3FU << 8)
 
-// Map operations to their isolated bits for processing
+// Pin isolation maps
 #define BTN_MODE_PIN         (1UL << 8)   // PD8
 #define BTN_UP_PIN           (1UL << 9)   // PD9
 #define BTN_DOWN_PIN         (1UL << 10)  // PD10
 #define BTN_FW_PIN           (1UL << 11)  // PD11
 #define BTN_RV_PIN           (1UL << 12)  // PD12
 #define BTN_SP_PIN           (1UL << 13)  // PD13
+
+// Toggle indices assigned cleanly to prevent overlapping array index writes
+#define TOGGLE_INDEX_FWD     0U
+#define TOGGLE_INDEX_REV     1U
 
 typedef enum {
     CFG_IDLE = 0,
@@ -56,8 +59,7 @@ typedef enum {
     CFG_MAX
 } ui_state_t;
 
-static const char *state_name[] =
-{
+static const char *state_name[] = {
     "Relogio",
     "Hora",
     "Minuto",
@@ -77,227 +79,204 @@ void rtc_ui_init(void);
 void select_mode(EXPLODE_Handler active_press);
 void adjust_active_field(EXPLODE_Handler active_press);
 void speed_inc(void);
-
 void blink(void);
 
 int main(void)
 {
-	rcc()->run->inic();
-	dev()->enable->fpu();
-	rtc()->run->inic();
+    rcc()->run->inic();
+    dev()->enable->fpu();
+    rtc()->run->inic();
 
-	char str[32];
-	char vecD[8]; // for calendar date
-	char vecT[8]; // for calendar time
-	speed = 530;
-	uint16_t idle_colour = 0x0000;
+    char str[32];
+    char vecD[8]; // calendar date
+    char vecT[8]; // calendar time
+    speed = 530;
+    uint16_t idle_colour = 0x0000;
 
-	dev()->sys->rcc_bf->AHB2ENR.par.GPIOFEN = 1;
-	dev()->gpio->f_bf->MODER.par.MODE2 = MODE_OUTPUT;
-	//gpio()->clock( dev()->gpio->f, 1 );
-	//gpio()->hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
-	rtc_ui_init();
+    dev()->sys->rcc_bf->AHB2ENR.par.GPIOFEN = 1;
+    dev()->gpio->f_bf->MODER.par.MODE2 = MODE_OUTPUT;
 
-	adc1()->run->temp_init();
+    rtc_ui_init();
+    adc1()->run->temp_init();
 
-	EXPLODE_Handler tr = EXPLODE_enable();
-	EXPLODE_Handler dr = EXPLODE_enable();
+    EXPLODE_Handler tr = EXPLODE_enable();
+    EXPLODE_Handler dr = EXPLODE_enable();
 
-	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
-	(void) lcd1;
+    ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
+    (void) lcd1;
 
-	drive = l293d_enable(GPIOE, ZERO);
+    drive = l293d_enable(GPIOE, ZERO);
 
-	tim1()->run->clock_enable();
-	tim1()->run->init_by_ticks(tim1()->par->prescaler,tim1()->par->autoreload);
-	tim1()->run->nvic_u_enable(3);
-	irq()->timer->tim1->update = blink;
-	//tim1()->run->start();
+    tim1()->run->clock_enable();
+    tim1()->run->init_by_ticks(tim1()->par->prescaler, tim1()->par->autoreload);
+    tim1()->run->nvic_u_enable(3);
+    irq()->timer->tim1->update = blink;
 
-	lcd1.run->start(&lcd1.par);
-	lcd1.run->draw_circle(&lcd1.par,220,300,15,ST77XX_CYAN);
-	lcd1.run->draw_star5(&lcd1.par,220,300,15,5,ST77XX_GOLD);
-	lcd1.run->stop(&lcd1.par);
+    lcd1.run->start(&lcd1.par);
+    lcd1.run->draw_circle(&lcd1.par, 220, 300, 15, ST77XX_CYAN);
+    lcd1.run->draw_star5(&lcd1.par, 220, 300, 15, 5, ST77XX_GOLD);
+    lcd1.run->stop(&lcd1.par);
 
-	while(1)
-	{
+    while(1)
+    {
+        // 1. Process Button Transitions & Display Configuration Mode
+        if(btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR & BTN_ALL_PINS_MASK)) {
+            select_mode(btn_engine);
+            adjust_active_field(btn_engine);
 
+            lcd1.run->start(&lcd1.par);
+            lcd1.run->drawstring16x24_size(&lcd1.par, (char*)state_name[ui_state], 10, 10, ST77XX_WHITE, BG_colour, 7);
+            lcd1.run->stop(&lcd1.par);
+        }
 
-		if(btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR & BTN_ALL_PINS_MASK)) {
-			select_mode(btn_engine);
-			adjust_active_field(btn_engine);
+        // 2. Forward Motor Drive Trigger (Uses dedicated Toggle index 0)
+        if(btn_engine.par.HL & BTN_FW_PIN) {
+            if(exe()->toggle(TOGGLE_INDEX_FWD)){
+                drive.run->pwm_forward(&drive.par, speed);
+            }else{
+                drive.run->stop(&drive.par);
+            }
+        }
 
-			lcd1.run->start(&lcd1.par);
-			lcd1.run->drawstring16x24_size( &lcd1.par, (char*)state_name[ui_state], 10, 10, ST77XX_WHITE, BG_colour, 7);
-			lcd1.run->stop(&lcd1.par);
-		}
+        // 3. Reverse Motor Drive Trigger (Uses dedicated Toggle index 1 to prevent collision)
+        if(btn_engine.par.HL & BTN_RV_PIN) {
+            if(exe()->toggle(TOGGLE_INDEX_REV)){
+                drive.run->pwm_reverse(&drive.par, speed);
+            }else{
+                drive.run->stop(&drive.par);
+            }
+        }
 
-		if(btn_engine.par.HL & BTN_FW_PIN) {
-			if(exe()->toggle(0)){
-				drive.run->pwm_forward(&drive.par,speed);
-			}else{
-				drive.run->stop(&drive.par);
-			}
-		}
+        // 4. Safe Fall-Through Delay for Incremental Speed Adjustments
+        if(btn_engine.par.LL & BTN_SP_PIN) {
+            if(exe()->ftdelayCycles(1, 2500, NULL, speed_inc)){
+                lcd1.run->start(&lcd1.par);
+                func()->format_string(str, 32, "speed: %d", speed);
+                lcd1.run->drawstring12x16_size(&lcd1.par, str, 15, 170, ST77XX_ORANGE, BG_colour, 14);
+                lcd1.run->stop(&lcd1.par);
+                exe()->ftdelayReset(1);
+            }
+        }
 
-		if(btn_engine.par.HL & BTN_RV_PIN) {
-			if(exe()->toggle(0)){
-				drive.run->pwm_reverse(&drive.par,speed);
-			}else{
-				drive.run->stop(&drive.par);
-			}
-		}
+        // 5. Update Calendar Data & On-Screen Instrumentation
+        if (tr.run->update(&tr.par, rtc()->get->tr()) || dr.run->update(&dr.par, rtc()->get->dr())) {
+            rtc()->run->dr2vec(vecD);
+            rtc()->run->tr2vec(vecT);
 
-		if(btn_engine.par.LL & BTN_SP_PIN) {
-			if(exe()->ftdelayCycles(1,2500,NULL,speed_inc)){
-				lcd1.run->start(&lcd1.par);
-				func()->format_string(str,32,"speed: %d",speed);
-				lcd1.run->drawstring12x16_size(&lcd1.par,str,15,170,ST77XX_ORANGE,BG_colour,14);
-				lcd1.run->stop(&lcd1.par);
-				exe()->ftdelayReset(1);
-			}
-		}
+            if(!ui_state) {
+                lcd1.run->start(&lcd1.par);
+                lcd1.run->drawstring16x24_size(&lcd1.par, (char*)state_name[ui_state], 10, 10, idle_colour++, BG_colour, 7);
+                lcd1.run->stop(&lcd1.par);
+            }
 
-		/***/
-		if (tr.run->update(&tr.par, rtc()->get->tr()) || dr.run->update(&dr.par, rtc()->get->dr())) {
-			rtc()->run->dr2vec(vecD);
-			rtc()->run->tr2vec(vecT);
+            lcd1.run->start(&lcd1.par);
 
-			if(!ui_state) {
-				lcd1.run->start(&lcd1.par);
-				lcd1.run->drawstring16x24_size( &lcd1.par, (char*)state_name[ui_state], 10, 10, idle_colour++, BG_colour, 7);
-				lcd1.run->stop(&lcd1.par);
-			}
+            func()->format_string(str, 32, "%d%d:%d%d:%d%d", vecT[0], vecT[1], vecT[2], vecT[3], vecT[4], vecT[5]);
+            lcd1.run->drawstring24x48_size(&lcd1.par, str, 15, 80, ST77XX_RED, BG_colour, 8);
 
-			//dev()->run->toggle_hpin(dev()->gpio->f, 1 << 2);
+            func()->float_to_string(adc1()->run->temp_read_celsius(), str, 32);
+            strcat(str, " C");
+            lcd1.run->drawstring16x24_size(&lcd1.par, str, 15, 200, ST77XX_BLUE, BG_colour, 8);
 
-			lcd1.run->start(&lcd1.par);
+            func()->format_string(str, 32, "%d%d-%d%d-20%d%d", vecD[5], vecD[6], vecD[3], vecD[4], vecD[0], vecD[1]);
+            lcd1.run->drawstring16x24(&lcd1.par, str, 10, 240, ST77XX_GREEN, BG_colour);
 
-			func()->format_string(str,32,"%d%d:%d%d:%d%d",vecT[0], vecT[1], vecT[2], vecT[3], vecT[4], vecT[5]);
-			lcd1.run->drawstring24x48_size(&lcd1.par,str,15,80,ST77XX_RED,BG_colour,8);
+            lcd1.run->drawstring12x16_size(&lcd1.par, (char*)WeekDay_String(vecD[2]), 10, 300, ST77XX_WHITE, BG_colour, 10);
 
-			func()->float_to_string(adc1()->run->temp_read_celsius(),str,32);
-			strcat(str, " C");
-			lcd1.run->drawstring16x24_size(&lcd1.par,str,15,200,ST77XX_BLUE,BG_colour,8);
+            lcd1.run->stop(&lcd1.par);
+        }
 
-			func()->format_string(str,32,"%d%d-%d%d-20%d%d",vecD[5], vecD[6], vecD[3], vecD[4], vecD[0], vecD[1]);
-			lcd1.run->drawstring16x24(&lcd1.par,str,10,240,ST77XX_GREEN,BG_colour);
-
-			lcd1.run->drawstring12x16_size(&lcd1.par,(char*)WeekDay_String(vecD[2]),10,300,ST77XX_WHITE,BG_colour,10);
-
-			lcd1.run->stop(&lcd1.par);
-		}
-		uint16_t a = 5025;
-		uint8_t b = ((U_word)a).par.l;
-		(void)b;
-	}
+        uint16_t a = 5025;
+        uint8_t b = ((U_word)a).par.l;
+        (void)b;
+    }
 }
 
 void rtc_ui_init(void)
 {
-    // Enable GPIO Port D Clock via your helper
-	gpio()->clock(dev()->gpio->d, 1);
-    // Batch set PD8-PD13 to Input Mode (0)
-	gpio()->hmoder(dev()->gpio->d, BTN_ALL_PINS_MASK, 0);
-    // Batch set PD8-PD13 to internal Pull-Up (1)
+    gpio()->clock(dev()->gpio->d, 1);
+    gpio()->hmoder(dev()->gpio->d, BTN_ALL_PINS_MASK, 0);
     gpio()->hpupd(dev()->gpio->d, BTN_ALL_PINS_MASK, 1);
-    // Initialize the edge detector tracking instance
     btn_engine = EXPLODE_enable();
 }
 
 void select_mode(EXPLODE_Handler active_press)
 {
-	if (active_press.par.HL & BTN_MODE_PIN) {
-		ui_state = LIMIT_INC(ui_state, 7, 0);
-	}
+    if (active_press.par.HL & BTN_MODE_PIN) {
+        ui_state = LIMIT_INC(ui_state, 7, 0);
+    }
 }
 
 void adjust_active_field(EXPLODE_Handler active_press)
 {
-	uint8_t t_hr = ZERO;
-	uint8_t t_min = ZERO;
-	uint8_t t_day = ZERO;
-	uint8_t t_mth = ZERO;
-	uint8_t t_yr = ZERO;
-	uint8_t t_wday = ZERO;
+    uint8_t current_val; // Re-use single memory register to optimize the switch-case pipeline
 
     if (active_press.par.HL & BTN_UP_PIN) {
         switch (ui_state) {
             case CFG_HOUR:
-            	t_hr = rtc()->get->hour();
-            	t_hr   = LIMIT_INC(t_hr,   23, 0);
-            	rtc()->set->hour(t_hr);
-            	break;
+                current_val = rtc()->get->hour();
+                rtc()->set->hour(LIMIT_INC(current_val, 23, 0));
+                break;
             case CFG_MINUTE:
-            	t_min = rtc()->get->minute();
-            	t_min  = LIMIT_INC(t_min,  59, 0);
-            	rtc()->set->minute(t_min);
-            	break;
+                current_val = rtc()->get->minute();
+                rtc()->set->minute(LIMIT_INC(current_val, 59, 0));
+                break;
             case CFG_DAY:
-            	t_day = rtc()->get->day();
-            	t_day  = LIMIT_INC(t_day,  31, 1);
-            	rtc()->set->day(t_day);
-            	break;
+                current_val = rtc()->get->day();
+                rtc()->set->day(LIMIT_INC(current_val, 31, 1));
+                break;
             case CFG_MONTH:
-            	t_mth = rtc()->get->month();
-            	t_mth  = LIMIT_INC(t_mth,  12, 1);
-            	rtc()->set->month(t_mth);
-            	break;
+                current_val = rtc()->get->month();
+                rtc()->set->month(LIMIT_INC(current_val, 12, 1));
+                break;
             case CFG_YEAR:
-            	t_yr = rtc()->get->year();
-            	t_yr   = LIMIT_INC(t_yr,   99, 0);
-            	rtc()->set->year(t_yr);
-            	break;
+                current_val = rtc()->get->year();
+                rtc()->set->year(LIMIT_INC(current_val, 99, 0));
+                break;
             case CFG_WEEKDAY:
-            	t_wday = rtc()->get->weekday();
-            	t_wday = LIMIT_INC(t_wday,  7, 1);
-            	rtc()->set->weekday(t_wday);
-            	break;
+                current_val = rtc()->get->weekday();
+                rtc()->set->weekday(LIMIT_INC(current_val, 7, 1));
+                break;
             default: break;
         }
     } else if (active_press.par.HL & BTN_DOWN_PIN) {
         switch (ui_state) {
             case CFG_HOUR:
-            	t_hr = rtc()->get->hour();
-            	t_hr   = LIMIT_DEC(t_hr,   23, 0);
-            	rtc()->set->hour(t_hr);
-            	break;
+                current_val = rtc()->get->hour();
+                rtc()->set->hour(LIMIT_DEC(current_val, 23, 0));
+                break;
             case CFG_MINUTE:
-            	t_min = rtc()->get->minute();
-            	t_min  = LIMIT_DEC(t_min,  59, 0);
-            	rtc()->set->minute(t_min);
-            	break;
+                current_val = rtc()->get->minute();
+                rtc()->set->minute(LIMIT_DEC(current_val, 59, 0));
+                break;
             case CFG_DAY:
-            	t_day = rtc()->get->day();
-            	t_day  = LIMIT_DEC(t_day,  31, 1);
-            	rtc()->set->day(t_day);
-            	break;
+                current_val = rtc()->get->day();
+                rtc()->set->day(LIMIT_DEC(current_val, 31, 1));
+                break;
             case CFG_MONTH:
-            	t_mth = rtc()->get->month();
-            	t_mth  = LIMIT_DEC(t_mth,  12, 1);
-            	rtc()->set->month(t_mth);
-            	break;
+                current_val = rtc()->get->month();
+                rtc()->set->month(LIMIT_DEC(current_val, 12, 1));
+                break;
             case CFG_YEAR:
-            	t_yr = rtc()->get->year();
-            	t_yr   = LIMIT_DEC(t_yr,   99, 0);
-            	rtc()->set->year(t_yr);
-            	break;
+                current_val = rtc()->get->year();
+                rtc()->set->year(LIMIT_DEC(current_val, 99, 0));
+                break;
             case CFG_WEEKDAY:
-            	t_wday = rtc()->get->weekday();
-            	t_wday = LIMIT_DEC(t_wday,  7, 1);
-            	rtc()->set->weekday(t_wday);
-            	break;
+                current_val = rtc()->get->weekday();
+                rtc()->set->weekday(LIMIT_DEC(current_val, 7, 1));
+                break;
             default: break;
         }
     }
 }
 
 void speed_inc(void) {
-	exe()->increment(&speed, 530, drive.par.tim_arr);
+    exe()->increment(&speed, 530, drive.par.tim_arr);
 }
 
 void blink(void){
-	gpio()->toggle_hpin(dev()->gpio->f, 1 << 2);
+    // Keep interrupt linear and lightweight
+    gpio()->toggle_hpin(dev()->gpio->f, 1 << 2);
 }
 
 /*** EOF ***/

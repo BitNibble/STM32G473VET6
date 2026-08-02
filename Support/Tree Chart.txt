@@ -63,3 +63,4 @@ stm32g4xx.h--|
              |
              |x----stm32g4xx_hal.h--|
              |                      |x-not used
+

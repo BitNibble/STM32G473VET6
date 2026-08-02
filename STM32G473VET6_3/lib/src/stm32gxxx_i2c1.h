@@ -32,12 +32,12 @@ typedef enum {
 
 /*** i2c1 PARAMETER ***/
 typedef struct {
-	GPIO_TypeDef*    pin_scl_gpio;
-	GPIO_TypeDef*    pin_sda_gpio;
-	uint8_t          pin_scl_af;
-	uint8_t          pin_sda_af;
-	uint8_t          pin_scl;
-	uint8_t          pin_sda;
+	GPIO_TypeDef*    scl_gpio;
+	GPIO_TypeDef*    sda_gpio;
+	uint8_t          scl_af;
+	uint8_t          sda_af;
+	uint8_t          scl_pin;
+	uint8_t          sda_pin;
 	i2c_bus_speed_t  bus_speed;
 	i2c_addr_mode_t  address_mode;
 } i2c1_par;

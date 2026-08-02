@@ -79,7 +79,7 @@ typedef const struct {
 tool_handler* exe(void);
 
 // ============================================================================
-// POINTER-FREE WRAPPER MACROS (Cleans up calling syntax completely)
+// WRAPPER MACROS (Cleans up calling syntax completely)
 // ============================================================================
 #define WRITE_FIELD(REG, Msk, Pos, Data)    exe()->write_field_value(&(REG), (Msk), (Pos), (Data))
 #define WRITE_ENCODED(REG, Msk, Shifted)    exe()->write_field_encoded(&(REG), (Msk), (Shifted))
