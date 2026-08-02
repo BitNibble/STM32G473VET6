@@ -110,12 +110,23 @@ typedef struct
 
 typedef struct
 {
-    callback_t txis;      /* TX Interrupt Status */
-    callback_t rxne;      /* RX Data Ready */
-    callback_t stop;      /* STOP Detected */
-    callback_t nack;      /* NACK Received */
-    callback_t tc;        /* Transfer Complete */
-    callback_t error;     /* Error IRQ */
+    callback_t rxne;
+    callback_t txis;
+
+    callback_t addr;
+    callback_t nack;
+    callback_t stop;
+
+    callback_t tc;
+    callback_t tcr;
+
+    callback_t berr;
+    callback_t arlo;
+    callback_t ovr;
+
+    callback_t pecerr;
+    callback_t timeout;
+    callback_t alert;
 
 } irq_i2c_event_t;
 
@@ -134,10 +145,13 @@ typedef struct
 
 typedef struct
 {
-    callback_t txe;      /* TX FIFO Empty / TX Buffer Empty */
-    callback_t rxne;     /* RX FIFO Not Empty / RX Buffer Not Empty */
-    callback_t eot;      /* End Of Transfer */
-    callback_t error;    /* Any SPI error */
+    callback_t rxne;
+    callback_t txe;
+
+    callback_t ovr;
+    callback_t modf;
+    callback_t crcerr;
+    callback_t fre;
 
 } irq_spi_event_t;
 
