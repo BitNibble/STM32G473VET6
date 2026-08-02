@@ -14,13 +14,13 @@ Date:     02/07/2026
 #define I2C_FLAG_NACK  I2C_ISR_NACKF
 
 /*** i2c1 PARAMETER ***/
-static i2c1_par par_setup = { // DEFAULT
-	.pin_scl_gpio = GPIOB,
-	.pin_sda_gpio = GPIOB,
+static i2c1_par par_setup = {
+	.pin_scl_gpio = GPIOA,    // Port A
+	.pin_sda_gpio = GPIOB,    // Port B
 	.pin_scl_af = 4,
 	.pin_sda_af = 4,
-	.pin_scl = 8,
-	.pin_sda = 9,
+	.pin_scl = 15,            // SCL Pin 15
+	.pin_sda = 9,             // SDA Pin 9
 	.bus_speed = I2C_SPEED_STANDARD,
 	.address_mode = I2C_ADDR_7BIT
 };
@@ -158,17 +158,25 @@ static void i2c1_pec_disable(void) {
 
 /******************  Bit definition for I2C_CR2 register  ********************/
 static void slave_address_direction(uint16_t device_ID, i2c_direction_t r_w) {
-	switch(r_w) {
-		case I2C_DIR_READ:
-			exe()->write_field_value(&I2C1->CR2, I2C_CR2_RD_WRN, I2C_CR2_RD_WRN_Pos, 1);
-			exe()->write_field_value(&I2C1->CR2, I2C_CR2_SADD, I2C_CR2_SADD_Pos, device_ID);
-			break;
-		case I2C_DIR_WRITE:
-			exe()->write_field_value(&I2C1->CR2, I2C_CR2_RD_WRN, I2C_CR2_RD_WRN_Pos, 0);
-			exe()->write_field_value(&I2C1->CR2, I2C_CR2_SADD, I2C_CR2_SADD_Pos, device_ID);
-			break;
-	}
+    // 1. Fetch current register configuration
+    uint32_t tmpreg = I2C1->CR2;
+
+    // 2. Clear old address, direction, and execution flags
+    tmpreg &= ~(I2C_CR2_SADD | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP);
+
+    // 3. Shift the 7-bit device address into bits [7:1] of SADD
+    uint32_t shifted_address = (device_ID & 0x7FU) << 1;
+    tmpreg |= (shifted_address << I2C_CR2_SADD_Pos);
+
+    // 4. Assign direction bit
+    if (r_w == I2C_DIR_READ) {
+        tmpreg |= I2C_CR2_RD_WRN;
+    }
+
+    // 5. Commit atomically to hardware
+    I2C1->CR2 = tmpreg;
 }
+
 static void i2c1_addressing_mode(i2c_addr_mode_t mode) {
 	if(mode == I2C_ADDR_10BIT)
 		SET_BIT(I2C1->CR2, I2C_CR2_ADD10);
@@ -201,13 +209,6 @@ static void i2c1_pecbyte_enable(void) {
 }
 static void i2c1_pecbyte_disable(void) {
 	CLEAR_BIT(I2C1->CR2, I2C_CR2_PECBYTE);
-}
-void i2c1_start_v1(void) {
-	uint32_t final_hardware_cmd = I2C1->CR2 | I2C_CR2_START;
-	exe()->write_field_encoded(&dev()->comm->i2c1_bf->CR2.val, 0xFFFFFFFFU, final_hardware_cmd);
-
-	uint32_t persistent_mask = I2C_CR2_NBYTES | I2C_CR2_RD_WRN | I2C_CR2_START;
-	I2C1->CR2 = exe()->_imask(I2C1->CR2, persistent_mask);
 }
 static void i2c1_start(void) {
     // Safely assert only the START bit on top of your existing CR2 register layout
@@ -413,7 +414,7 @@ static void i2c1_calculate_and_apply_timing(i2c_bus_speed_t target_bus_speed_hz)
 }
 
 // Combined Register Reader using a hardware Repeated Start
-static uint8_t i2c1_read_register(uint16_t device_id, uint8_t reg_addr, uint8_t* p_buffer, uint8_t length) {
+uint8_t i2c1_read_register_v1(uint16_t device_id, uint8_t reg_addr, uint8_t* p_buffer, uint8_t length) {
 	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
 
 	// Make sure AUTOEND is disabled so we can issue a Repeated Start
@@ -459,6 +460,139 @@ static uint8_t i2c1_read_register(uint16_t device_id, uint8_t reg_addr, uint8_t*
 	}
 
 	i2c1_stop();
+	return 1;
+}
+
+uint8_t i2c1_read_register_v2(uint16_t device_id, uint8_t reg_addr, uint8_t* p_buffer, uint8_t length) {
+	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
+
+	// Ensure AUTOEND is disabled so the peripheral doesn't send an early STOP flag
+	CLEAR_BIT(I2C1->CR2, I2C_CR2_AUTOEND);
+
+	// Phase 1: Write the target register address
+	slave_address_direction(device_id, I2C_DIR_WRITE);
+	i2c1_nbytes(1);
+	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U); // Clear status flags
+	i2c1_start();
+
+	// Wait for TXIS to load the target register address
+	if (!_i2c1_wait_status_flag(I2C_ISR_TXIS, 1, 100000UL)) {
+		i2c1_stop();
+		return 0;
+	}
+	i2c1_set_txdata(reg_addr);
+
+	// Wait for Transfer Complete (TC) - meaning the address + register pointer are sent
+	if (!_i2c1_wait_status_flag(I2C_ISR_TC, 1, 100000UL)) {
+		i2c1_stop();
+		return 0;
+	}
+
+	// =========================================================================
+	// Phase 2: Atomic Repeated Start Update (Crucial for STM32G4 IP)
+	// =========================================================================
+	uint32_t tmpreg = I2C1->CR2;
+
+	// 1. Wipe out previous parameters entirely to avoid overlapping flags
+	tmpreg &= ~(I2C_CR2_NBYTES | I2C_CR2_SADD | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP);
+
+	// 2. Set up the exact properties for the reading sequence
+	tmpreg |= ((uint32_t)length << I2C_CR2_NBYTES_Pos);
+	tmpreg |= ((uint32_t)device_id << I2C_CR2_SADD_Pos);
+	tmpreg |= I2C_CR2_RD_WRN;  // Configure to Read mode
+	tmpreg |= I2C_CR2_AUTOEND; // Let hardware send the STOP flag automatically after 'length' bytes
+	tmpreg |= I2C_CR2_START;   // Generate the Repeated Start
+
+	// 3. Write all parameters to hardware in a single bus cycle
+	I2C1->CR2 = tmpreg;
+	// =========================================================================
+
+	// Stream incoming data from the PCF8563 into your buffer
+	for (uint8_t i = 0; i < length; i++) {
+		if (!_i2c1_wait_status_flag(I2C_ISR_RXNE, 1, 100000UL)) {
+			i2c1_stop();
+			return 0;
+		}
+		p_buffer[i] = i2c1_get_rxdata();
+	}
+
+	// Because AUTOEND is active, the hardware automatically transmits a STOP condition.
+	// We simply wait for the STOPF flag to guarantee the bus is clear.
+	if (!_i2c1_wait_status_flag(I2C_ISR_STOPF, 1, 100000UL)) {
+		return 0;
+	}
+
+	// Clear the STOP flag to finalize the transaction cleanly
+	SET_BIT(I2C1->ICR, I2C_ICR_STOPCF);
+	return 1;
+}
+
+static uint8_t i2c1_read_register(uint16_t device_id, uint8_t reg_addr, uint8_t* p_buffer, uint8_t length) {
+	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
+
+	// Make sure AUTOEND is disabled in Phase 1 so we can issue a Repeated Start safely
+	CLEAR_BIT(I2C1->CR2, I2C_CR2_AUTOEND);
+
+	// Phase 1: Write the target register address (Atomic setup to prevent 1.5V glitches)
+	slave_address_direction(device_id, I2C_DIR_WRITE);
+	i2c1_nbytes(1);
+	I2C1->ICR = 0x3F38U; // Clear status flags completely
+	i2c1_start();
+
+	// Wait for TXIS with a software timeout counter (Atmel style protection)
+	if (!_i2c1_wait_status_flag(I2C_ISR_TXIS, 1, 50000UL)) {
+		i2c1_stop();
+		return 0; // Safe abort if bus fails
+	}
+	i2c1_set_txdata(reg_addr);
+
+	// Wait for Transfer Complete (TC) - Meaning address and register byte are completely out
+	if (!_i2c1_wait_status_flag(I2C_ISR_TC, 1, 50000UL)) {
+		i2c1_stop();
+		return 0;
+	}
+
+	// =========================================================================
+	// Phase 2: Atomic Repeated Start Update (Bypasses all STM32G4 register gaps)
+	// =========================================================================
+	uint32_t tmpreg = I2C1->CR2;
+
+	// 1. Wipe out previous fields entirely to clear old NBYTES and Write mode tracking
+	tmpreg &= ~(I2C_CR2_NBYTES | I2C_CR2_SADD | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP);
+
+	// 2. Load the requested read length, device ID, Read direction, and auto-stop config
+	tmpreg |= ((uint32_t)length << I2C_CR2_NBYTES_Pos);
+	tmpreg |= ((uint32_t)device_id << I2C_CR2_SADD_Pos);
+	tmpreg |= I2C_CR2_RD_WRN;  // Switch the physical wire to READ mode
+	tmpreg |= I2C_CR2_AUTOEND; // Automatically send STOP condition after the last byte
+	tmpreg |= I2C_CR2_START;   // Re-asserting START over active TC creates a Repeated Start
+
+	// 3. Commit all changes simultaneously in a single clock cycle
+	I2C1->CR2 = tmpreg;
+	// =========================================================================
+
+	// Stream incoming data from the PCF8563 safely into your array
+	for (uint8_t i = 0; i < length; i++) {
+		// Drop out cleanly if the slave suddenly issues a NACK mid-transfer
+		if (I2C1->ISR & I2C_ISR_NACKF) {
+			I2C1->ICR = I2C_ICR_NACKCF;
+			i2c1_stop();
+			return 0;
+		}
+
+		if (!_i2c1_wait_status_flag(I2C_ISR_RXNE, 1, 50000UL)) {
+			i2c1_stop();
+			return 0; // Timeout exit if lines drop low
+		}
+		p_buffer[i] = i2c1_get_rxdata();
+	}
+
+	// Wait for the hardware to automatically assert the STOPF flag via AUTOEND
+	if (!_i2c1_wait_status_flag(I2C_ISR_STOPF, 1, 50000UL)) {
+		return 0;
+	}
+
+	I2C1->ICR = I2C_ICR_STOPCF; // Clear stop flag to leave bus ready
 	return 1;
 }
 
@@ -592,7 +726,7 @@ void init_v1(void) {
 	}
 }
 
-static void init(void) {
+void init_v2(void) {
 	/*** SETUP ***/
 	gpio()->clock( par_setup.pin_scl_gpio, ONE );
 	gpio()->clock( par_setup.pin_sda_gpio, ONE );
@@ -612,7 +746,110 @@ static void init(void) {
 	i2c1_addressing_mode(par_setup.address_mode);
 }
 
-uint8_t test_v1(void){
+void init_v3(void) {
+	/*** SETUP ***/
+	// ... your existing clock and mode configuration ...
+	gpio()->clock( par_setup.pin_scl_gpio, ONE );
+	gpio()->clock( par_setup.pin_sda_gpio, ONE );
+	gpio()->moder( par_setup.pin_scl_gpio, par_setup.pin_scl, MODE_AF );
+	gpio()->moder( par_setup.pin_sda_gpio, par_setup.pin_sda, MODE_AF );
+
+	// =========================================================================
+	// FORCE OPEN-DRAIN CONFIGURATION (Crucial to clear the 1.5V bottleneck)
+	// =========================================================================
+	// Assuming you are using GPIOB for I2C1 (adjust GPIOx to match your pins)
+	GPIOB->OTYPER |= (1U << par_setup.pin_scl) | (1U << par_setup.pin_sda);
+	// =========================================================================
+
+	gpio()->af( par_setup.pin_scl_gpio, par_setup.pin_scl, par_setup.pin_scl_af );
+	gpio()->af( par_setup.pin_sda_gpio, par_setup.pin_sda, par_setup.pin_sda_af );
+	gpio()->pupd( par_setup.pin_scl_gpio, par_setup.pin_scl, GPIO_PULLUP );
+	gpio()->pupd( par_setup.pin_sda_gpio, par_setup.pin_sda, GPIO_PULLUP );
+
+	i2c1_clock_enable();
+	i2c1_digital_filter(1);
+	i2c1_analog_filter_disable();
+	i2c1_calculate_and_apply_timing(par_setup.bus_speed);
+	i2c1_addressing_mode(par_setup.address_mode);
+}
+
+void init_v4(void) {
+	// =========================================================================
+	// DISABLE USB-C DEAD BATTERY PULL-DOWN ON PB6 (Crucial for STM32G4!)
+	// =========================================================================
+	//RCC->APB1ENR1 |= RCC_APB1ENR1_PWREN; // Ensure Power peripheral clock is active
+	//PWR->CR3 |= PWR_CR3_UCPD_DBDIS;      // Disconnect the 5.1k pull-down on PB6
+	// =========================================================================
+
+	/*** REMAINING SETUP ***/
+	gpio()->clock( par_setup.pin_scl_gpio, ONE );
+	gpio()->clock( par_setup.pin_sda_gpio, ONE );
+
+	gpio()->moder( par_setup.pin_scl_gpio, par_setup.pin_scl, MODE_AF );
+	gpio()->moder( par_setup.pin_sda_gpio, par_setup.pin_sda, MODE_AF );
+
+	// Force Open-Drain
+	GPIOB->OTYPER |= (1U << par_setup.pin_scl) | (1U << par_setup.pin_sda);
+
+	gpio()->af( par_setup.pin_scl_gpio, par_setup.pin_scl, 4U );
+	gpio()->af( par_setup.pin_sda_gpio, par_setup.pin_sda, 4U );
+
+	gpio()->pupd( par_setup.pin_scl_gpio, par_setup.pin_scl, GPIO_PULLUP );
+	gpio()->pupd( par_setup.pin_sda_gpio, par_setup.pin_sda, GPIO_PULLUP );
+
+	i2c1_clock_enable();
+	i2c1_digital_filter(1);
+	i2c1_analog_filter_disable();
+	i2c1_calculate_and_apply_timing(par_setup.bus_speed);
+	i2c1_addressing_mode(par_setup.address_mode);
+}
+
+static void init(void) {
+	/*** 1. ENABLE GPIO PERIPHERAL CLOCKS ***/
+	// Turn on the peripheral clock gates for both Port A and Port B
+	gpio()->clock( GPIOA, ONE );
+	gpio()->clock( GPIOB, ONE );
+
+	/*** 2. SET PIN MODES TO ALTERNATE FUNCTION ***/
+	// Route the internal I2C logic out to the physical pins
+	gpio()->moder( GPIOA, 15, MODE_AF ); // SCL on PA15
+	gpio()->moder( GPIOB, 9,  MODE_AF ); // SDA on PB9
+
+	/*** 3. FORCE OPEN-DRAIN PIN DRIVERS (CRITICAL SAFETY STEP) ***/
+	// Disconnect the high-side push-pull transistors so the pins can only pull LOW.
+	// This prevents internal or external short-circuits.
+	GPIOA->OTYPER |= (1U << 15);
+	GPIOB->OTYPER |= (1U << 9);
+
+	/*** 4. MAP TO ALTERNATE FUNCTION 4 (I2C1) ***/
+	// Tell the internal pin matrix to explicitly hook PA15 and PB9 up to I2C1
+	gpio()->af( GPIOA, 15, 4U ); // AF4 for SCL
+	gpio()->af( GPIOB, 9,  4U ); // AF4 for SDA
+
+	/*** 5. ENABLE WEAK INTERNAL PULL-UPS ***/
+	// Keep the internal weak resistors active to assist your external 4.7k pull-ups
+	gpio()->pupd( GPIOA, 15, GPIO_PULLUP );
+	gpio()->pupd( GPIOB, 9,  GPIO_PULLUP );
+
+	/*** 6. CONFIGURE HARDWARE DEFENSIVE TIMEOUTS (ATMEL-STYLE PROTECTION) ***/
+	// Enable the STM32G4 Power peripheral clock to access system control registers
+	RCC->APB1ENR1 |= RCC_APB1ENR1_PWREN;
+
+	// Turn on the I2C1 hardware timeout detector block.
+	// If SCL or SDA are held low for more than ~25ms (due to a burned resistor or broken wire),
+	// the hardware will automatically flag it, abort the freeze, and free your CPU.
+	I2C1->TIMEOUTR |= I2C_TIMEOUTR_TIMOUTEN;
+	I2C1->TIMEOUTR |= (0xA10U << I2C_TIMEOUTR_TIMEOUTA_Pos);
+
+	/*** 7. INITIALIZE THE INTERNAL I2C SILICON BLOCK ***/
+	i2c1_clock_enable();
+	i2c1_digital_filter(1);
+	i2c1_analog_filter_disable();
+	i2c1_calculate_and_apply_timing(par_setup.bus_speed);
+	i2c1_addressing_mode(par_setup.address_mode);
+}
+
+static uint8_t test(void){
 	// Local buffer layout to track power-up responses safely
 	uint8_t time_test_buffer[2] = {0};
 	/*** Communication Wakeup ***/
@@ -633,10 +870,10 @@ uint8_t test_v1(void){
 			}
 		}
 	}
-	return time_test_buffer[1];
+	return time_test_buffer[0];
 }
 
-static uint8_t test(void) {
+uint8_t test_v2(void) {
 	uint8_t time_test_buffer[2] = {0};
 
 	i2c1_enable();
@@ -649,7 +886,25 @@ static uint8_t test(void) {
 			(void)time_test_buffer;
 		}
 	}
-	return time_test_buffer[0]; // Returns seconds byte
+	return time_test_buffer[1]; // Returns seconds byte
+}
+
+uint8_t test_v3(void) {
+	// Local buffer layout to track power-up responses safely
+	uint8_t time_test_buffer[2] = {0};
+
+	/*** Communication Wakeup ***/
+	i2c1_enable();
+
+	// Ensure the physical bus is clear before knocking on the wire
+	if (i2c1_is_idle()) {
+		// Read 2 consecutive bytes starting directly at register 0x02 (Seconds, Minutes)
+		if (i2c1_read_register(PCF8563, 0x02, time_test_buffer, 2U)) {
+			// Success! Data maps out beautifully now without bus drops
+			(void)time_test_buffer;
+		}
+	}
+	return time_test_buffer[0]; // Returns raw seconds byte
 }
 
 /*** i2c1 GET ***/
