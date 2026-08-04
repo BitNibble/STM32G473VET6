@@ -157,9 +157,9 @@ static void i2c1_pec_disable(void) {
 }
 
 /******************  Bit definition for I2C_CR2 register  ********************/
-void slave_address_direction_v1(uint16_t device_ID, i2c_direction_t r_w) {
+void slave_address_direction(uint16_t device_ID, i2c_direction_t r_w) {
     // 1. Clear old address, direction, and execution flags
-    WRITE_ENCODED(I2C1->CR2, I2C_CR2_SADD | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP, 0);
+    CLEAR_BIT(I2C1->CR2, I2C_CR2_SADD | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP);
 
     // 2. Shift the 7-bit device address into bits [7:1] of SADD
     uint32_t address = (device_ID & 0x7FU) << 1;
@@ -169,26 +169,6 @@ void slave_address_direction_v1(uint16_t device_ID, i2c_direction_t r_w) {
     if (r_w == I2C_DIR_READ) {
         WRITE_FIELD(I2C1->CR2, I2C_CR2_RD_WRN_Msk, I2C_CR2_RD_WRN_Pos, I2C_DIR_READ);
     }
-}
-
-static void slave_address_direction(uint16_t device_ID, i2c_direction_t r_w) {
-    // 1. Fetch current register configuration
-    uint32_t tmpreg = I2C1->CR2;
-
-    // 2. Clear old address, direction, and execution flags
-    tmpreg &= ~(I2C_CR2_SADD | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP);
-
-    // 3. Shift the 7-bit device address into bits [7:1] of SADD
-    uint32_t shifted_address = (device_ID & 0x7FU) << 1;
-    tmpreg |= (shifted_address << I2C_CR2_SADD_Pos);
-
-    // 4. Assign direction bit
-    if (r_w == I2C_DIR_READ) {
-        tmpreg |= I2C_CR2_RD_WRN;
-    }
-
-    // 5. Commit atomically to hardware
-    I2C1->CR2 = tmpreg;
 }
 
 static void i2c1_addressing_mode(i2c_addr_mode_t mode) {
@@ -427,120 +407,6 @@ static void i2c1_calculate_and_apply_timing(i2c_bus_speed_t target_bus_speed_hz)
 	}
 }
 
-// Combined Register Reader using a hardware Repeated Start
-uint8_t i2c1_read_register_v1(uint16_t device_id, uint8_t reg_addr, uint8_t* p_buffer, uint8_t length) {
-	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
-
-	// Make sure AUTOEND is disabled so we can issue a Repeated Start
-	CLEAR_BIT(dev()->comm->i2c1_bf->CR2.val, I2C_CR2_AUTOEND);
-
-	// Phase 1: Write the target register address
-	slave_address_direction(device_id, I2C_DIR_WRITE);
-	i2c1_nbytes(1);
-	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U); // Clear status flags
-	i2c1_start();
-
-	// Wait for TXIS to safely load the target register pointer
-	if (!_i2c1_wait_status_flag(I2C_ISR_TXIS, 1, 100000UL)) {
-		i2c1_stop();
-		return 0;
-	}
-	i2c1_set_txdata(reg_addr);
-
-	// Wait for Transfer Complete (TC) - meaning the address was transmitted, but NO stop is sent
-	if (!_i2c1_wait_status_flag(I2C_ISR_TC, 1, 100000UL)) {
-		i2c1_stop();
-		return 0;
-	}
-
-	// Phase 2: Issue Repeated Start by switching to READ mode and updating bytes
-	slave_address_direction(device_id, I2C_DIR_READ);
-	i2c1_nbytes(length);
-	i2c1_start(); // Toggling START while TC is set generates a Repeated Start
-
-	// Stream incoming data from the device
-	for (uint8_t i = 0; i < length; i++) {
-		if (!_i2c1_wait_status_flag(I2C_ISR_RXNE, 1, 100000UL)) {
-			i2c1_stop();
-			return 0;
-		}
-		p_buffer[i] = i2c1_get_rxdata();
-	}
-
-	// Finalize sequence safely
-	if (!_i2c1_wait_status_flag(I2C_ISR_TC, 1, 100000UL)) {
-		i2c1_stop();
-		return 0;
-	}
-
-	i2c1_stop();
-	return 1;
-}
-
-uint8_t i2c1_read_register_v2(uint16_t device_id, uint8_t reg_addr, uint8_t* p_buffer, uint8_t length) {
-	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
-
-	// Ensure AUTOEND is disabled so the peripheral doesn't send an early STOP flag
-	CLEAR_BIT(I2C1->CR2, I2C_CR2_AUTOEND);
-
-	// Phase 1: Write the target register address
-	slave_address_direction(device_id, I2C_DIR_WRITE);
-	i2c1_nbytes(1);
-	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U); // Clear status flags
-	i2c1_start();
-
-	// Wait for TXIS to load the target register address
-	if (!_i2c1_wait_status_flag(I2C_ISR_TXIS, 1, 100000UL)) {
-		i2c1_stop();
-		return 0;
-	}
-	i2c1_set_txdata(reg_addr);
-
-	// Wait for Transfer Complete (TC) - meaning the address + register pointer are sent
-	if (!_i2c1_wait_status_flag(I2C_ISR_TC, 1, 100000UL)) {
-		i2c1_stop();
-		return 0;
-	}
-
-	// =========================================================================
-	// Phase 2: Atomic Repeated Start Update (Crucial for STM32G4 IP)
-	// =========================================================================
-	uint32_t tmpreg = I2C1->CR2;
-
-	// 1. Wipe out previous parameters entirely to avoid overlapping flags
-	tmpreg &= ~(I2C_CR2_NBYTES | I2C_CR2_SADD | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP);
-
-	// 2. Set up the exact properties for the reading sequence
-	tmpreg |= ((uint32_t)length << I2C_CR2_NBYTES_Pos);
-	tmpreg |= ((uint32_t)device_id << I2C_CR2_SADD_Pos);
-	tmpreg |= I2C_CR2_RD_WRN;  // Configure to Read mode
-	tmpreg |= I2C_CR2_AUTOEND; // Let hardware send the STOP flag automatically after 'length' bytes
-	tmpreg |= I2C_CR2_START;   // Generate the Repeated Start
-
-	// 3. Write all parameters to hardware in a single bus cycle
-	I2C1->CR2 = tmpreg;
-	// =========================================================================
-
-	// Stream incoming data from the PCF8563 into your buffer
-	for (uint8_t i = 0; i < length; i++) {
-		if (!_i2c1_wait_status_flag(I2C_ISR_RXNE, 1, 100000UL)) {
-			i2c1_stop();
-			return 0;
-		}
-		p_buffer[i] = i2c1_get_rxdata();
-	}
-
-	// Because AUTOEND is active, the hardware automatically transmits a STOP condition.
-	// We simply wait for the STOPF flag to guarantee the bus is clear.
-	if (!_i2c1_wait_status_flag(I2C_ISR_STOPF, 1, 100000UL)) {
-		return 0;
-	}
-
-	// Clear the STOP flag to finalize the transaction cleanly
-	SET_BIT(I2C1->ICR, I2C_ICR_STOPCF);
-	return 1;
-}
-
 static uint8_t i2c1_read_register(uint16_t device_id, uint8_t reg_addr, uint8_t* p_buffer, uint8_t length) {
 	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
 
@@ -550,7 +416,8 @@ static uint8_t i2c1_read_register(uint16_t device_id, uint8_t reg_addr, uint8_t*
 	// Phase 1: Write the target register address (Atomic setup to prevent 1.5V glitches)
 	slave_address_direction(device_id, I2C_DIR_WRITE);
 	i2c1_nbytes(1);
-	I2C1->ICR = 0x3F38U; // Clear status flags completely
+	dev()->comm->i2c1_bf->ICR.val = (I2C_ICR_ALERTCF | I2C_ICR_TIMOUTCF | I2C_ICR_PECCF | I2C_ICR_OVRCF |
+									I2C_ICR_ARLOCF | I2C_ICR_BERRCF | I2C_ICR_STOPCF | I2C_ICR_ADDRCF | I2C_ICR_NACKCF);
 	i2c1_start();
 
 	// Wait for TXIS with a software timeout counter (Atmel style protection)
@@ -572,14 +439,13 @@ static uint8_t i2c1_read_register(uint16_t device_id, uint8_t reg_addr, uint8_t*
 	uint32_t tmpreg = I2C1->CR2;
 
 	// 1. Wipe out previous fields entirely to clear old NBYTES and Write mode tracking
-	tmpreg &= ~(I2C_CR2_NBYTES | I2C_CR2_SADD | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP);
+	CLEAR_BIT(tmpreg, I2C_CR2_NBYTES | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP);
 
 	// 2. Load the requested read length, device ID, Read direction, and auto-stop config
-	tmpreg |= ((uint32_t)length << I2C_CR2_NBYTES_Pos);
-	tmpreg |= ((uint32_t)device_id << I2C_CR2_SADD_Pos);
-	tmpreg |= I2C_CR2_RD_WRN;  // Switch the physical wire to READ mode
-	tmpreg |= I2C_CR2_AUTOEND; // Automatically send STOP condition after the last byte
-	tmpreg |= I2C_CR2_START;   // Re-asserting START over active TC creates a Repeated Start
+	SET_BIT(tmpreg, (uint32_t)length << I2C_CR2_NBYTES_Pos);
+	SET_BIT(tmpreg, I2C_CR2_RD_WRN);
+	SET_BIT(tmpreg, I2C_CR2_AUTOEND);
+	SET_BIT(tmpreg, I2C_CR2_START);
 
 	// 3. Commit all changes simultaneously in a single clock cycle
 	I2C1->CR2 = tmpreg;
@@ -610,7 +476,6 @@ static uint8_t i2c1_read_register(uint16_t device_id, uint8_t reg_addr, uint8_t*
 	return 1;
 }
 
-// Universal single or multi-byte register writer function
 static uint8_t i2c1_write_register(uint16_t device_id, uint8_t reg_addr, uint8_t* p_data, uint8_t length) {
 	if (length == 0 || exe()->isPtrNull(p_data)) return 0;
 
@@ -653,8 +518,26 @@ static uint8_t i2c1_write_register(uint16_t device_id, uint8_t reg_addr, uint8_t
 	return 1;
 }
 
-/******************  High-Level API Functions  *********************/
-// Universal master buffer writer function
+static uint8_t i2c1_read_buffer(uint16_t device_id, uint8_t* p_buffer, uint8_t length) {
+	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
+	// 1. Stage parameters
+	slave_address_direction(device_id, I2C_DIR_READ);
+	i2c1_nbytes(length);
+	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U);
+	// 2. Fire Start
+	i2c1_start();
+	// 3. Stream data in sequentially
+	for (uint8_t i = 0; i < length; i++) {
+		// Wait for RXNE (Receive Not Empty) flag indicating data has arrived
+		if (!_i2c1_wait_status_flag(I2C_ISR_RXNE, 1, 100000UL)) {
+			return 0;
+		}
+		// Fetch the raw byte out of hardware
+		p_buffer[i] = i2c1_get_rxdata();
+	}
+	return 1;
+}
+
 static uint8_t i2c1_write_buffer(uint16_t device_id, uint8_t* p_data, uint8_t length) {
 	if (length == 0 || exe()->isPtrNull(p_data)) return 0;
 	// 1. Stage the transaction parameters into your global shadow register
@@ -676,26 +559,6 @@ static uint8_t i2c1_write_buffer(uint16_t device_id, uint8_t* p_data, uint8_t le
 	}
 	// 5. If AUTOEND is disabled, manually wait for Transfer Complete (TC) and stop
 	// If AUTOEND is enabled, the hardware handles STOP automatically.
-	return 1;
-}
-// Universal master buffer reader function
-static uint8_t i2c1_read_buffer(uint16_t device_id, uint8_t* p_buffer, uint8_t length) {
-	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
-	// 1. Stage parameters
-	slave_address_direction(device_id, I2C_DIR_READ);
-	i2c1_nbytes(length);
-	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U);
-	// 2. Fire Start
-	i2c1_start();
-	// 3. Stream data in sequentially
-	for (uint8_t i = 0; i < length; i++) {
-		// Wait for RXNE (Receive Not Empty) flag indicating data has arrived
-		if (!_i2c1_wait_status_flag(I2C_ISR_RXNE, 1, 100000UL)) {
-			return 0;
-		}
-		// Fetch the raw byte out of hardware
-		p_buffer[i] = i2c1_get_rxdata();
-	}
 	return 1;
 }
 
@@ -744,7 +607,7 @@ static void init(void) {
 	i2c1_addressing_mode(par_setup.address_mode);
 }
 
-static uint8_t test(void){
+uint8_t test_v1(void){
 	// Local buffer layout to track power-up responses safely
 	uint8_t time_test_buffer[2] = {0};
 	/*** Communication Wakeup ***/
@@ -759,8 +622,15 @@ static uint8_t test(void){
 			if (i2c1_write_buffer(PCF8563, &rtc_register_pointer, 1U)) {
 				// Step 2: Read the 2 raw active time bytes back securely
 				if (i2c1_read_buffer(PCF8563, time_test_buffer, 2U)) {
-					// Success! Hardware responded perfectly, data is now safe inside your array
-					(void)time_test_buffer;
+
+					// 1. Extract raw seconds data and isolate it from the VL status bit
+					uint8_t raw_seconds = time_test_buffer[0] & 0x7F;
+
+					// 2. Decode the filtered BCD value into a standard decimal format
+					uint8_t decimal_seconds = ((raw_seconds >> 4) * 10) + (raw_seconds & 0x0F);
+
+					return decimal_seconds; // Safely returns 0 to 59
+
 				}
 			}
 		}
@@ -768,7 +638,7 @@ static uint8_t test(void){
 	return time_test_buffer[0];
 }
 
-uint8_t test_v2(void) {
+static uint8_t test(void) {
 	uint8_t time_test_buffer[2] = {0};
 
 	i2c1_enable();
@@ -777,8 +647,13 @@ uint8_t test_v2(void) {
 	if (i2c1_is_idle()) {
 		// Read 2 consecutive bytes starting directly at register 0x02 (Seconds, Minutes)
 		if (i2c1_read_register(PCF8563, 0x02, time_test_buffer, 2U)) {
-			// Success! Data maps out beautifully now
-			(void)time_test_buffer;
+			// 1. Extract raw seconds data and isolate it from the VL status bit
+			uint8_t raw_seconds = time_test_buffer[0] & 0x7F;
+
+			// 2. Decode the filtered BCD value into a standard decimal format
+			uint8_t decimal_seconds = ((raw_seconds >> 4) * 10) + (raw_seconds & 0x0F);
+
+			return decimal_seconds; // Safely returns 0 to 59
 		}
 	}
 	return time_test_buffer[0]; // Returns seconds byte
