@@ -745,6 +745,7 @@ static i2c1_handler i2c1_setup = {
 	.set = &set_setup,
 	.run = &run_setup
 };
+
 /*** i2c1 ACCESSOR FUNCTION ***/
 i2c1_handler* i2c1(void){return &i2c1_setup;}
 

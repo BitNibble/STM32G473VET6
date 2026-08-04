@@ -13,6 +13,7 @@ Comment:
 /*** Library ***/
 #include <stdint.h>
 #include <inttypes.h>
+
 /*** Global Constant & Macro ***/
 #if defined (STM32F4) || defined (STM32G4)
 	#define IO_var uint32_t

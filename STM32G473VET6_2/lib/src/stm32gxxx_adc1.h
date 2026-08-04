@@ -33,6 +33,7 @@ typedef const struct {
 	adc1_par* par;
 	adc1_run* run;
 }adc1_handler;
+
 /*** ADC1 ACCESSOR FUNCTION ***/
 adc1_handler* adc1(void);
 

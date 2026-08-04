@@ -325,6 +325,7 @@ typedef const struct {
 	DEV_get* get;
 	DEV_enable* enable;
 } STM32_DEVICE;
+
 /*** DEV ACCESSOR FUNCTION ***/
 STM32_DEVICE* dev(void);
 

@@ -89,9 +89,7 @@ typedef const struct {
 /*** USART1 ACCESSOR FUNCTION ***/
 USARTG4_Handle* usart1(void);
 
-void DMA1_CH2_IRQHandler(void);
-
-#endif /* STM32GXXXUSART1_H */
+#endif
 
 /*** EOF ***/
 

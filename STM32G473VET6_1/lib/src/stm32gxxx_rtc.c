@@ -430,6 +430,7 @@ static STM32G473_RTC_Handler rtc_instance =
 	.set = &set_setup,
 	.run = &run_setup
 };
+
 /*** RTC ACCESSOR FUNCTION ***/
 STM32G473_RTC_Handler* rtc(void) { return (STM32G473_RTC_Handler*)&rtc_instance; }
 

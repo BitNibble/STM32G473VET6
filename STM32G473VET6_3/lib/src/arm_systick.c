@@ -58,6 +58,7 @@ void _delay_us(uint32_t us)
 
     SysTick->CTRL = 0;
 }
+
 void _delay_10us(uint32_t dez_us)
 {
     SysTick->CTRL = 0;

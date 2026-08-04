@@ -446,6 +446,7 @@ static STM32GXXX_RCC_run STM32GXXX_rcc_run_setup = {
 static STM32GXXX_RCC_HANDLER STM32GXXX_rcc_setup = {
 	.run = &STM32GXXX_rcc_run_setup
 };
+
 /*** RCC ACCESSOR FUNCTION ***/
 STM32GXXX_RCC_HANDLER* rcc(void){ return &STM32GXXX_rcc_setup; };
 

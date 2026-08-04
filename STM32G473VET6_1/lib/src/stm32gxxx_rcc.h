@@ -25,10 +25,9 @@ typedef const struct
 {
 	STM32GXXX_RCC_run* run;
 }STM32GXXX_RCC_HANDLER;
+
 /*** RCC ACCESSOR FUNCTION ***/
 STM32GXXX_RCC_HANDLER* rcc(void);
-/*** RCC INTERRUPT HEADER ***/
-void RCC_IRQHandler(void);
 
 #endif
 

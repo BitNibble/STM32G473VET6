@@ -254,6 +254,7 @@ adc1_handler adc1_setup = {
 	.par = &par_setup,
 	.run = &run_setup
 };
+
 /*** ADC1 ACCESSOR FUNCTION ***/
 adc1_handler* adc1(void){return &adc1_setup;}
 

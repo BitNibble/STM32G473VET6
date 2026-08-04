@@ -5,8 +5,8 @@ License:  GNU General Public License
 Hardware: STM32G473VET6
 Date:     08/06/2026
 *******************************************************************************/
-#ifndef _STM32GXXXRTC_H_
-	#define _STM32GXXXRTC_H_
+#ifndef STM32GXXX_RTC_H
+	#define STM32GXXX_RTC_H
 
 /*** Libraries ***/
 #include "stm32g473vet6.h"
@@ -89,12 +89,7 @@ STM32G473_RTC_Handler* rtc(void);
 
 const char* WeekDay_String(uint8_t weekday_n);
 
-/*** INTERRUPT VECTORS (STM32G4 Architecture) ***/
-void RTC_WKUP_IRQHandler(void);
-void RTC_TAMP_IRQHandler(void);
-void RTC_Alarm_IRQHandler(void);
-
-#endif /* _STM32G473RTC_H_ */
+#endif
 
 /*** EOF ***/
 

@@ -12,6 +12,7 @@ Comment:
 
 /*** File Library ***/
 #include <inttypes.h>
+
 /*** File Constant & Macro ***/
 #define BUFF_var char
 /*** File TypeDef ***/
