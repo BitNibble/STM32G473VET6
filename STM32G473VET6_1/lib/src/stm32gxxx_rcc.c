@@ -390,6 +390,7 @@ void _STM32GXXX_pllp(uint8_t pllp)
     uint32_t val_p;
     if (pllp >= 2 && pllp <= 31) { val_p = pllp; } else { val_p = 2; }
     exe()->write_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLP_Msk, val_p << RCC_PLLCFGR_PLLP_Pos);
+    exe()->write_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLPEN_Msk, RCC_PLLCFGR_PLLPEN);
 }
 void _STM32GXXX_pllq(uint8_t pllq)
 {
@@ -402,6 +403,7 @@ void _STM32GXXX_pllq(uint8_t pllq)
         default: val_q = 0; break; // Safe default (/2)
     }
     exe()->write_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLQ_Msk, val_q << RCC_PLLCFGR_PLLQ_Pos);
+    exe()->write_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLQEN_Msk, RCC_PLLCFGR_PLLQEN);
 }
 void _STM32GXXX_pllr(uint8_t pllr)
 {
@@ -414,6 +416,7 @@ void _STM32GXXX_pllr(uint8_t pllr)
 		default: val_r = 0; break; // Safe default (/2)
 	}
     exe()->write_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLR_Msk, val_r << RCC_PLLCFGR_PLLR_Pos);
+    exe()->write_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLREN_Msk, RCC_PLLCFGR_PLLREN);
 }
 // PLL
 void STM32GXXX_PLL_Division(uint8_t pllm, uint16_t plln, uint8_t pllp, uint8_t pllq, uint8_t pllr)
@@ -427,9 +430,6 @@ void STM32GXXX_PLL_Division(uint8_t pllm, uint16_t plln, uint8_t pllp, uint8_t p
     _STM32GXXX_pllp(pllp);
     _STM32GXXX_pllq(pllq);
     _STM32GXXX_pllr(pllr);
-	exe()->write_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLREN_Msk, RCC_PLLCFGR_PLLREN);
-	exe()->write_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLQEN_Msk, RCC_PLLCFGR_PLLQEN);
-	exe()->write_field_encoded(&dev()->sys->rcc->PLLCFGR, RCC_PLLCFGR_PLLPEN_Msk, RCC_PLLCFGR_PLLPEN);
 }
 /*** RCC V-TABLE ***/
 static STM32GXXX_RCC_run STM32GXXX_rcc_run_setup = {
@@ -439,7 +439,7 @@ static STM32GXXX_RCC_run STM32GXXX_rcc_run_setup = {
 	.lenable = STM32GXXX_Rcc_LEnable,
 	.lselect = STM32GXXX_Rcc_LSelect,
 	.prescaler = STM32GXXX_Prescaler,
-	.pll_prescaler = STM32GXXX_PLL_Division,
+	.pll_par = STM32GXXX_PLL_Division,
 	.pll_enable = STM32GXXX_Rcc_PLL_CLK_Enable
 };
 /*** RCC HANDLER ***/

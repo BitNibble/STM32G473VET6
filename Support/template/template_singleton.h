@@ -36,17 +36,11 @@ typedef const struct {
 	void (*func_1)(uint32_t a);
 	void (*func_2)(uint32_t a,uint32_t b);
 }singleton_run;
-/*** SINGLETON CALLBACK ***/
-typedef struct {
- void (*callback_1)(void);
- void (*callback_2)(void);
-}singleton_irq;
 /*** SINGLETON HANDLER ***/
 typedef const struct {
 	singleton_par* par;
 	singleton_get* get;
 	singleton_set* set;
-	singleton_irq* irq;
 	singleton_run* run;
 }singleton_handler;
 /*** SINGLETON ACCESSOR FUNCTION ***/

@@ -186,12 +186,9 @@ static tim1_run t1_run = {
 	.get_capture          = t1_get_capture
 };
 
-static tim1_irq t1_irq = {0};
-
 TIM1_Handler t1_instance = {
 	.par = &t1_par,
 	.run = &t1_run,
-    .irq = &t1_irq
 };
 
 TIM1_Handler* tim1(void) { 

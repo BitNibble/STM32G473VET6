@@ -53,20 +53,9 @@ typedef const struct {
 	uint32_t (*get_capture)(tim1_ch_t ch);
 } tim1_run;
 
-typedef struct {
-    void (*b)(void);
-    void (*u)(void);
-    void (*t)(void);
-    void (*cc1)(void);
-    void (*cc2)(void);
-    void (*cc3)(void);
-    void (*cc4)(void);
-} tim1_irq;
-
 typedef const struct {
 	tim1_par* par;
 	tim1_run* run;
-    tim1_irq* irq;
 } TIM1_Handler;
 
 TIM1_Handler* tim1(void);

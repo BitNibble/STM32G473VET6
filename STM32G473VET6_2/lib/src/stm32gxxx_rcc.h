@@ -17,7 +17,7 @@ typedef const struct {
 	void (*lenable)(uint8_t lclock);
 	void (*lselect)(uint8_t lclock);
 	void (*prescaler)(uint16_t ahbpre, uint8_t ppre1, uint8_t ppre2);
-	void (*pll_prescaler)(uint8_t pllm, uint16_t plln, uint8_t pllp, uint8_t pllq, uint8_t pllr);
+	void (*pll_par)(uint8_t pllm, uint16_t plln, uint8_t pllp, uint8_t pllq, uint8_t pllr);
 	void (*pll_enable)(void);
 }STM32GXXX_RCC_run;
 /*** RCC HANDLER ***/

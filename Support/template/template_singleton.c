@@ -37,17 +37,11 @@ static singleton_run run_setup = {
 	.func_1 = NULL,
 	.func_2 = NULL
 };
-/*** SINGLETON CALLBACK ***/
-static singleton_irq irq_setup = {
-	.callback_1 = NULL,
-	.callback_2 = NULL
-};
 /*** SINGLETON HANDLER ***/
 static singleton_handler singleton_setup = {
 	.par = &par_setup,
 	.get = &get_setup,
 	.set = &set_setup,
-	.irq = &irq_setup,
 	.run = &run_setup
 };
 /*** SINGLETON ACCESSOR FUNCTION ***/
