@@ -9,6 +9,7 @@ Framework:
 -run performs actions.
 -Drivers should follow the reference manual's procedures.
 -Application code should not manipulate peripheral registers directly.
+-Deterministic behavior, unrecognized states are ignored and flagged.
 
 -Keep it close to the hardware.
 -Keep it consistent.

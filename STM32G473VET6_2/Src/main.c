@@ -45,8 +45,7 @@ EN - PE0
 #define BTN_SP_PIN           (1UL << 13)  // PD13
 
 // Toggle indices assigned cleanly to prevent overlapping array index writes
-#define TOGGLE_INDEX_FWD     0U
-#define TOGGLE_INDEX_REV     1U
+#define TOGGLE_INDEX     0U
 
 typedef enum {
     CFG_IDLE = 0,
@@ -131,7 +130,7 @@ int main(void)
 
         // 2. Forward Motor Drive Trigger (Uses dedicated Toggle index 0)
         if(btn_engine.par.HL & BTN_FW_PIN) {
-            if(exe()->toggle(TOGGLE_INDEX_FWD)){
+            if(exe()->toggle(TOGGLE_INDEX)){
                 drive.run->pwm_forward(&drive.par, speed);
             }else{
                 drive.run->stop(&drive.par);
@@ -140,7 +139,7 @@ int main(void)
 
         // 3. Reverse Motor Drive Trigger (Uses dedicated Toggle index 1 to prevent collision)
         if(btn_engine.par.HL & BTN_RV_PIN) {
-            if(exe()->toggle(TOGGLE_INDEX_REV)){
+            if(exe()->toggle(TOGGLE_INDEX)){
                 drive.run->pwm_reverse(&drive.par, speed);
             }else{
                 drive.run->stop(&drive.par);

@@ -34,7 +34,7 @@ typedef struct {
     volatile uint16_t rx_write_index;
     volatile uint16_t rx_available;
     uint8_t rx_overflow;
-    volatile uint8_t  tx_busy;
+    volatile uint8_t tx_busy;
 	uint8_t*  buff_rx;
 	uint8_t*  buff_tx;
 } USART1_par;
