@@ -115,3 +115,5 @@ extern "C" {
 
 #endif /* CUSTOM_HAL_DEF_H */
 
+/*** EOF ***/
+

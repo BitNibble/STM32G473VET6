@@ -195,3 +195,5 @@ TIM1_Handler* tim1(void) {
     return (TIM1_Handler*)&t1_instance; 
 }
 
+/*** EOF ***/
+

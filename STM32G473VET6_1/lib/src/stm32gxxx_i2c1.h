@@ -144,4 +144,6 @@ typedef const struct {
 i2c1_handler* i2c1(void);
 
 #endif /* STM32GXXX_I2C1_H */
+
 /*** EOF ***/
+

@@ -43,5 +43,6 @@ typedef const struct {
 adc1_handler* adc1(void);
 
 #endif
+
 /*** EOF ***/
 

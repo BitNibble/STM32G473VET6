@@ -76,22 +76,12 @@ typedef const struct {
 	void (*irq_disable)(uint8_t type);
 } RTC_run;
 
-/*** RTC CALLBACK ***/
-typedef struct {
-    void (*Alarm)(void);
-    void (*WakeUp)(void);
-    void (*TimeStamp)(void);
-    void (*Tamper)(void);
-    void (*Overrun)(void);
-} RTC_callback;
-
 /*** RTC HANDLER ***/
 typedef const struct
 {
 	RTC_get* get;
 	RTC_set* set;
 	RTC_run* run;
-	RTC_callback* callback;
 } STM32G473_RTC_Handler;
 
 /*** RTC ACCESSOR FUNCTION ***/
@@ -105,4 +95,6 @@ void RTC_TAMP_IRQHandler(void);
 void RTC_Alarm_IRQHandler(void);
 
 #endif /* _STM32G473RTC_H_ */
+
+/*** EOF ***/
 

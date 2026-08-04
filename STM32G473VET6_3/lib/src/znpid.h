@@ -48,9 +48,8 @@ typedef struct znpid ZNPID_Handler;
 ZNPID_Handler ZNPID_enable(void);
 
 #endif
+
 /***EOF***/
-
-
 
 /******
 1º Sequence

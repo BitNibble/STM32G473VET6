@@ -93,3 +93,5 @@ void DMA1_CH2_IRQHandler(void);
 
 #endif /* STM32GXXXUSART1_H */
 
+/*** EOF ***/
+

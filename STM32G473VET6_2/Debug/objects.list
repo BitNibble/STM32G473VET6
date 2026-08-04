@@ -11,6 +11,7 @@
 "./lib/src/function.o"
 "./lib/src/i2c_irq.o"
 "./lib/src/l293d.o"
+"./lib/src/rtc_irq.o"
 "./lib/src/spi_irq.o"
 "./lib/src/st7789.o"
 "./lib/src/st7789_font.o"

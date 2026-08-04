@@ -422,15 +422,13 @@ static RTC_run run_setup = {
 	.irq_enable = RTC_irq_enable,
 	.irq_disable = RTC_irq_disable,
 };
-/*** RTC CALLBACK ***/
-static RTC_callback callback_setup = {NULL, NULL, NULL, NULL, NULL};
+
 /*** RTC HANDLER ***/
 static STM32G473_RTC_Handler rtc_instance =
 {
 	.get = &get_setup,
 	.set = &set_setup,
-	.run = &run_setup,
-	.callback = &callback_setup
+	.run = &run_setup
 };
 /*** RTC ACCESSOR FUNCTION ***/
 STM32G473_RTC_Handler* rtc(void) { return (STM32G473_RTC_Handler*)&rtc_instance; }
@@ -441,22 +439,5 @@ const char* WeekDay_String(uint8_t weekday_n)
 	return (weekday_n <= 7) ? days[weekday_n] : days[0];
 }
 
-/*** Modern Vector Routing Mappings ***/
-void RTC_WKUP_IRQHandler(void)
-{
-	if (RTC->SR & RTC_SR_WUTF) {
-		if(rtc_instance.callback->WakeUp) 
-			rtc_instance.callback->WakeUp();
-		RTC->SCR = RTC_SCR_CWUTF;
-	}
-}
-void RTC_Alarm_IRQHandler(void)
-{
-	if (RTC->SR & RTC_SR_ALRAF)
-	{
-		if(rtc_instance.callback->Alarm) 
-			rtc_instance.callback->Alarm();
-		RTC->SCR = RTC_SCR_CALRAF;
-	}
-}
+/*** EOF ***/
 

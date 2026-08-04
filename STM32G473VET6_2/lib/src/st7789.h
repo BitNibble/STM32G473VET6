@@ -102,5 +102,6 @@ void st7789_setup_gpio(ST7789_par* par);
 void st7789_setup_spi(ST7789_par* par);
 
 #endif
+
 /*** EOF ***/
 

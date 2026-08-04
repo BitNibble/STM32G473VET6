@@ -236,6 +236,19 @@ typedef struct
 } irq_exti_t;
 
 /*-------------------------------------------------------------
+    RTC
+-------------------------------------------------------------*/
+
+typedef struct {
+	callback_t Alarm;
+	callback_t WakeUp;
+	callback_t TimeStamp;
+	callback_t Tamper;
+	callback_t Overrun;
+
+} irq_rtc_t;
+
+/*-------------------------------------------------------------
     ROOT
 -------------------------------------------------------------*/
 
@@ -248,6 +261,7 @@ typedef struct
     irq_dma_t  *dma;
     irq_adc_t  *adc;
     irq_exti_t *exti;
+    irq_rtc_t *rtc;
 
 } irq_t;
 

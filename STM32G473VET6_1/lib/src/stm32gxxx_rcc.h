@@ -31,6 +31,7 @@ STM32GXXX_RCC_HANDLER* rcc(void);
 void RCC_IRQHandler(void);
 
 #endif
+
 /*** EOF ***/
 
 /******

@@ -40,5 +40,6 @@ extern const uint8_t star36x36_filled[180] PROGMEM;
 extern const uint8_t star42x42_filled[252] PROGMEM;
 
 #endif
+
 /*** EOF ***/
 

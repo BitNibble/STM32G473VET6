@@ -45,6 +45,7 @@ typedef struct {
 EXPLODE_Handler EXPLODE_enable(void);
 
 #endif
+
 /***EOF***/
 
 /******
