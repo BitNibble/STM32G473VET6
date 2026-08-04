@@ -237,11 +237,6 @@ static inline int adc_safe_disable(ADC_TypeDef *adc)
     return (timeout == 0) ? -3 : 0;
 }
 
-/*** ADC1 CALLBACK ***/
-static adc1_irq irq_setup = {
-	.callback_1 = NULL,
-	.callback_2 = NULL
-};
 /*** ADC1 V-TABLE ***/
 static adc1_run run_setup = {
 	._init =_adc1_init,
@@ -257,7 +252,6 @@ static adc1_run run_setup = {
 /*** ADC1 HANDLER ***/
 adc1_handler adc1_setup = {
 	.par = &par_setup,
-	.irq = &irq_setup,
 	.run = &run_setup
 };
 /*** ADC1 ACCESSOR FUNCTION ***/

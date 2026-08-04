@@ -125,18 +125,11 @@ typedef const struct {
 	uint8_t (*test)(void);
 } i2c1_run;
 
-/*** i2c1 CALLBACK ***/
-typedef struct {
-	void (*ev_handler_callback)(void); // Maps to Event IRQ
-	void (*er_handler_callback)(void); // Maps to Error IRQ
-} i2c1_irq;
-
 /*** i2c1 HANDLER ***/
 typedef const struct {
 	i2c1_par* par;
 	i2c1_get* get;
 	i2c1_set* set;
-	i2c1_irq* irq;
 	i2c1_run* run;
 } i2c1_handler;
 

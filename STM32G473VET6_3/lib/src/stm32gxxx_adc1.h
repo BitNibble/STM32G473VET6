@@ -16,11 +16,6 @@ typedef struct {
 	uint8_t var_1;
 	uint8_t var_2;
 }adc1_par;
-/*** ADC1 CALLBACK ***/
-typedef struct {
- void (*callback_1)(void);
- void (*callback_2)(void);
-}adc1_irq;
 /*** ADC1 V-TABLE ***/
 typedef const struct {
 	void (*_init)(void);
@@ -36,7 +31,6 @@ typedef const struct {
 /*** ADC1 HANDLER ***/
 typedef const struct {
 	adc1_par* par;
-	adc1_irq* irq;
 	adc1_run* run;
 }adc1_handler;
 /*** ADC1 ACCESSOR FUNCTION ***/

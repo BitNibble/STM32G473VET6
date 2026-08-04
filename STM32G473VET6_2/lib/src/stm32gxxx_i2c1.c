@@ -737,17 +737,12 @@ static i2c1_run run_setup = {
 	.read_buffer = i2c1_read_buffer,
 	.test = test,
 };
-/*** i2c1 CALLBACK ***/
-static i2c1_irq irq_setup = {
-	.ev_handler_callback = NULL,
-	.er_handler_callback = NULL
-};
+
 /*** i2c1 HANDLER ***/
 static i2c1_handler i2c1_setup = {
 	.par = &par_setup,
 	.get = &get_setup,
 	.set = &set_setup,
-	.irq = &irq_setup,
 	.run = &run_setup
 };
 /*** i2c1 ACCESSOR FUNCTION ***/
