@@ -148,12 +148,12 @@ int main(void)
 
         // 4. Safe Fall-Through Delay for Incremental Speed Adjustments
         if(btn_engine.par.LL & BTN_SP_PIN) {
-            if(exe()->ftdelayCycles(1, 2500, NULL, speed_inc)){
+            if(exe()->ftdelayCycles(0, 2500, NULL, speed_inc)){
                 lcd1.run->start(&lcd1.par);
                 func()->format_string(str, 32, "speed: %d", speed);
                 lcd1.run->drawstring12x16_size(&lcd1.par, str, 15, 170, ST77XX_ORANGE, BG_colour, 14);
                 lcd1.run->stop(&lcd1.par);
-                exe()->ftdelayReset(1);
+                exe()->ftdelayReset(0);
             }
         }
 

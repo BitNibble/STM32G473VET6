@@ -177,8 +177,8 @@ static int ftdelayCycles(uint8_t lock_ID, unsigned int n_cycle, void (*init)(voi
     int ret = 0;
     if (lock_ID >= FTDELAY_SIZE) return ZERO;
 
-    if (ft_Delay_Lock[lock_ID] != lock_ID) {
-        ft_Delay_Lock[lock_ID] = lock_ID;
+    if (ft_Delay_Lock[lock_ID] != (lock_ID + ONE)) {
+        ft_Delay_Lock[lock_ID] = (lock_ID + ONE);
         ftCounter[lock_ID] = (n_cycle > 0U) ? (n_cycle - 1U) : 0;
         if(init){ init(); }
     } else {
@@ -199,7 +199,7 @@ static void ftdelayReset(uint8_t ID) {
 
 static void ftdelayTerm(uint8_t ID) {
     if (ID >= FTDELAY_SIZE) return;
-    ft_Delay_Lock[ID] = ID;
+    ft_Delay_Lock[ID] = (ID + ONE);
     ftCounter[ID] = 0;
 }
 
