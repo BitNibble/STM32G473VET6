@@ -386,11 +386,11 @@ static void i2c1_calculate_and_apply_timing(i2c_bus_speed_t target_bus_speed_hz)
 
 	// 4. Combine the calculated fields into a single local tracking layout variable
 	uint32_t timingr_value = 0;
-	timingr_value |= (presc_val << I2C_TIMINGR_PRESC_Pos)  & I2C_TIMINGR_PRESC;
-	timingr_value |= ((uint32_t)scl_low << I2C_TIMINGR_SCLL_Pos)   & I2C_TIMINGR_SCLL;
-	timingr_value |= ((uint32_t)scl_high << I2C_TIMINGR_SCLH_Pos)  & I2C_TIMINGR_SCLH;
-	timingr_value |= ((uint32_t)sdadel << I2C_TIMINGR_SDADEL_Pos) & I2C_TIMINGR_SDADEL;
-	timingr_value |= ((uint32_t)scldel << I2C_TIMINGR_SCLDEL_Pos) & I2C_TIMINGR_SCLDEL;
+	SET_BIT(timingr_value, (presc_val << I2C_TIMINGR_PRESC_Pos) & I2C_TIMINGR_PRESC);
+	SET_BIT(timingr_value, ((uint32_t)scl_low << I2C_TIMINGR_SCLL_Pos) & I2C_TIMINGR_SCLL);
+	SET_BIT(timingr_value, ((uint32_t)scl_high << I2C_TIMINGR_SCLH_Pos) & I2C_TIMINGR_SCLH);
+	SET_BIT(timingr_value, ((uint32_t)sdadel << I2C_TIMINGR_SDADEL_Pos) & I2C_TIMINGR_SDADEL);
+	SET_BIT(timingr_value, ((uint32_t)scldel << I2C_TIMINGR_SCLDEL_Pos) & I2C_TIMINGR_SCLDEL);
 
 	// 5. Commit using an atomic overwrite block while ensuring PE is disabled
 	uint32_t is_enabled = GET_FIELD(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE, I2C_CR1_PE_Pos);
