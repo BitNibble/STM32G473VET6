@@ -227,7 +227,7 @@ void STM32GXXX_Rcc_HSelect(uint8_t hclock)
 				exe()->write_field_encoded(&dev()->sys->rcc->CFGR, RCC_CFGR_SW_Msk, RCC_CFGR_SW_HSI);
 				break;
 		}
-	while( (exe()->_mask(dev()->sys->rcc->CFGR, RCC_CFGR_SWS_Msk) != choice ) && timeout){timeout--;}
+	while( (exe()->mask(dev()->sys->rcc->CFGR, RCC_CFGR_SWS_Msk) != choice ) && timeout){timeout--;}
 }
 void STM32GXXX_Rcc_PLL_Source(uint8_t hclock)
 {

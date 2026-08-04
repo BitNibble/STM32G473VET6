@@ -50,7 +50,10 @@ static inline uint32_t _block_pos(uint32_t size_block, uint32_t block_n){
 static inline uint32_t _mask(uint32_t var, uint32_t Msk){
     return (var & Msk);
 }
-static inline uint32_t _imask(uint32_t var, uint32_t Msk){
+static inline uint32_t _set_bit(uint32_t var, uint32_t Msk){
+    return (var | Msk);
+}
+static inline uint32_t _clear_bit(uint32_t var, uint32_t Msk){
     return (var & ~Msk);
 }
 static inline uint32_t _size_to_block(uint32_t size_block){
@@ -79,13 +82,13 @@ static uint32_t get_field_value(uint32_t reg, uint32_t Msk, uint32_t Pos)
 static void write_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data)
 {
     uint32_t tmp = *reg;
-    tmp = _imask(tmp, Msk) | _mask((data << Pos), Msk);
+    tmp = _clear_bit(tmp, Msk) | _mask((data << Pos), Msk);
     *reg = tmp;
 }
 static void write_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData)
 {
     uint32_t tmp = *reg;
-    tmp = _imask(tmp, Msk) | _mask(ShiftedData, Msk);
+    tmp = _clear_bit(tmp, Msk) | _mask(ShiftedData, Msk);
     *reg = tmp;
 }
 // block
@@ -202,9 +205,10 @@ static void ftdelayTerm(uint8_t ID) {
 
 /*** SINGLETON INSTANTIATION (Marked const to reside safely in Flash memory) ***/
 static const tool_handler tool_setup = {
-    ._block_pos = _block_pos,
-    ._mask = _mask,
-    ._imask = _imask,
+    .block_pos = _block_pos,
+    .mask = _mask,
+	.set_bit = _set_bit,
+    .clear_bit = _clear_bit,
 
     .get_field_value = get_field_value,
     .write_field_value = write_field_value,
