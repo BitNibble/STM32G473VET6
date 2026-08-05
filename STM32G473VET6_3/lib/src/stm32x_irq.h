@@ -74,22 +74,12 @@ typedef struct
     callback_t pe;         // Parity error
 
     callback_t cts;        // CTS change
-    callback_t wakeup;     // Wakeup from stop mode
-
-    callback_t rtof;
-    callback_t eob;
-    callback_t cmf;
-    callback_t wuf;
+    callback_t rtof;       // receiver timeout;
+    callback_t eob;        // end of block
+    callback_t cmf;        // character match
+    callback_t wuf;        // wake up
     callback_t txfe;
     callback_t rxff;
-    callback_t parity_error;
-    callback_t framing_error;
-    callback_t noise_error;
-    callback_t overrun_error;
-    callback_t receiver_timeout;
-    callback_t end_of_block;
-    callback_t wake_up;
-    callback_t character_match;
 
 } irq_usart_event_t;
 

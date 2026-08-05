@@ -205,10 +205,10 @@ static void ftdelayTerm(uint8_t ID) {
 
 /*** SINGLETON INSTANTIATION (Marked const to reside safely in Flash memory) ***/
 static const tool_handler tool_setup = {
-    .block_pos = _block_pos,
-    .mask = _mask,
-	.set_bit = _set_bit,
-    .clear_bit = _clear_bit,
+    ._block_pos = _block_pos,
+    ._mask = _mask,
+	._set_bit = _set_bit,
+    ._clear_bit = _clear_bit,
 
     .get_field_value = get_field_value,
     .write_field_value = write_field_value,

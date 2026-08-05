@@ -226,19 +226,16 @@ static inline void SET_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
     reg->BSRR = hpin;
 }
 static inline void CLEAR_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
-    // Cast hpin to 32-bit first, then safely shift into the upper 16 bits
-    reg->BSRR = ((uint32_t)hpin << WORD_BITS);
+    reg->BRR = hpin;
 }
 static inline void TOGGLE_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
     reg->ODR ^= hpin;
 }
 static inline void SET_pin(GPIO_TypeDef* reg, uint8_t pin) {
-    // 1UL guarantees safe, unsigned 32-bit shifting
     reg->BSRR = (1UL << pin);
 }
 static inline void CLEAR_pin(GPIO_TypeDef* reg, uint8_t pin) {
-    // Directly shift 1UL to its final destination in the upper BRy half (pin + 16)
-    reg->BSRR = (1UL << (pin + WORD_BITS));
+    reg->BRR = (1UL << pin);
 }
 
 /*** DEV V-TABLE ***/

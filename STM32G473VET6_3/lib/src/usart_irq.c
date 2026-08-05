@@ -413,9 +413,9 @@ void USART2_IRQHandler(void)
         USART2->ICR = USART_ICR_PECF;
         (void)USART2->ICR;
 
-        if (irq()->uart->usart2->parity_error != NULL)
+        if (irq()->uart->usart2->pe != NULL)
         {
-            irq()->uart->usart2->parity_error();
+            irq()->uart->usart2->pe();
         }
         else
         {
@@ -429,9 +429,9 @@ void USART2_IRQHandler(void)
         USART2->ICR = USART_ICR_FECF;
         (void)USART2->ICR;
 
-        if (irq()->uart->usart2->framing_error != NULL)
+        if (irq()->uart->usart2->fe != NULL)
         {
-            irq()->uart->usart2->framing_error();
+            irq()->uart->usart2->fe();
         }
         else
         {
@@ -445,9 +445,9 @@ void USART2_IRQHandler(void)
         USART2->ICR = USART_ICR_NECF;
         (void)USART2->ICR;
 
-        if (irq()->uart->usart2->noise_error != NULL)
+        if (irq()->uart->usart2->ne != NULL)
         {
-            irq()->uart->usart2->noise_error();
+            irq()->uart->usart2->ne();
         }
         else
         {
@@ -461,9 +461,9 @@ void USART2_IRQHandler(void)
         USART2->ICR = USART_ICR_ORECF;
         (void)USART2->ICR;
 
-        if (irq()->uart->usart2->overrun_error != NULL)
+        if (irq()->uart->usart2->ore != NULL)
         {
-            irq()->uart->usart2->overrun_error();
+            irq()->uart->usart2->ore();
         }
         else
         {
@@ -551,9 +551,9 @@ void USART2_IRQHandler(void)
         USART2->ICR = USART_ICR_RTOCF;
         (void)USART2->ICR;
 
-        if (irq()->uart->usart2->receiver_timeout != NULL)
+        if (irq()->uart->usart2->rtof != NULL)
         {
-            irq()->uart->usart2->receiver_timeout();
+            irq()->uart->usart2->rtof();
         }
         else
         {
@@ -567,9 +567,9 @@ void USART2_IRQHandler(void)
         USART2->ICR = USART_ICR_EOBCF;
         (void)USART2->ICR;
 
-        if (irq()->uart->usart2->end_of_block != NULL)
+        if (irq()->uart->usart2->eob != NULL)
         {
-            irq()->uart->usart2->end_of_block();
+            irq()->uart->usart2->eob();
         }
         else
         {
@@ -583,9 +583,9 @@ void USART2_IRQHandler(void)
         USART2->ICR = USART_ICR_WUCF;
         (void)USART2->ICR;
 
-        if (irq()->uart->usart2->wake_up != NULL)
+        if (irq()->uart->usart2->wuf != NULL)
         {
-            irq()->uart->usart2->wake_up();
+            irq()->uart->usart2->wuf();
         }
         else
         {
@@ -604,9 +604,9 @@ void USART3_IRQHandler(void)
         USART3->ICR = USART_ICR_PECF;
         (void)USART3->ICR;
 
-        if (irq()->uart->usart3->parity_error != NULL)
+        if (irq()->uart->usart3->pe != NULL)
         {
-            irq()->uart->usart3->parity_error();
+            irq()->uart->usart3->pe();
         }
         else
         {
@@ -620,9 +620,9 @@ void USART3_IRQHandler(void)
         USART3->ICR = USART_ICR_FECF;
         (void)USART3->ICR;
 
-        if (irq()->uart->usart3->framing_error != NULL)
+        if (irq()->uart->usart3->fe != NULL)
         {
-            irq()->uart->usart3->framing_error();
+            irq()->uart->usart3->fe();
         }
         else
         {
@@ -636,9 +636,9 @@ void USART3_IRQHandler(void)
         USART3->ICR = USART_ICR_NECF;
         (void)USART3->ICR;
 
-        if (irq()->uart->usart3->noise_error != NULL)
+        if (irq()->uart->usart3->ne != NULL)
         {
-            irq()->uart->usart3->noise_error();
+            irq()->uart->usart3->ne();
         }
         else
         {
@@ -652,9 +652,9 @@ void USART3_IRQHandler(void)
         USART3->ICR = USART_ICR_ORECF;
         (void)USART3->ICR;
 
-        if (irq()->uart->usart3->overrun_error != NULL)
+        if (irq()->uart->usart3->ore != NULL)
         {
-            irq()->uart->usart3->overrun_error();
+            irq()->uart->usart3->ore();
         }
         else
         {
@@ -742,9 +742,9 @@ void USART3_IRQHandler(void)
         USART3->ICR = USART_ICR_RTOCF;
         (void)USART3->ICR;
 
-        if (irq()->uart->usart3->receiver_timeout != NULL)
+        if (irq()->uart->usart3->rtof != NULL)
         {
-            irq()->uart->usart3->receiver_timeout();
+            irq()->uart->usart3->rtof();
         }
         else
         {
@@ -758,9 +758,9 @@ void USART3_IRQHandler(void)
         USART3->ICR = USART_ICR_EOBCF;
         (void)USART3->ICR;
 
-        if (irq()->uart->usart3->end_of_block != NULL)
+        if (irq()->uart->usart3->eob != NULL)
         {
-            irq()->uart->usart3->end_of_block();
+            irq()->uart->usart3->eob();
         }
         else
         {
@@ -774,9 +774,9 @@ void USART3_IRQHandler(void)
         USART3->ICR = USART_ICR_WUCF;
         (void)USART3->ICR;
 
-        if (irq()->uart->usart3->wake_up != NULL)
+        if (irq()->uart->usart3->wuf != NULL)
         {
-            irq()->uart->usart3->wake_up();
+            irq()->uart->usart3->wuf();
         }
         else
         {
@@ -794,9 +794,9 @@ void UART4_IRQHandler(void)
     {
         UART4->ICR = USART_ICR_PECF;
 
-        if (irq()->uart->uart4->parity_error != NULL)
+        if (irq()->uart->uart4->pe != NULL)
         {
-            irq()->uart->uart4->parity_error();
+            irq()->uart->uart4->pe();
         }
         else
         {
@@ -809,9 +809,9 @@ void UART4_IRQHandler(void)
     {
         UART4->ICR = USART_ICR_FECF;
 
-        if (irq()->uart->uart4->framing_error != NULL)
+        if (irq()->uart->uart4->fe != NULL)
         {
-            irq()->uart->uart4->framing_error();
+            irq()->uart->uart4->fe();
         }
         else
         {
@@ -824,9 +824,9 @@ void UART4_IRQHandler(void)
     {
         UART4->ICR = USART_ICR_NECF;
 
-        if (irq()->uart->uart4->noise_error != NULL)
+        if (irq()->uart->uart4->ne != NULL)
         {
-            irq()->uart->uart4->noise_error();
+            irq()->uart->uart4->ne();
         }
         else
         {
@@ -839,9 +839,9 @@ void UART4_IRQHandler(void)
     {
         UART4->ICR = USART_ICR_ORECF;
 
-        if (irq()->uart->uart4->overrun_error != NULL)
+        if (irq()->uart->uart4->ore != NULL)
         {
-            irq()->uart->uart4->overrun_error();
+            irq()->uart->uart4->ore();
         }
         else
         {
@@ -910,9 +910,9 @@ void UART4_IRQHandler(void)
     {
         UART4->ICR = USART_ICR_CMCF;
 
-        if (irq()->uart->uart4->character_match != NULL)
+        if (irq()->uart->uart4->cmf != NULL)
         {
-            irq()->uart->uart4->character_match();
+            irq()->uart->uart4->cmf();
         }
         else
         {
@@ -925,9 +925,9 @@ void UART4_IRQHandler(void)
     {
         UART4->ICR = USART_ICR_RTOCF;
 
-        if (irq()->uart->uart4->receiver_timeout != NULL)
+        if (irq()->uart->uart4->rtof != NULL)
         {
-            irq()->uart->uart4->receiver_timeout();
+            irq()->uart->uart4->rtof();
         }
         else
         {
@@ -940,9 +940,9 @@ void UART4_IRQHandler(void)
     {
         UART4->ICR = USART_ICR_EOBCF;
 
-        if (irq()->uart->uart4->end_of_block != NULL)
+        if (irq()->uart->uart4->eob != NULL)
         {
-            irq()->uart->uart4->end_of_block();
+            irq()->uart->uart4->eob();
         }
         else
         {
@@ -970,9 +970,9 @@ void UART4_IRQHandler(void)
     {
         UART4->ICR = USART_ICR_WUCF;
 
-        if (irq()->uart->uart4->wakeup != NULL)
+        if (irq()->uart->uart4->wuf != NULL)
         {
-            irq()->uart->uart4->wakeup();
+            irq()->uart->uart4->wuf();
         }
         else
         {
@@ -990,9 +990,9 @@ void UART5_IRQHandler(void)
     {
         UART5->ICR = USART_ICR_PECF;
 
-        if (irq()->uart->uart5->parity_error != NULL)
+        if (irq()->uart->uart5->pe != NULL)
         {
-            irq()->uart->uart5->parity_error();
+            irq()->uart->uart5->pe();
         }
         else
         {
@@ -1005,9 +1005,9 @@ void UART5_IRQHandler(void)
     {
         UART5->ICR = USART_ICR_FECF;
 
-        if (irq()->uart->uart5->framing_error != NULL)
+        if (irq()->uart->uart5->fe != NULL)
         {
-            irq()->uart->uart5->framing_error();
+            irq()->uart->uart5->fe();
         }
         else
         {
@@ -1020,9 +1020,9 @@ void UART5_IRQHandler(void)
     {
         UART5->ICR = USART_ICR_NECF;
 
-        if (irq()->uart->uart5->noise_error != NULL)
+        if (irq()->uart->uart5->ne != NULL)
         {
-            irq()->uart->uart5->noise_error();
+            irq()->uart->uart5->ne();
         }
         else
         {
@@ -1035,9 +1035,9 @@ void UART5_IRQHandler(void)
     {
         UART5->ICR = USART_ICR_ORECF;
 
-        if (irq()->uart->uart5->overrun_error != NULL)
+        if (irq()->uart->uart5->ore != NULL)
         {
-            irq()->uart->uart5->overrun_error();
+            irq()->uart->uart5->ore();
         }
         else
         {
@@ -1106,9 +1106,9 @@ void UART5_IRQHandler(void)
     {
         UART5->ICR = USART_ICR_CMCF;
 
-        if (irq()->uart->uart5->character_match != NULL)
+        if (irq()->uart->uart5->cmf != NULL)
         {
-            irq()->uart->uart5->character_match();
+            irq()->uart->uart5->cmf();
         }
         else
         {
@@ -1121,9 +1121,9 @@ void UART5_IRQHandler(void)
     {
         UART5->ICR = USART_ICR_RTOCF;
 
-        if (irq()->uart->uart5->receiver_timeout != NULL)
+        if (irq()->uart->uart5->rtof != NULL)
         {
-            irq()->uart->uart5->receiver_timeout();
+            irq()->uart->uart5->rtof();
         }
         else
         {
@@ -1136,9 +1136,9 @@ void UART5_IRQHandler(void)
     {
         UART5->ICR = USART_ICR_EOBCF;
 
-        if (irq()->uart->uart5->end_of_block != NULL)
+        if (irq()->uart->uart5->eob != NULL)
         {
-            irq()->uart->uart5->end_of_block();
+            irq()->uart->uart5->eob();
         }
         else
         {
@@ -1166,9 +1166,9 @@ void UART5_IRQHandler(void)
     {
         UART5->ICR = USART_ICR_WUCF;
 
-        if (irq()->uart->uart5->wakeup != NULL)
+        if (irq()->uart->uart5->wuf != NULL)
         {
-            irq()->uart->uart5->wakeup();
+            irq()->uart->uart5->wuf();
         }
         else
         {
@@ -1186,9 +1186,9 @@ void LPUART1_IRQHandler(void)
     {
         LPUART1->ICR = USART_ICR_PECF;
 
-        if (irq()->uart->lpuart1->parity_error != NULL)
+        if (irq()->uart->lpuart1->pe != NULL)
         {
-            irq()->uart->lpuart1->parity_error();
+            irq()->uart->lpuart1->pe();
         }
         else
         {
@@ -1201,9 +1201,9 @@ void LPUART1_IRQHandler(void)
     {
         LPUART1->ICR = USART_ICR_FECF;
 
-        if (irq()->uart->lpuart1->framing_error != NULL)
+        if (irq()->uart->lpuart1->fe != NULL)
         {
-            irq()->uart->lpuart1->framing_error();
+            irq()->uart->lpuart1->fe();
         }
         else
         {
@@ -1216,9 +1216,9 @@ void LPUART1_IRQHandler(void)
     {
         LPUART1->ICR = USART_ICR_NECF;
 
-        if (irq()->uart->lpuart1->noise_error != NULL)
+        if (irq()->uart->lpuart1->ne != NULL)
         {
-            irq()->uart->lpuart1->noise_error();
+            irq()->uart->lpuart1->ne();
         }
         else
         {
@@ -1231,9 +1231,9 @@ void LPUART1_IRQHandler(void)
     {
         LPUART1->ICR = USART_ICR_ORECF;
 
-        if (irq()->uart->lpuart1->overrun_error != NULL)
+        if (irq()->uart->lpuart1->ore != NULL)
         {
-            irq()->uart->lpuart1->overrun_error();
+            irq()->uart->lpuart1->ore();
         }
         else
         {
@@ -1302,9 +1302,9 @@ void LPUART1_IRQHandler(void)
     {
         LPUART1->ICR = USART_ICR_CMCF;
 
-        if (irq()->uart->lpuart1->character_match != NULL)
+        if (irq()->uart->lpuart1->cmf != NULL)
         {
-            irq()->uart->lpuart1->character_match();
+            irq()->uart->lpuart1->cmf();
         }
         else
         {
@@ -1317,9 +1317,9 @@ void LPUART1_IRQHandler(void)
     {
         LPUART1->ICR = USART_ICR_RTOCF;
 
-        if (irq()->uart->lpuart1->receiver_timeout != NULL)
+        if (irq()->uart->lpuart1->rtof != NULL)
         {
-            irq()->uart->lpuart1->receiver_timeout();
+            irq()->uart->lpuart1->rtof();
         }
         else
         {
@@ -1332,9 +1332,9 @@ void LPUART1_IRQHandler(void)
     {
         LPUART1->ICR = USART_ICR_EOBCF;
 
-        if (irq()->uart->lpuart1->end_of_block != NULL)
+        if (irq()->uart->lpuart1->eob != NULL)
         {
-            irq()->uart->lpuart1->end_of_block();
+            irq()->uart->lpuart1->eob();
         }
         else
         {
@@ -1362,9 +1362,9 @@ void LPUART1_IRQHandler(void)
     {
         LPUART1->ICR = USART_ICR_WUCF;
 
-        if (irq()->uart->lpuart1->wakeup != NULL)
+        if (irq()->uart->lpuart1->wuf != NULL)
         {
-            irq()->uart->lpuart1->wakeup();
+            irq()->uart->lpuart1->wuf();
         }
         else
         {
