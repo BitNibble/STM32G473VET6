@@ -19,10 +19,11 @@ Hardware: STM32
 	#define DWORD_BITS 32UL
 #endif
 
-void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable)
+static void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable)
 {
     uint32_t mask = 0;
 
+#if defined(STM32G4)
     if (GPIO == GPIOA)      mask = RCC_AHB2ENR_GPIOAEN;
     else if (GPIO == GPIOB) mask = RCC_AHB2ENR_GPIOBEN;
     else if (GPIO == GPIOC) mask = RCC_AHB2ENR_GPIOCEN;
@@ -41,9 +42,33 @@ void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable)
         RCC->AHB2ENR |= mask;
     else
     	RCC->AHB2ENR &= ~mask;
+#endif
+
+#if defined(STM32F4)
+    if (GPIO == GPIOA)      mask = RCC_AHB1ENR_GPIOAEN;
+    else if (GPIO == GPIOB) mask = RCC_AHB1ENR_GPIOBEN;
+    else if (GPIO == GPIOC) mask = RCC_AHB1ENR_GPIOCEN;
+    else if (GPIO == GPIOD) mask = RCC_AHB1ENR_GPIODEN;
+    else if (GPIO == GPIOE) mask = RCC_AHB1ENR_GPIOEEN;
+#ifdef GPIOF
+    else if (GPIO == GPIOF) mask = RCC_AHB1ENR_GPIOFEN;
+#endif
+#ifdef GPIOG
+    else if (GPIO == GPIOG) mask = RCC_AHB1ENR_GPIOGEN;
+#endif
+#ifdef GPIOH
+    else if (GPIO == GPIOH) mask = RCC_AHB1ENR_GPIOHEN;
+#endif
+    else return;
+
+    if (enable)
+        RCC->AHB1ENR |= mask;
+    else
+    	RCC->AHB1ENR &= ~mask;
+#endif
 }
 
-void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode )
+static void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode )
 {
 	if(pin < WORD_BITS && mode < NIBBLE_BITS){
 		const uint8_t BLOCK_SIZE = TWO;
@@ -57,7 +82,7 @@ void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t mode )
 	}
 }
 
-void GPIO_otype( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t otype )
+static void GPIO_otype( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t otype )
 {
     if(pin < WORD_BITS && otype < TWO){
         uint32_t temp = GPIO->OTYPER;
@@ -67,7 +92,7 @@ void GPIO_otype( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t otype )
     }
 }
 
-void GPIO_ospeed( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t ospeed )
+static void GPIO_ospeed( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t ospeed )
 {
 	if(pin < WORD_BITS && ospeed < NIBBLE_BITS){
 		const uint8_t BLOCK_SIZE = TWO;
@@ -81,7 +106,7 @@ void GPIO_ospeed( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t ospeed )
 	}
 }
 
-void GPIO_pupd( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t pupd )
+static void GPIO_pupd( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t pupd )
 {
 	if(pin < WORD_BITS && pupd < NIBBLE_BITS){
 		const uint8_t BLOCK_SIZE = TWO;
@@ -95,7 +120,7 @@ void GPIO_pupd( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t pupd )
 	}
 }
 
-void GPIO_hmoder( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t mode )
+static void GPIO_hmoder( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t mode )
 {
 	if(mode < NIBBLE_BITS) {
 		uint32_t hmoder = GPIO->MODER;
@@ -113,7 +138,7 @@ void GPIO_hmoder( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t mode )
 	}
 }
 
-void GPIO_hotype( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t otype )
+static void GPIO_hotype( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t otype )
 {
 	if(otype < TWO) {
 		uint32_t hotype = GPIO->OTYPER;
@@ -128,7 +153,7 @@ void GPIO_hotype( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t otype )
 	}
 }
 
-void GPIO_hospeed( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t ospeed )
+static void GPIO_hospeed( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t ospeed )
 {
 	if(ospeed < NIBBLE_BITS) {
 		uint32_t hospeed = GPIO->OSPEEDR;
@@ -146,7 +171,7 @@ void GPIO_hospeed( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t ospeed )
 	}
 }
 
-void GPIO_hpupd( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t pupd )
+static void GPIO_hpupd( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t pupd )
 {
 	if(pupd < NIBBLE_BITS){
 		uint32_t hpupd = GPIO->PUPDR;
@@ -164,7 +189,7 @@ void GPIO_hpupd( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t pupd )
 	}
 }
 
-void GPIO_lck(GPIO_TypeDef* GPIO, uint16_t hpin)
+static void GPIO_lck(GPIO_TypeDef* GPIO, uint16_t hpin)
 {
     uint32_t tmp;
 
@@ -179,7 +204,7 @@ void GPIO_lck(GPIO_TypeDef* GPIO, uint16_t hpin)
     (void)tmp;
 }
 
-void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af )
+static void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af )
 {
 	if(pin < WORD_BITS && af < WORD_BITS){
 		const uint8_t BLOCK_SIZE = NIBBLE_BITS;
@@ -196,7 +221,7 @@ void GPIO_af( GPIO_TypeDef* GPIO, uint8_t pin, uint8_t af )
 	}
 }
 
-void GPIO_haf( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t af )
+static void GPIO_haf( GPIO_TypeDef* GPIO, uint16_t hpin, uint8_t af )
 {
     if(af < WORD_BITS) {
         const uint8_t BLOCK_SIZE = NIBBLE_BITS;
@@ -226,7 +251,12 @@ static inline void SET_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
     reg->BSRR = hpin;
 }
 static inline void CLEAR_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
+#if defined(STM32F4)
+    reg->BSRR = hpin << WORD_BITS;
+#endif
+#if defined(STM32G4)
     reg->BRR = hpin;
+#endif
 }
 static inline void TOGGLE_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
     reg->ODR ^= hpin;
@@ -235,7 +265,12 @@ static inline void SET_pin(GPIO_TypeDef* reg, uint8_t pin) {
     reg->BSRR = (1UL << pin);
 }
 static inline void CLEAR_pin(GPIO_TypeDef* reg, uint8_t pin) {
+#if defined(STM32F4)
+    reg->BSRR = (1UL << (pin + WORD_BITS));
+#endif
+#if defined(STM32G4)
     reg->BRR = (1UL << pin);
+#endif
 }
 
 /*** DEV V-TABLE ***/
