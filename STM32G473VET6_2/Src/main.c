@@ -84,6 +84,7 @@ int main(void)
 {
     rcc()->run->inic();
     dev()->enable->fpu();
+    dev()->enable->battery_charging();
     rtc()->run->inic();
 
     char str[32];
@@ -107,6 +108,8 @@ int main(void)
     drive = l293d_enable(GPIOE, ZERO);
 
     tim1()->run->clock_enable();
+    tim1()->par->prescaler = 119;
+    tim1()->par->autoreload = 1999999;
     tim1()->run->init_by_ticks(tim1()->par->prescaler, tim1()->par->autoreload);
     tim1()->run->nvic_u_enable(3);
     irq()->timer->tim1->update = blink;

@@ -26,13 +26,13 @@ static uint32_t _block_mask(uint32_t size_block, uint32_t Pos);
 static uint32_t _mask_pos(uint32_t Msk);
 static uint32_t _mask_data(uint32_t Msk, uint32_t data);
 
-static uint32_t get_field_value(uint32_t reg, uint32_t Msk, uint32_t Pos);
-static void write_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
-static void write_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData);
-static uint32_t get_block_value(uint32_t reg, uint8_t size_block, uint8_t Pos);
-static void write_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
-static uint32_t get_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos);
-static void write_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
+static uint32_t get_field(uint32_t reg, uint32_t Msk, uint32_t Pos);
+static void write_field(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
+static void write_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData);
+static uint32_t get_block(uint32_t reg, uint8_t size_block, uint8_t Pos);
+static void write_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
+static uint32_t get_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos);
+static void write_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 
 static void increment(uint16_t* value, uint16_t min, uint16_t max);
 static uint8_t toggle(uint8_t n);
@@ -75,45 +75,45 @@ static inline uint32_t _mask_data(uint32_t Msk, uint32_t data){
 
 /*** ToolSet Engines ***/
 // field
-static uint32_t get_field_value(uint32_t reg, uint32_t Msk, uint32_t Pos)
+static uint32_t get_field(uint32_t reg, uint32_t Msk, uint32_t Pos)
 {
     return _mask(Msk, reg) >> Pos;
 }
-static void write_field_value(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data)
+static void write_field(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data)
 {
     uint32_t tmp = *reg;
     tmp = _clear_bit(tmp, Msk) | _mask((data << Pos), Msk);
     *reg = tmp;
 }
-static void write_field_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData)
+static void write_encoded(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData)
 {
     uint32_t tmp = *reg;
     tmp = _clear_bit(tmp, Msk) | _mask(ShiftedData, Msk);
     *reg = tmp;
 }
 // block
-static uint32_t get_block_value(uint32_t reg, uint8_t size_block, uint8_t Pos)
+static uint32_t get_block(uint32_t reg, uint8_t size_block, uint8_t Pos)
 {
-    return get_field_value(reg, _block_mask(size_block, Pos), Pos);
+    return get_field(reg, _block_mask(size_block, Pos), Pos);
 }
-static void write_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data)
+static void write_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data)
 {
-    write_field_value(reg, _block_mask(size_block, Pos), Pos, data);
+    write_field(reg, _block_mask(size_block, Pos), Pos, data);
 }
 // bit_block
-static uint32_t get_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos)
+static uint32_t get_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos)
 {
     uint32_t n = Pos / DWORD_BITS;
     Pos = Pos % DWORD_BITS;
-    return get_field_value(*(reg + n), _block_mask(size_block, Pos), Pos);
+    return get_field(*(reg + n), _block_mask(size_block, Pos), Pos);
 }
-static void write_bit_block_value(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data) {
+static void write_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data) {
     uint32_t n = Pos / DWORD_BITS;
     Pos = Pos % DWORD_BITS;
 
-    write_field_value((reg + n), _block_mask(size_block, Pos), Pos, data);
+    write_field((reg + n), _block_mask(size_block, Pos), Pos, data);
 }
-void write_bit_block_value_v2(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data) {
+void write_bit_block_v2(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data) {
     uint32_t n = Pos / DWORD_BITS;
     Pos = Pos % DWORD_BITS;
 
@@ -124,15 +124,15 @@ void write_bit_block_value_v2(volatile uint32_t* reg, uint8_t size_block, uint8_
 
         // 1. Write the lower fragment to the first register
         uint32_t first_mask = _block_mask(first_part_size, Pos);
-        write_field_value((reg + n), first_mask, Pos, data);
+        write_field((reg + n), first_mask, Pos, data);
 
         // 2. Write the upper fragment to the subsequent register (offset n + 1)
         uint32_t second_mask = _block_mask(second_part_size, 0);
-        write_field_value((reg + n + 1), second_mask, 0, (data >> first_part_size));
+        write_field((reg + n + 1), second_mask, 0, (data >> first_part_size));
     }
     else {
         // Normal case: The entire block perfectly fits inside a single 32-bit space
-        write_field_value((reg + n), _block_mask(size_block, Pos), Pos, data);
+        write_field((reg + n), _block_mask(size_block, Pos), Pos, data);
     }
 }
 
@@ -210,15 +210,15 @@ static const tool_handler tool_setup = {
 	._set_bit = _set_bit,
     ._clear_bit = _clear_bit,
 
-    .get_field_value = get_field_value,
-    .write_field_value = write_field_value,
-    .write_field_encoded = write_field_encoded,
+    .get_field = get_field,
+    .write_field = write_field,
+    .write_encoded = write_encoded,
 
-    .get_block_value = get_block_value,
-    .write_block_value = write_block_value,
+    .get_block = get_block,
+    .write_block = write_block,
 
-    .get_bit_block_value = get_bit_block_value,
-    .write_bit_block_value = write_bit_block_value,
+    .get_bit_block = get_bit_block,
+    .write_bit_block = write_bit_block,
     /****************************************/
     .increment = increment,
     .toggle = toggle,
@@ -230,7 +230,7 @@ static const tool_handler tool_setup = {
     /*** Fall Through Delay ***/
     .ftdelayCycles = ftdelayCycles,
     .ftdelayReset = ftdelayReset,
-    .ftdelayTerm = ftdelayTerm,
+    .ftdelayTerm = ftdelayTerm
 };
 
 /*** SINGLETON ACCESSOR FUNCTION ***/

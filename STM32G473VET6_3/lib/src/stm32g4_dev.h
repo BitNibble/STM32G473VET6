@@ -306,6 +306,7 @@ typedef const struct {
 /*** DEV ENABLE ***/
 typedef const struct {
 	void (*fpu)(void);
+	void (*battery_charging)(void);
 	void (*tim1)(void);
 }DEV_enable;
 

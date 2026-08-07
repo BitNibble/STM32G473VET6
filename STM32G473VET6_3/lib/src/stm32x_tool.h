@@ -53,15 +53,15 @@ typedef const struct {
     uint32_t (*_set_bit)(uint32_t var, uint32_t Msk);
     uint32_t (*_clear_bit)(uint32_t var, uint32_t Msk);
 
-    uint32_t (*get_field_value)(uint32_t reg, uint32_t Msk, uint32_t Pos);
-    void (*write_field_value)(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
-    void (*write_field_encoded)(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData);
+    uint32_t (*get_field)(uint32_t reg, uint32_t Msk, uint32_t Pos);
+    void (*write_field)(volatile uint32_t* reg, uint32_t Msk, uint32_t Pos, uint32_t data);
+    void (*write_encoded)(volatile uint32_t* reg, uint32_t Msk, uint32_t ShiftedData);
 
-    uint32_t (*get_block_value)(uint32_t reg, uint8_t size_block, uint8_t Pos);
-    void (*write_block_value)(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
+    uint32_t (*get_block)(uint32_t reg, uint8_t size_block, uint8_t Pos);
+    void (*write_block)(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
 
-    uint32_t (*get_bit_block_value)(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos);
-    void (*write_bit_block_value)(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
+    uint32_t (*get_bit_block)(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos);
+    void (*write_bit_block)(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data);
     /****************************************/
     void (*increment)(uint16_t* value, uint16_t min, uint16_t max);
     uint8_t (*toggle)(uint8_t n);
@@ -82,14 +82,14 @@ tool_handler* exe(void);
 // ============================================================================
 // WRAPPER MACROS (Cleans up calling syntax completely)
 // ============================================================================
-#define WRITE_FIELD(REG, Msk, Pos, Data)    exe()->write_field_value(&(REG), (Msk), (Pos), (Data))
-#define WRITE_ENCODED(REG, Msk, Shifted)    exe()->write_field_encoded(&(REG), (Msk), (Shifted))
-#define WRITE_BLOCK(REG, Size, Pos, Data)   exe()->write_block_value(&(REG), (Size), (Pos), (Data))
-#define WRITE_BIT_BLOCK(REG, Size, Pos, Data) exe()->write_bit_block_value(&(REG), (Size), (Pos), (Data))
+#define WRITE_FIELD(REG, Msk, Pos, Data)    exe()->write_field(&(REG), (Msk), (Pos), (Data))
+#define WRITE_ENCODED(REG, Msk, Shifted)    exe()->write_encoded(&(REG), (Msk), (Shifted))
+#define WRITE_BLOCK(REG, Size, Pos, Data)   exe()->write_block(&(REG), (Size), (Pos), (Data))
+#define WRITE_BIT_BLOCK(REG, Size, Pos, Data) exe()->write_bit_block(&(REG), (Size), (Pos), (Data))
 
-#define GET_FIELD(REG, Msk, Pos)            exe()->get_field_value((REG), (Msk), (Pos))
-#define GET_BLOCK(REG, Size, Pos)           exe()->get_block_value((REG), (Size), (Pos))
-#define GET_BIT_BLOCK(REG, Size, Pos)       exe()->get_bit_block_value(&(REG), (Size), (Pos))
+#define GET_FIELD(REG, Msk, Pos)            exe()->get_field((REG), (Msk), (Pos))
+#define GET_BLOCK(REG, Size, Pos)           exe()->get_block((REG), (Size), (Pos))
+#define GET_BIT_BLOCK(REG, Size, Pos)       exe()->get_bit_block(&(REG), (Size), (Pos))
 
 /*** EOF ***/
 

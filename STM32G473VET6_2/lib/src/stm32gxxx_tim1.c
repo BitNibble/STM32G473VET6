@@ -126,7 +126,7 @@ static void t1_enable_complementary(tim1_ch_t ch, uint8_t enable_main, uint8_t e
 }
 
 static void t1_config_deadtime(uint8_t deadtime_value) {
-    exe()->write_field_value(&dev()->timer->tim1->BDTR, TIM_BDTR_DTG, 0U, deadtime_value);
+    exe()->write_field(&dev()->timer->tim1->BDTR, TIM_BDTR_DTG, 0U, deadtime_value);
 }
 
 static void t1_set_pulse(tim1_ch_t ch, uint32_t pulse_width) {

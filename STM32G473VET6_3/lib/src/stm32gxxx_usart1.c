@@ -74,26 +74,26 @@ void impl_set_wordlength(uint8_t wordlength) {
 			m1_val = 0;
 			break;
 	}
-	exe()->write_field_value(cr1_reg, USART_CR1_M0_Msk, USART_CR1_M0_Pos, m0_val);
-	exe()->write_field_value(cr1_reg, USART_CR1_M1_Msk, USART_CR1_M1_Pos, m1_val);
+	exe()->write_field(cr1_reg, USART_CR1_M0_Msk, USART_CR1_M0_Pos, m0_val);
+	exe()->write_field(cr1_reg, USART_CR1_M1_Msk, USART_CR1_M1_Pos, m1_val);
 }
 
 void impl_set_stopbit(uint8_t stopbit) {
 	volatile uint32_t* cr2_reg = &(dev()->comm->usart1->CR2);
-	exe()->write_field_value(cr2_reg, USART_CR2_STOP_Msk, USART_CR2_STOP_Pos, stopbit);
+	exe()->write_field(cr2_reg, USART_CR2_STOP_Msk, USART_CR2_STOP_Pos, stopbit);
 }
 
 void impl_set_samplingmode(uint8_t samplingmode) {
 	volatile uint32_t* cr1_reg = &(dev()->comm->usart1->CR1);
 	if(samplingmode == 8) {
-	    exe()->write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ONE);
+	    exe()->write_field(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ONE);
 	} else {
-		exe()->write_field_value(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ZERO);
+		exe()->write_field(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ZERO);
 	}
 }
 
 static uint8_t impl_get_samplingmode(void) {
-	if(exe()->get_field_value(dev()->comm->usart1->CR1, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos)){
+	if(exe()->get_field(dev()->comm->usart1->CR1, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos)){
 		return 8;
 	} else {
 		return 16;
@@ -115,7 +115,7 @@ static void impl_set_baudrate(uint32_t baudrate) {
 		brr_calculated_val = pclk / baudrate;
 	}
 	// Write calculated value to the USART1 BRR Register
-	exe()->write_field_value(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
+	exe()->write_field(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
 }
 
 static void impl_init(void) {
@@ -141,8 +141,8 @@ static void impl_init(void) {
     gpio()->pupd(par_setup.rx_gpio, par_setup.rx_pin, 1);
 
     // Routing Peripheral Signals into DMAMUX Matrices (Ch1=RX, Ch2=TX)
-    exe()->write_field_value(&(dev()->dma->dmamux1_ch1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.rx_dma_ch);
-    exe()->write_field_value(&(dev()->dma->dmamux1_ch2->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.tx_dma_ch);
+    exe()->write_field(&(dev()->dma->dmamux1_ch1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.rx_dma_ch);
+    exe()->write_field(&(dev()->dma->dmamux1_ch2->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.tx_dma_ch);
 
     // Configure DMA RX Channel (Circular mode)
     CLEAR_BIT((dev()->dma->dma1_ch1->CCR), DMA_CCR_EN);
