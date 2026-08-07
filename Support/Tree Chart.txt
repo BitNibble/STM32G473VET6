@@ -1,56 +1,49 @@
 stm32g473vet6.h--|
                  |<--stm32g4_dev.h--|
-  				 |                  |
-				 |                  |<---------stm32g4xx.h--|
-				 |                  |                       |<------stm32g473xx.h--|
-				 |                  |                       |                      |<-core_cm4.h
-				 |                  |                       |                      |<-system_stm32g4xx.h
-				 |                  |                       |                      |<-stdint.h
-				 |                  |                       |
-				 |                  |                       |x----stm32g4xx_hal.h--|
-				 |                  |                       |                      |x-not used
-				 |                  |                       |
-				 |                  |                       |---> usart_irq.c, timer_irq.c, dma_irq.c, etc
-                 |                  |
-				 |                  |<----custom_hal_def.h--|
-				 |                  |                       |<-stdint.h
-				 |                  |                       |<-inttypes.h
+                 |                  |<--------stm32g4_hw.h--|
+                 |                  |                       |<---------stm32g4xx.h--|
+                 |                  |                                               |<------stm32g473xx.h--|
+                 |                  |                                               |                      |<-core_cm4.h
+                 |                  |                                               |                      |<-system_stm32g4xx.h
+                 |                  |                                               |                      |<-stdint.h
+                 |                  |                                               |
+                 |                  |                                               |x----stm32g4xx_hal.h--|
+                 |                  |                                               |                      |x-not used
+                 |                  |                                               |
+                 |                  |                                               |---> usart_irq.c, timer_irq.c, dma_irq.c, etc
+				 |                  |
+	             |                  |
+                 |                  |<----custom_hal_def.h--|
+                 |                  |                       |<-stdint.h
+                 |                  |                       |<-inttypes.h
                  |                  |                       |<-stddef.h
-				 |                  |
-				 |                  |<--stm32g4_instance.h--|
-				 |                  |                       |<-stm32g4_register.h--|
-				 |                  |                                              |<-stdint.h
-				 |                  |                                              |<-inttypes.h
-				 |                  |                                              |<-stddef.h
-				 |                  |
-				 |                  |--.c-|<-stm32x_tool.h
-				 |
-				 |                     
-				 |<---stm32x_irq.h--|
-				 |                  |<-stdint.h
-				 |                  |<-inttypes.h
-				 |                  |<-stddef.h
-				 |                  |
-				 |                  |---> usart_irq.c, timer_irq.c, dma_irq.c, i2c_irq.c, spi_irq.c, etc
-				 |
-				 |
-				 |<--stm32x_tool.h--|
-				 |                  |<-stdint.h
-				 |                  |<-inttypes.h
-				 |                  |<-stddef.h
-				 |                  |
-				 |                  |--.c-|<- stdio.h, stdlib.h, stdarg.h, math.h
-				 |
-				 |
-				 |<--stm32x_gpio.h--|
-				 |                  |<-stm32g4xx.h
-				 |                  |<-stdint.h
-				 |                  |<-inttypes.h
-				 |                  |<-stddef.h
-				 |
-				 |                      
-				 |
-				 |--------> ALL Handlers and Drivers                    
+                 |                  |
+                 |                  |
+                 |                  |<--stm32x_tool.h-------|
+                 |                  |                       |<-stdint.h
+                 |                  |                       |<-inttypes.h
+                 |                  |                       |<-stddef.h
+                 |                  |                       |
+                 |                  |                       |--.c-|<- stdio.h, stdlib.h, stdarg.h, math.h
+                 |
+                 |
+                 |<---stm32x_irq.h--|
+                 |                  |<-stdint.h
+                 |                  |<-inttypes.h
+                 |                  |<-stddef.h
+                 |                  |
+                 |                  |---> usart_irq.c, timer_irq.c, dma_irq.c, i2c_irq.c, spi_irq.c, etc
+                 |
+                 |
+                 |<--stm32x_gpio.h--|
+                 |                  |<-stm32g4xx.h
+                 |                  |<-stdint.h
+                 |                  |<-inttypes.h
+                 |                  |<-stddef.h
+                 |
+                 |
+                 |
+                 |--------> ALL Handlers and Drivers                    
 
 
 
@@ -63,6 +56,15 @@ stm32g4xx.h--|
              |
              |x--stm32g4xx_hal.h--|
              |                    |x-not used
+
+
+
+
+stm32g4_instance.h--|
+                    |<-stm32g4_register.h--|
+                                           |<-stdint.h
+                                           |<-inttypes.h
+                                           |<-stddef.h
 
 /*** EOF ***/
 

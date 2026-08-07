@@ -5,9 +5,8 @@ License:  GNU General Public License
 Hardware: STM32G4 Family
 **********************************************************************/
 #include "stm32g4_dev.h"
-#include "stm32x_tool.h"
 
-/*** DEV PARAMETER ***/
+/*** hw ***/
 static CORE_Block core_setup = {
     .nvic      = NVIC,
     .scb       = SCB,
@@ -227,10 +226,7 @@ static EVENT_Block event_setup = {
     .dmamux_rg = DMAMUX1_RequestGenerator0
 };
 
-/*** Procedure & Function Definition ***/
-/*=========================================================
-  PLL SOURCE
-=========================================================*/
+/*** clock ***/
 static inline uint32_t get_pll_source(void)
 {
     uint32_t src = exe()->get_field(sys_setup.rcc->PLLCFGR, RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos);
@@ -239,9 +235,6 @@ static inline uint32_t get_pll_source(void)
     return (src == 3U) ? HSE_VALUE : HSI_VALUE;
 }
 
-/*=========================================================
-  PLL CONFIG READBACK
-=========================================================*/
 static inline uint8_t get_pllm(void)
 {
     /* PLLM mapping on G4: 0001=/2, 0010=/3... so M = value + 1 */
@@ -254,7 +247,6 @@ static inline uint16_t get_plln(void)
     return (uint16_t)exe()->get_field(sys_setup.rcc->PLLCFGR, RCC_PLLCFGR_PLLN_Msk, RCC_PLLCFGR_PLLN_Pos);
 }
 
-/* PLLP */
 static inline uint8_t get_pllp(void)
 {
     uint32_t p = exe()->get_field(sys_setup.rcc->PLLCFGR, RCC_PLLCFGR_PLLP_Msk, RCC_PLLCFGR_PLLP_Pos);
@@ -279,9 +271,6 @@ static inline uint8_t get_pllr(void)
     return (uint8_t)((r + 1U) * 2U);
 }
 
-/*=========================================================
-  PLL FREQUENCY MODEL
-=========================================================*/
 static inline uint32_t get_pll_vco_in(void)
 {
     uint32_t m = get_pllm();
@@ -301,9 +290,6 @@ static inline uint32_t get_pllclk(void)
     return get_pll_vco_out() / divisor;
 }
 
-/*=========================================================
-  SYSTEM CLOCK
-=========================================================*/
 static inline uint32_t get_sysclk(void)
 {
     uint32_t sws = exe()->get_field(sys_setup.rcc->CFGR, RCC_CFGR_SWS_Msk, RCC_CFGR_SWS_Pos);
@@ -317,9 +303,6 @@ static inline uint32_t get_sysclk(void)
     }
 }
 
-/*=========================================================
-  AHB CLOCK (HCLK)
-=========================================================*/
 static inline uint32_t get_hclk(void)
 {
     static const uint16_t ahb_presc_table[16] =
@@ -332,9 +315,6 @@ static inline uint32_t get_hclk(void)
     return get_sysclk() / ahb_presc_table[hpre & 0x0FU];
 }
 
-/*=========================================================
-  APB CLOCKS
-=========================================================*/
 static uint8_t get_systickpre(void) {
     uint32_t value = exe()->get_field(core_setup.systick->CTRL, SysTick_CTRL_CLKSOURCE_Msk, SysTick_CTRL_CLKSOURCE_Pos);
     return value ? 8 : 1;
@@ -358,9 +338,6 @@ static inline uint32_t get_pclk2(void)
     return get_hclk() / apb_presc[ppre2 & 0x07U];
 }
 
-/*=========================================================
-  TIMER CLOCKS (STM32G4 RULE)
-=========================================================*/
 static inline uint32_t get_timclk1(void)
 {
     uint32_t ppre1 = exe()->get_field(sys_setup.rcc->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
@@ -449,9 +426,7 @@ static uint32_t get_freq_adc12(void)
     }
 }
 
-/**************************** ENABLE *******************************/
-/* Core & System Subsystems */
-
+/*** enable ***/
 static void fpu_enable(void) {
     #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
 	core_setup.scb->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
@@ -472,8 +447,6 @@ static void syscfg_clock(void) {
     volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_SYSCFGEN;
     (void)tmpreg;
 }
-
-/* GPIO Port Systems */
 
 static void gpioa_clock(void) {
     SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOAEN);
@@ -517,8 +490,6 @@ static void gpiog_clock(void) {
     (void)tmpreg;
 }
 
-/* System Infrastructure Controllers */
-
 static void dma1_clock(void) {
     SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN);
     volatile uint32_t tmpreg = RCC->AHB1ENR & RCC_AHB1ENR_DMA1EN;
@@ -561,8 +532,6 @@ static void crc_clock(void) {
     (void)tmpreg;
 }
 
-/* Mass Memory Interfaces */
-
 static void qspi_clock(void) {
     SET_BIT(RCC->AHB3ENR, RCC_AHB3ENR_QSPIEN);
     volatile uint32_t tmpreg = RCC->AHB3ENR & RCC_AHB3ENR_QSPIEN;
@@ -574,8 +543,6 @@ static void fmc_clock(void) {
     volatile uint32_t tmpreg = RCC->AHB3ENR & RCC_AHB3ENR_FMCEN;
     (void)tmpreg;
 }
-
-/* Control Timers */
 
 static void tim1_clock(void) {
     SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM1EN);
@@ -654,8 +621,6 @@ static void lptim1_clock(void) {
     volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_LPTIM1EN;
     (void)tmpreg;
 }
-
-/* Communications Blocks */
 
 static void usart1_clock(void) {
     SET_BIT(RCC->APB2ENR, RCC_APB2ENR_USART1EN);
@@ -753,14 +718,6 @@ static void usb_clock(void) {
     (void)tmpreg;
 }
 
-//static void hrtim_clock(void) {
-//    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_HRTIM1EN);
-//    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_HRTIM1EN;
-//    (void)tmpreg;
-//}
-
-/* Mixed-Signal & Analog Subsystems */
-
 static void adc12_clock(void) {
     SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_ADC12EN);
     volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_ADC12EN;
@@ -815,7 +772,7 @@ static void rng_clock(void) {
     (void)tmpreg;
 }
 
-/*** DEV GET PARAMETER ***/
+/*** clock ***/
 static DEV_get get_setup = {
 	.pll_source = get_pll_source,
 	.pllm = get_pllm,
@@ -839,7 +796,7 @@ static DEV_get get_setup = {
 	.freq_adc12 = get_freq_adc12
 };
 
-/*** DEV GET PARAMETER ***/
+/*** enable ***/
 static DEV_enable enable_setup = {
     /* Assigning Core Subsystems */
     .fpu              = fpu_enable,

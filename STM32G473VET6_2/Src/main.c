@@ -113,7 +113,7 @@ int main(void)
     tim1()->run->init_by_ticks(tim1()->par->prescaler, tim1()->par->autoreload);
     tim1()->run->nvic_u_enable(3);
     irq()->timer->tim1->update = blink;
-    tim1()->run->start();
+    //tim1()->run->start();
 
     lcd1.run->start(&lcd1.par);
     lcd1.run->draw_circle(&lcd1.par, 220, 300, 15, ST77XX_CYAN);

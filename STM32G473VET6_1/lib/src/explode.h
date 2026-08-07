@@ -14,6 +14,10 @@ Comment:
 #include <stdint.h>
 #include <inttypes.h>
 
+#ifndef STM32G4
+	#define STM32G4
+#endif
+
 /*** Global Constant & Macro ***/
 #if defined (STM32F4) || defined (STM32G4)
 	#define IO_var uint32_t

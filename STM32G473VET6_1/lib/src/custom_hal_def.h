@@ -3,11 +3,7 @@ Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
 ************************************************************************/
 #ifndef CUSTOM_HAL_DEF_H
-#define CUSTOM_HAL_DEF_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+	#define CUSTOM_HAL_DEF_H
 
 #include <stdint.h>
 #include <inttypes.h>
@@ -108,10 +104,43 @@ extern "C" {
 
 #endif
 
+typedef union{
+	struct UN8bit{
+		uint8_t bit0:1;
+		uint8_t bit1:1;
+		uint8_t bit2:1;
+		uint8_t bit3:1;
+		uint8_t bit4:1;
+		uint8_t bit5:1;
+		uint8_t bit6:1;
+		uint8_t bit7:1;
+	}par;
+	uint8_t var;
+}U_byte;
 
-#ifdef __cplusplus
-}
-#endif
+typedef union{
+	struct UN16byte{
+		uint8_t l;
+		uint8_t h;
+	}par;
+	uint16_t var;
+}U_word;
+
+typedef union{
+	struct UN32word{
+		uint16_t l;
+		uint16_t h;
+	}par;
+	uint32_t var;
+}U_dword;
+
+typedef union{
+	struct UN64dword{
+		uint32_t l;
+		uint32_t h;
+	}par;
+	uint64_t var;
+}U_qword;
 
 #endif
 

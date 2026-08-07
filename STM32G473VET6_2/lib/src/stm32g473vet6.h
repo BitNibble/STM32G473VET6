@@ -8,7 +8,6 @@ Hardware: STM32G473VET6
 	#define STM32G4XX_FAMILY_H
 
 #include "stm32g4_dev.h"
-#include "stm32x_tool.h"
 #include "stm32x_gpio.h"
 #include "stm32x_irq.h"
 
