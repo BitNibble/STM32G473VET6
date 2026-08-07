@@ -21,7 +21,6 @@ static CORE_Block core_setup = {
 
 static SYSTEM_Block sys_setup = {
     .rcc    = RCC,
-	.rcc_bf = (RCC_BitField_TypeDef*) RCC,
     .flash  = FLASH,
     .pwr    = PWR,
     .syscfg = SYSCFG,
@@ -30,30 +29,22 @@ static SYSTEM_Block sys_setup = {
 
 static GPIO_Block gpio_setup = {
     .a = GPIOA,
-	.a_bf = (GPIO_BitField_TypeDef*) GPIOA,
     .b = GPIOB,
-	.b_bf = (GPIO_BitField_TypeDef*) GPIOB,
     .c = GPIOC,
-	.c_bf = (GPIO_BitField_TypeDef*) GPIOC,
 #ifdef GPIOD
     .d = GPIOD,
-	.d_bf = (GPIO_BitField_TypeDef*) GPIOD,
 #endif
 #ifdef GPIOE
     .e = GPIOE,
-	.e_bf = (GPIO_BitField_TypeDef*) GPIOE,
 #endif
 #ifdef GPIOF
     .f = GPIOF,
-	.f_bf = (GPIO_BitField_TypeDef*) GPIOF,
 #endif
 #ifdef GPIOG
     .g = GPIOG,
-	.g_bf = (GPIO_BitField_TypeDef*) GPIOG,
 #endif
 #ifdef GPIOH
     .h = GPIOH,
-	.h_bf = (GPIO_BitField_TypeDef*) GPIOH,
 #endif
 };
 
@@ -182,7 +173,6 @@ static COMM_Block comm_setup = {
 #endif
 
 	.i2c1    = I2C1,
-    .i2c1_bf    = (I2C_BitField_TypeDef*) I2C1,
     .i2c2    = I2C2,
 #ifdef I2C3
     .i2c3    = I2C3,
@@ -460,27 +450,369 @@ static uint32_t get_freq_adc12(void)
 }
 
 /**************************** ENABLE *******************************/
-static inline void fpu_enable(void)
-{
-    /* Enable full access to CP10 and CP11 (FPU) */
-    core_setup.scb->CPACR |= (0xFU << 20);
+/* Core & System Subsystems */
 
-    /* Optional: instruction barrier */
-    __DSB();
-    __ISB();
+static void fpu_enable(void) {
+    #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+	core_setup.scb->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
+    #endif
 }
 
-static inline void VBAT_Battery_Charging(void)
-{
-	SET_BIT(RCC->APB1ENR1,RCC_APB1ENR1_PWREN);
-	SET_BIT(PWR->CR4,PWR_CR4_VBRS);
-	SET_BIT(PWR->CR4,PWR_CR4_VBE);
-	(void)PWR->CR4;
-	CLEAR_BIT(RCC->APB1ENR1,RCC_APB1ENR1_PWREN);
+static void VBAT_Battery_Charging(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_PWREN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_PWREN;
+    (void)tmpreg;
+    SET_BIT(PWR->CR4, PWR_CR4_VBRS);
+    SET_BIT(PWR->CR4, PWR_CR4_VBE);
+    (void)PWR->CR4;
 }
 
-static void tim1_start(void) {
-    SET_BIT(TIM1->CR1, TIM_CR1_CEN);
+static void syscfg_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_SYSCFGEN;
+    (void)tmpreg;
+}
+
+/* GPIO Port Systems */
+
+static void gpioa_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOAEN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_GPIOAEN;
+    (void)tmpreg;
+}
+
+static void gpiob_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOBEN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_GPIOBEN;
+    (void)tmpreg;
+}
+
+static void gpioc_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOCEN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_GPIOCEN;
+    (void)tmpreg;
+}
+
+static void gpiod_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIODEN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_GPIODEN;
+    (void)tmpreg;
+}
+
+static void gpioe_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOEEN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_GPIOEEN;
+    (void)tmpreg;
+}
+
+static void gpiof_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOFEN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_GPIOFEN;
+    (void)tmpreg;
+}
+
+static void gpiog_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOGEN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_GPIOGEN;
+    (void)tmpreg;
+}
+
+/* System Infrastructure Controllers */
+
+static void dma1_clock(void) {
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN);
+    volatile uint32_t tmpreg = RCC->AHB1ENR & RCC_AHB1ENR_DMA1EN;
+    (void)tmpreg;
+}
+
+static void dma2_clock(void) {
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA2EN);
+    volatile uint32_t tmpreg = RCC->AHB1ENR & RCC_AHB1ENR_DMA2EN;
+    (void)tmpreg;
+}
+
+static void dmamux_clock(void) {
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMAMUX1EN);
+    volatile uint32_t tmpreg = RCC->AHB1ENR & RCC_AHB1ENR_DMAMUX1EN;
+    (void)tmpreg;
+}
+
+static void cordic_clock(void) {
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_CORDICEN);
+    volatile uint32_t tmpreg = RCC->AHB1ENR & RCC_AHB1ENR_CORDICEN;
+    (void)tmpreg;
+}
+
+static void fmac_clock(void) {
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_FMACEN);
+    volatile uint32_t tmpreg = RCC->AHB1ENR & RCC_AHB1ENR_FMACEN;
+    (void)tmpreg;
+}
+
+static void flash_clock(void) {
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_FLASHEN);
+    volatile uint32_t tmpreg = RCC->AHB1ENR & RCC_AHB1ENR_FLASHEN;
+    (void)tmpreg;
+}
+
+static void crc_clock(void) {
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_CRCEN);
+    volatile uint32_t tmpreg = RCC->AHB1ENR & RCC_AHB1ENR_CRCEN;
+    (void)tmpreg;
+}
+
+/* Mass Memory Interfaces */
+
+static void qspi_clock(void) {
+    SET_BIT(RCC->AHB3ENR, RCC_AHB3ENR_QSPIEN);
+    volatile uint32_t tmpreg = RCC->AHB3ENR & RCC_AHB3ENR_QSPIEN;
+    (void)tmpreg;
+}
+
+static void fmc_clock(void) {
+    SET_BIT(RCC->AHB3ENR, RCC_AHB3ENR_FMCEN);
+    volatile uint32_t tmpreg = RCC->AHB3ENR & RCC_AHB3ENR_FMCEN;
+    (void)tmpreg;
+}
+
+/* Control Timers */
+
+static void tim1_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM1EN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_TIM1EN;
+    (void)tmpreg;
+}
+
+static void tim2_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM2EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_TIM2EN;
+    (void)tmpreg;
+}
+
+static void tim3_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM3EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_TIM3EN;
+    (void)tmpreg;
+}
+
+static void tim4_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM4EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_TIM4EN;
+    (void)tmpreg;
+}
+
+static void tim5_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM5EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_TIM5EN;
+    (void)tmpreg;
+}
+
+static void tim6_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM6EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_TIM6EN;
+    (void)tmpreg;
+}
+
+static void tim7_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM7EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_TIM7EN;
+    (void)tmpreg;
+}
+
+static void tim8_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM8EN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_TIM8EN;
+    (void)tmpreg;
+}
+
+static void tim15_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM15EN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_TIM15EN;
+    (void)tmpreg;
+}
+
+static void tim16_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM16EN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_TIM16EN;
+    (void)tmpreg;
+}
+
+static void tim17_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM17EN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_TIM17EN;
+    (void)tmpreg;
+}
+
+static void tim20_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM20EN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_TIM20EN;
+    (void)tmpreg;
+}
+
+static void lptim1_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_LPTIM1EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_LPTIM1EN;
+    (void)tmpreg;
+}
+
+/* Communications Blocks */
+
+static void usart1_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_USART1EN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_USART1EN;
+    (void)tmpreg;
+}
+
+static void usart2_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_USART2EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_USART2EN;
+    (void)tmpreg;
+}
+
+static void usart3_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_USART3EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_USART3EN;
+    (void)tmpreg;
+}
+
+static void uart4_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_UART4EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_UART4EN;
+    (void)tmpreg;
+}
+
+static void uart5_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_UART5EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_UART5EN;
+    (void)tmpreg;
+}
+
+static void i2c1_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_I2C1EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_I2C1EN;
+    (void)tmpreg;
+}
+
+static void i2c2_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_I2C2EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_I2C2EN;
+    (void)tmpreg;
+}
+
+static void i2c3_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_I2C3EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_I2C3EN;
+    (void)tmpreg;
+}
+
+static void i2c4_clock(void) {
+    SET_BIT(RCC->APB1ENR2, RCC_APB1ENR2_I2C4EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR2 & RCC_APB1ENR2_I2C4EN;
+    (void)tmpreg;
+}
+
+static void spi1_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SPI1EN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_SPI1EN;
+    (void)tmpreg;
+}
+
+static void spi2_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_SPI2EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_SPI2EN;
+    (void)tmpreg;
+}
+
+static void spi3_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_SPI3EN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_SPI3EN;
+    (void)tmpreg;
+}
+
+static void spi4_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SPI4EN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_SPI4EN;
+    (void)tmpreg;
+}
+
+static void fdcan_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_FDCANEN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_FDCANEN;
+    (void)tmpreg;
+}
+
+static void crs_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_CRSEN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_CRSEN;
+    (void)tmpreg;
+}
+
+static void usb_clock(void) {
+    SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_USBEN);
+    volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_USBEN;
+    (void)tmpreg;
+}
+
+//static void hrtim_clock(void) {
+//    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_HRTIM1EN);
+//    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_HRTIM1EN;
+//    (void)tmpreg;
+//}
+
+/* Mixed-Signal & Analog Subsystems */
+
+static void adc12_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_ADC12EN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_ADC12EN;
+    (void)tmpreg;
+}
+
+static void adc345_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_ADC345EN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_ADC345EN;
+    (void)tmpreg;
+}
+
+static void dac1_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_DAC1EN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_DAC1EN;
+    (void)tmpreg;
+}
+
+static void dac2_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_DAC2EN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_DAC2EN;
+    (void)tmpreg;
+}
+
+static void dac3_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_DAC3EN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_DAC3EN;
+    (void)tmpreg;
+}
+
+static void dac4_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_DAC4EN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_DAC4EN;
+    (void)tmpreg;
+}
+
+static void opamp_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_SYSCFGEN;
+    (void)tmpreg;
+}
+
+static void comp_clock(void) {
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
+    volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_SYSCFGEN;
+    (void)tmpreg;
+}
+
+static void rng_clock(void) {
+    SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_RNGEN);
+    volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_RNGEN;
+    (void)tmpreg;
 }
 
 /*** DEV GET PARAMETER ***/
@@ -509,9 +841,75 @@ static DEV_get get_setup = {
 
 /*** DEV GET PARAMETER ***/
 static DEV_enable enable_setup = {
-	.fpu = fpu_enable,
-	.battery_charging = VBAT_Battery_Charging,
-	.tim1 = tim1_start
+    /* Assigning Core Subsystems */
+    .fpu              = fpu_enable,
+    .battery_charging = VBAT_Battery_Charging,
+    .syscfg           = syscfg_clock,
+    /* Assigning GPIO Subsystems */
+    .gpioa            = gpioa_clock,
+    .gpiob            = gpiob_clock,
+    .gpioc            = gpioc_clock,
+    .gpiod            = gpiod_clock,
+    .gpioe            = gpioe_clock,
+    .gpiof            = gpiof_clock,
+    .gpiog            = gpiog_clock,
+    /* Assigning AHB1 Core Infrastructure */
+    .dma1             = dma1_clock,
+    .dma2             = dma2_clock,
+    .dmamux           = dmamux_clock,
+    .cordic           = cordic_clock,
+    .fmac             = fmac_clock,
+    .flash            = flash_clock,
+    .crc              = crc_clock,
+    /* Assigning High Speed Storage Buses */
+    .qspi             = qspi_clock,
+    .fmc              = fmc_clock,
+    /* Assigning High Performance APB2 Timers */
+    .tim1             = tim1_clock,
+    .tim8             = tim8_clock,
+    .tim15            = tim15_clock,
+    .tim16            = tim16_clock,
+    .tim17            = tim17_clock,
+    .tim20            = tim20_clock,
+    /* Assigning Core APB1 Timers */
+    .tim2             = tim2_clock,
+    .tim3             = tim3_clock,
+    .tim4             = tim4_clock,
+    .tim5             = tim5_clock,
+    .tim6             = tim6_clock,
+    .tim7             = tim7_clock,
+    .lptim1           = lptim1_clock,
+    /* Assigning Serial Communications */
+    .usart1           = usart1_clock,
+    .usart2           = usart2_clock,
+    .usart3           = usart3_clock,
+    .uart4            = uart4_clock,
+    .uart5            = uart5_clock,
+    /* Assigning Inter-Integrated Circuit Buses */
+    .i2c1             = i2c1_clock,
+    .i2c2             = i2c2_clock,
+    .i2c3             = i2c3_clock,
+    .i2c4             = i2c4_clock,
+    /* Assigning Serial Interfaces */
+    .spi1             = spi1_clock,
+    .spi2             = spi2_clock,
+    .spi3             = spi3_clock,
+    .spi4             = spi4_clock,
+    /* Assigning Custom Transceivers */
+    .fdcan            = fdcan_clock,
+    .crs              = crs_clock,
+    .usb              = usb_clock,
+    /* Assigning Converters */
+    .adc12            = adc12_clock,
+    .adc345           = adc345_clock,
+    .dac1             = dac1_clock,
+    .dac2             = dac2_clock,
+    .dac3             = dac3_clock,
+    .dac4             = dac4_clock,
+    /* Assigning Amplifiers & Analog Routing */
+    .opamp            = opamp_clock,
+    .comp             = comp_clock,
+    .rng              = rng_clock
 };
 
 /*** DEV HANDLER ***/

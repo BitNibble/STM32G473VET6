@@ -52,11 +52,11 @@ void application_init(void)
     // 1. Fire up the clock gating blocks through the accessors
     gpio()->clock(dev()->gpio->a, 1);
     // 2. Multi-pin batch setup: Mode = Alternate Function (0x02)
-    gpio()->hmoder(dev()->gpio->a, tim1_pins, MODE_AF);
+    gpio()->hmoder(dev()->gpio->a, MODE_AF, tim1_pins);
     // 3. Speed selection: Very High Speed (0x03) for crisp PWM edges
-    gpio()->hospeed(dev()->gpio->a, tim1_pins, 3);
+    gpio()->hospeed(dev()->gpio->a, 3, tim1_pins);
     // 4. Batch assign Alternate Function 6 (AF6 = TIM1) across your target array
-    gpio()->haf(dev()->gpio->a, tim1_pins, 6);
+    gpio()->haf(dev()->gpio->a, 6, tim1_pins);
     // 5. Initialize TIM1 to fire at a clean 20kHz target using your frequency tool
     tim1()->run->init_by_freq(0, 20000);
     // 6. Set initial 50% duty cycle pulses (assuming ARR configured via auto calculation)
@@ -79,7 +79,7 @@ int main(void)
 	//char vecT[8]; // for calendar time
 
 	gpio()->clock( dev()->gpio->f, 1 );
-	gpio()->hmoder( dev()->gpio->f, 1 << 2, MODE_OUTPUT );
+	gpio()->hmoder( dev()->gpio->f, MODE_OUTPUT, 1 << 2 );
 
 	//clear_pin(dev()->gpio->f, 1 << 2);
 

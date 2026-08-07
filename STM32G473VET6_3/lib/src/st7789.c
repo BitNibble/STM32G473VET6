@@ -1048,37 +1048,37 @@ void st7789_setup_gpio(ST7789_par* par)
 
     // CS, DC, RST -> Output
     if(par->cmd_gpio) {
-    	gpio()->moder(par->cmd_gpio, par->cs_pin, MODE_OUTPUT);
-    	gpio()->moder(par->cmd_gpio, par->dc_pin, MODE_OUTPUT);
-    	gpio()->moder(par->cmd_gpio, par->rst_pin, MODE_OUTPUT);
+    	gpio()->moder(par->cmd_gpio, MODE_OUTPUT, par->cs_pin);
+    	gpio()->moder(par->cmd_gpio, MODE_OUTPUT, par->dc_pin);
+    	gpio()->moder(par->cmd_gpio, MODE_OUTPUT, par->rst_pin);
         //GPIO_moder(par->scl_gpio, par->miso, MODE_INPUT);
 
-    	gpio()->otype(par->cmd_gpio, par->cs_pin, 0);
-    	gpio()->otype(par->cmd_gpio, par->dc_pin, 0);
-    	gpio()->otype(par->cmd_gpio, par->rst_pin, 0);
+    	gpio()->otype(par->cmd_gpio, 0, par->cs_pin);
+    	gpio()->otype(par->cmd_gpio, 0, par->dc_pin);
+    	gpio()->otype(par->cmd_gpio, 0, par->rst_pin);
         //GPIO_otype(par->scl_gpio, par->miso, 1);
 
-    	gpio()->pupd(par->cmd_gpio, par->cs_pin, 0);
-    	gpio()->pupd(par->cmd_gpio, par->dc_pin, 0);
-    	gpio()->pupd(par->cmd_gpio, par->rst_pin, 0);
+    	gpio()->pupd(par->cmd_gpio, 0, par->cs_pin);
+    	gpio()->pupd(par->cmd_gpio, 0, par->dc_pin);
+    	gpio()->pupd(par->cmd_gpio, 0, par->rst_pin);
         //GPIO_pupd(par->scl_gpio, par->miso, 1);
     }
 
     // SPI pins -> Alternate Function
     if(par->sda_gpio) {
-    	gpio()->moder(par->sda_gpio, par->sda_pin, MODE_AF);
-    	gpio()->otype(par->sda_gpio, par->sda_pin, 0);
-    	gpio()->ospeed(par->sda_gpio, par->sda_pin, 3);
-    	gpio()->pupd(par->sda_gpio, par->sda_pin, 0);
-    	gpio()->af(par->sda_gpio, par->sda_pin, par->af);
+    	gpio()->moder(par->sda_gpio, MODE_AF, par->sda_pin);
+    	gpio()->otype(par->sda_gpio, 0, par->sda_pin);
+    	gpio()->ospeed(par->sda_gpio, 3, par->sda_pin);
+    	gpio()->pupd(par->sda_gpio, 0, par->sda_pin);
+    	gpio()->af(par->sda_gpio, par->af, par->sda_pin);
     }
 
     if(par->scl_gpio) {
-    	gpio()->moder(par->scl_gpio, par->scl_pin, MODE_AF);
-    	gpio()->otype(par->scl_gpio, par->scl_pin, 0);
-    	gpio()->ospeed(par->scl_gpio, par->scl_pin, 3);
-    	gpio()->pupd(par->scl_gpio, par->scl_pin, 0);
-    	gpio()->af(par->scl_gpio, par->scl_pin, par->af);
+    	gpio()->moder(par->scl_gpio, MODE_AF, par->scl_pin);
+    	gpio()->otype(par->scl_gpio, 0, par->scl_pin);
+    	gpio()->ospeed(par->scl_gpio, 3, par->scl_pin);
+    	gpio()->pupd(par->scl_gpio, 0, par->scl_pin);
+    	gpio()->af(par->scl_gpio, par->af, par->scl_pin);
     }
 
     // Initial pin states

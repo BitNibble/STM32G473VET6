@@ -93,8 +93,8 @@ int main(void)
     speed = 530;
     uint16_t idle_colour = 0x0000;
 
-    dev()->sys->rcc_bf->AHB2ENR.par.GPIOFEN = 1;
-    dev()->gpio->f_bf->MODER.par.MODE2 = MODE_OUTPUT;
+    dev()->enable->gpiof();
+    gpio()->moder(GPIOF, MODE_OUTPUT, 2);
 
     rtc_ui_init();
     adc1()->run->temp_init();
@@ -107,12 +107,13 @@ int main(void)
 
     drive = l293d_enable(GPIOE, ZERO);
 
-    tim1()->run->clock_enable();
+    dev()->enable->tim1();
     tim1()->par->prescaler = 119;
     tim1()->par->autoreload = 1999999;
     tim1()->run->init_by_ticks(tim1()->par->prescaler, tim1()->par->autoreload);
     tim1()->run->nvic_u_enable(3);
     irq()->timer->tim1->update = blink;
+    tim1()->run->start();
 
     lcd1.run->start(&lcd1.par);
     lcd1.run->draw_circle(&lcd1.par, 220, 300, 15, ST77XX_CYAN);
@@ -197,8 +198,8 @@ int main(void)
 void rtc_ui_init(void)
 {
     gpio()->clock(dev()->gpio->d, 1);
-    gpio()->hmoder(dev()->gpio->d, BTN_ALL_PINS_MASK, 0);
-    gpio()->hpupd(dev()->gpio->d, BTN_ALL_PINS_MASK, 1);
+    gpio()->hmoder(dev()->gpio->d, 0, BTN_ALL_PINS_MASK);
+    gpio()->hpupd(dev()->gpio->d, 1, BTN_ALL_PINS_MASK);
     btn_engine = EXPLODE_enable();
 }
 

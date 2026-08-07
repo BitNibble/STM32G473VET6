@@ -126,19 +126,19 @@ static void impl_init(void) {
     SET_BIT((dev()->sys->rcc->APB2ENR), RCC_APB2ENR_USART1EN);
 
     // Configure Alternate Pin Functions using your tool functions (AF7 for USART1)
-    gpio()->moder(par_setup.tx_gpio, par_setup.tx_pin,  MODE_AF);  // PA9  -> TX Line
-    gpio()->moder(par_setup.rx_gpio, par_setup.rx_pin, MODE_AF);  // PA10 -> RX Line
-    gpio()->af(par_setup.tx_gpio, par_setup.tx_pin,  7);
-    gpio()->af(par_setup.rx_gpio, par_setup.rx_pin, 7);
+    gpio()->moder(par_setup.tx_gpio, MODE_AF, par_setup.tx_pin);  // PA9  -> TX Line
+    gpio()->moder(par_setup.rx_gpio, MODE_AF, par_setup.rx_pin);  // PA10 -> RX Line
+    gpio()->af(par_setup.tx_gpio, 7, par_setup.tx_pin);
+    gpio()->af(par_setup.rx_gpio, 7, par_setup.rx_pin);
 
-    gpio()->ospeed(par_setup.tx_gpio, par_setup.tx_pin,  3);
-    gpio()->ospeed(par_setup.rx_gpio, par_setup.rx_pin, 3);
+    gpio()->ospeed(par_setup.tx_gpio, 3, par_setup.tx_pin);
+    gpio()->ospeed(par_setup.rx_gpio, 3, par_setup.rx_pin);
 
-    gpio()->otype(par_setup.tx_gpio, par_setup.tx_pin,  0);
-    gpio()->otype(par_setup.rx_gpio, par_setup.rx_pin, 0);
+    gpio()->otype(par_setup.tx_gpio, 0, par_setup.tx_pin);
+    gpio()->otype(par_setup.rx_gpio, 0, par_setup.rx_pin);
 
-    gpio()->pupd(par_setup.tx_gpio, par_setup.tx_pin,  0);
-    gpio()->pupd(par_setup.rx_gpio, par_setup.rx_pin, 1);
+    gpio()->pupd(par_setup.tx_gpio, 0, par_setup.tx_pin);
+    gpio()->pupd(par_setup.rx_gpio, 1, par_setup.rx_pin);
 
     // Routing Peripheral Signals into DMAMUX Matrices (Ch1=RX, Ch2=TX)
     exe()->write_field(&(dev()->dma->dmamux1_ch1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.rx_dma_ch);

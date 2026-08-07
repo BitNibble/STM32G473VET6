@@ -9,7 +9,6 @@ Hardware: STM32G4 Family
 
 #include <stm32g4xx.h>
 #include "custom_hal_def.h"
-#include "stm32g4_instance.h"
 
 typedef union{
 	struct UN8bit{
@@ -63,7 +62,6 @@ typedef const struct {
 
 typedef const struct {
     RCC_TypeDef* rcc;
-    RCC_BitField_TypeDef* rcc_bf;
     FLASH_TypeDef* flash;
     PWR_TypeDef* pwr;
     SYSCFG_TypeDef* syscfg;
@@ -72,30 +70,22 @@ typedef const struct {
 
 typedef const struct {
     GPIO_TypeDef* a;
-    GPIO_BitField_TypeDef* a_bf;
     GPIO_TypeDef* b;
-    GPIO_BitField_TypeDef* b_bf;
     GPIO_TypeDef* c;
-    GPIO_BitField_TypeDef* c_bf;
 #ifdef GPIOD
     GPIO_TypeDef* d;
-    GPIO_BitField_TypeDef* d_bf;
 #endif
 #ifdef GPIOE
     GPIO_TypeDef* e;
-    GPIO_BitField_TypeDef* e_bf;
 #endif
 #ifdef GPIOF
     GPIO_TypeDef* f;
-    GPIO_BitField_TypeDef* f_bf;
 #endif
 #ifdef GPIOG
     GPIO_TypeDef* g;
-    GPIO_BitField_TypeDef* g_bf;
 #endif
 #ifdef GPIOH
     GPIO_TypeDef* h;
-    GPIO_BitField_TypeDef* h_bf;
 #endif
 } GPIO_Block;
 
@@ -224,7 +214,6 @@ typedef const struct {
 #endif
 
     I2C_TypeDef* i2c1;
-    I2C_BitField_TypeDef* i2c1_bf;
     I2C_TypeDef* i2c2;
 #ifdef I2C3
     I2C_TypeDef* i2c3;
@@ -305,9 +294,86 @@ typedef const struct {
 
 /*** DEV ENABLE ***/
 typedef const struct {
-	void (*fpu)(void);
-	void (*battery_charging)(void);
-	void (*tim1)(void);
+    /* Core & System Configuration Controllers */
+    void (*fpu)(void);
+    void (*battery_charging)(void);
+    void (*syscfg)(void);
+
+    /* General Purpose Input Output Ports (AHB2 Bus Matrix) */
+    void (*gpioa)(void);
+    void (*gpiob)(void);
+    void (*gpioc)(void);
+    void (*gpiod)(void);
+    void (*gpioe)(void);
+    void (*gpiof)(void);
+    void (*gpiog)(void);
+
+    /* Direct Memory Access & System Accelerators (AHB1 Bus) */
+    void (*dma1)(void);
+    void (*dma2)(void);
+    void (*dmamux)(void);
+    void (*cordic)(void);
+    void (*fmac)(void);
+    void (*flash)(void);
+    void (*crc)(void);
+
+    /* External Memory Interfaces (AHB3 Bus) */
+    void (*qspi)(void);
+    void (*fmc)(void);
+
+    /* Advanced Control & Performance Timers (APB2 Bus) */
+    void (*tim1)(void);
+    void (*tim8)(void);
+    void (*tim15)(void);
+    void (*tim16)(void);
+    void (*tim17)(void);
+    void (*tim20)(void);
+
+    /* General Purpose, Basic, & Low Power Timers (APB1 Bus) */
+    void (*tim2)(void);
+    void (*tim3)(void);
+    void (*tim4)(void);
+    void (*tim5)(void);
+    void (*tim6)(void);
+    void (*tim7)(void);
+    void (*lptim1)(void);
+
+    /* Universal Synchronous Asynchronous Receiver Transmitters */
+    void (*usart1)(void);
+    void (*usart2)(void);
+    void (*usart3)(void);
+    void (*uart4)(void);
+    void (*uart5)(void);
+
+    /* Inter-Integrated Circuit Buses */
+    void (*i2c1)(void);
+    void (*i2c2)(void);
+    void (*i2c3)(void);
+    void (*i2c4)(void);
+
+    /* Serial Peripheral Interfaces */
+    void (*spi1)(void);
+    void (*spi2)(void);
+    void (*spi3)(void);
+    void (*spi4)(void);
+
+    /* Specialized Connectivity Blocks */
+    void (*fdcan)(void);
+    void (*crs)(void);
+    void (*usb)(void);
+
+    /* Analog-to-Digital and Digital-to-Analog Converters */
+    void (*adc12)(void);
+    void (*adc345)(void);
+    void (*dac1)(void);
+    void (*dac2)(void);
+    void (*dac3)(void);
+    void (*dac4)(void);
+
+    /* Signal Conditioning & Security Modules */
+    void (*opamp)(void);
+    void (*comp)(void);
+    void (*rng)(void);
 }DEV_enable;
 
 /*** DEV HANDLER ***/

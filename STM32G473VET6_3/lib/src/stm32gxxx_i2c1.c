@@ -34,20 +34,20 @@ static void i2c1_clock_disable(void) {
 }
 //helper to handle configuration safety locks
 static inline void _i2c1_modify_cr1_protected(void (*modify_func)(void)) {
-    uint32_t is_enabled = GET_FIELD(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE, I2C_CR1_PE_Pos);
+    uint32_t is_enabled = GET_FIELD(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos);
     if (is_enabled) {
-        CLEAR_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE);
-        while(GET_FIELD(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE, I2C_CR1_PE_Pos));
+        CLEAR_BIT(dev()->comm->i2c1->CR1, I2C_CR1_PE);
+        while(GET_FIELD(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos));
     }
     modify_func();
     if (is_enabled) {
-        SET_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE);
+        SET_BIT(dev()->comm->i2c1->CR1, I2C_CR1_PE);
     }
 }
 // Universal non-blocking status check helper
 static uint8_t _i2c1_get_flag(uint32_t flag_mask) {
     // Read the whole register and isolate the single flag bit
-    return (dev()->comm->i2c1_bf->ISR.val & flag_mask) ? 1U : 0U;
+    return (dev()->comm->i2c1->ISR & flag_mask) ? 1U : 0U;
 }
 // Fixed-timeout polling engine to protect your MCU from locking up indefinitely on bus faults
 uint8_t _i2c1_wait_flag_timeout(uint32_t flag_mask, uint8_t status_expected, uint32_t timeout_loops) {
@@ -62,7 +62,7 @@ uint8_t _i2c1_wait_flag_timeout(uint32_t flag_mask, uint8_t status_expected, uin
 // Helper to safely read specific flags from the ISR status register
 static uint8_t _i2c1_get_status_flag(uint32_t msk) {
 	// Uses your get_field_value tool (Pos is 0 since we want the masked raw bit location)
-	return GET_FIELD(dev()->comm->i2c1_bf->ISR.val, msk, 0) ? 1U : 0U;
+	return GET_FIELD(dev()->comm->i2c1->ISR, msk, 0) ? 1U : 0U;
 }
 // Fixed loop timeout polling engine to prevent the MCU from hanging on a dead bus
 static uint8_t _i2c1_wait_status_flag(uint32_t msk, uint8_t expected_state, uint32_t timeout_loops) {
@@ -73,7 +73,7 @@ static uint8_t _i2c1_wait_status_flag(uint32_t msk, uint8_t expected_state, uint
 		}
 		// If a NACK occurs during transmission, abort early
 		if (msk != I2C_ISR_NACKF && _i2c1_get_status_flag(I2C_ISR_NACKF)) {
-			SET_BIT(dev()->comm->i2c1_bf->ICR.val, I2C_ICR_NACKCF); // Clear NACK flag
+			SET_BIT(dev()->comm->i2c1->ICR, I2C_ICR_NACKCF); // Clear NACK flag
 			return 0;
 		}
 	}
@@ -82,78 +82,78 @@ static uint8_t _i2c1_wait_status_flag(uint32_t msk, uint8_t expected_state, uint
 
 /*******************  Bit definition for I2C_CR1 register  *******************/
 uint8_t _i2c1_is_enabled(void) {
-	return GET_FIELD(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_PE,I2C_CR1_PE_Pos);
+	return GET_FIELD(dev()->comm->i2c1->CR1,I2C_CR1_PE,I2C_CR1_PE_Pos);
 }
 static uint8_t _i2c1_is_disabled(void) {
-	return !GET_FIELD(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_PE,I2C_CR1_PE_Pos);
+	return !GET_FIELD(dev()->comm->i2c1->CR1,I2C_CR1_PE,I2C_CR1_PE_Pos);
 }
 static void i2c1_enable(void) {
-	SET_BIT(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_PE);
+	SET_BIT(dev()->comm->i2c1->CR1,I2C_CR1_PE);
 }
 static void i2c1_disable(void) {
-	CLEAR_BIT(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_PE);
+	CLEAR_BIT(dev()->comm->i2c1->CR1,I2C_CR1_PE);
 }
 static void i2c1_digital_filter(uint8_t filter) {
-	uint32_t is_enabled = GET_FIELD(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE, I2C_CR1_PE_Pos);
+	uint32_t is_enabled = GET_FIELD(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos);
 
 	if (is_enabled) {
-		CLEAR_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE);
-		while(GET_FIELD(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE, I2C_CR1_PE_Pos));
+		CLEAR_BIT(dev()->comm->i2c1->CR1, I2C_CR1_PE);
+		while(GET_FIELD(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos));
 	}
 
-	WRITE_FIELD(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_DNF,I2C_CR1_DNF_Pos,filter);
+	WRITE_FIELD(dev()->comm->i2c1->CR1,I2C_CR1_DNF,I2C_CR1_DNF_Pos,filter);
 
 	if (is_enabled) {
-		SET_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE);
+		SET_BIT(dev()->comm->i2c1->CR1, I2C_CR1_PE);
 	}
 }
 static void i2c1_analog_filter_enable(void) {
-	uint32_t is_enabled = GET_FIELD(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE, I2C_CR1_PE_Pos);
+	uint32_t is_enabled = GET_FIELD(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos);
 	if (is_enabled) {
-		CLEAR_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE);
-		while(GET_FIELD(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE, I2C_CR1_PE_Pos));
+		CLEAR_BIT(dev()->comm->i2c1->CR1, I2C_CR1_PE);
+		while(GET_FIELD(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos));
 	}
 
-	CLEAR_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_ANFOFF);
+	CLEAR_BIT(dev()->comm->i2c1->CR1, I2C_CR1_ANFOFF);
 
 	if (is_enabled) {
-		SET_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE);
+		SET_BIT(dev()->comm->i2c1->CR1, I2C_CR1_PE);
 	}
 }
 static void i2c1_analog_filter_disable(void) {
-	uint32_t is_enabled = GET_FIELD(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE, I2C_CR1_PE_Pos);
+	uint32_t is_enabled = GET_FIELD(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos);
 
 	if (is_enabled) {
-		CLEAR_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE);
-		while(GET_FIELD(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE, I2C_CR1_PE_Pos));
+		CLEAR_BIT(dev()->comm->i2c1->CR1, I2C_CR1_PE);
+		while(GET_FIELD(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos));
 	}
 
-	SET_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_ANFOFF);
+	SET_BIT(dev()->comm->i2c1->CR1, I2C_CR1_ANFOFF);
 
 	if (is_enabled) {
-		SET_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE);
+		SET_BIT(dev()->comm->i2c1->CR1, I2C_CR1_PE);
 	}
 }
 static void i2c1_software_reset(void) {
-	SET_BIT(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_SWRST);
+	SET_BIT(dev()->comm->i2c1->CR1,I2C_CR1_SWRST);
 }
 static void i2c1_clock_stretch_enable(void) {
-	CLEAR_BIT(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_NOSTRETCH);
+	CLEAR_BIT(dev()->comm->i2c1->CR1,I2C_CR1_NOSTRETCH);
 }
 static void i2c1_clock_stretch_disable(void) {
-	SET_BIT(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_NOSTRETCH);
+	SET_BIT(dev()->comm->i2c1->CR1,I2C_CR1_NOSTRETCH);
 }
 static void i2c1_general_call_enable(void) {
-	SET_BIT(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_GCEN);
+	SET_BIT(dev()->comm->i2c1->CR1,I2C_CR1_GCEN);
 }
 static void i2c1_general_call_disable(void) {
-	CLEAR_BIT(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_GCEN);
+	CLEAR_BIT(dev()->comm->i2c1->CR1,I2C_CR1_GCEN);
 }
 static void i2c1_pec_enable(void) {
-	SET_BIT(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_PECEN);
+	SET_BIT(dev()->comm->i2c1->CR1,I2C_CR1_PECEN);
 }
 static void i2c1_pec_disable(void) {
-	CLEAR_BIT(dev()->comm->i2c1_bf->CR1.val,I2C_CR1_PECEN);
+	CLEAR_BIT(dev()->comm->i2c1->CR1,I2C_CR1_PECEN);
 }
 
 /******************  Bit definition for I2C_CR2 register  ********************/
@@ -206,108 +206,108 @@ static void i2c1_pecbyte_disable(void) {
 }
 static void i2c1_start(void) {
     // Safely assert only the START bit on top of your existing CR2 register layout
-    SET_BIT(dev()->comm->i2c1_bf->CR2.val, I2C_CR2_START);
+    SET_BIT(dev()->comm->i2c1->CR2, I2C_CR2_START);
 }
 
 static uint8_t i2c1_get_start(void) {
-	return GET_FIELD(dev()->comm->i2c1_bf->CR2.val, I2C_CR2_START, I2C_CR2_START_Pos);
+	return GET_FIELD(dev()->comm->i2c1->CR2, I2C_CR2_START, I2C_CR2_START_Pos);
 }
 void i2c1_stop_v1(void) {
 	// STOP can be asserted directly to hardware safely to terminate/abort sequences
-	SET_BIT(dev()->comm->i2c1_bf->CR2.val, I2C_CR2_STOP);
+	SET_BIT(dev()->comm->i2c1->CR2, I2C_CR2_STOP);
 }
 static void i2c1_stop(void) {
-    SET_BIT(dev()->comm->i2c1_bf->CR2.val, I2C_CR2_STOP);
+    SET_BIT(dev()->comm->i2c1->CR2, I2C_CR2_STOP);
     // Wait for the stop condition to actually clear the bus safely
     while (!_i2c1_get_status_flag(I2C_ISR_STOPF));
     // Immediately clear the stop detection flag to leave a pristine state
-    SET_BIT(dev()->comm->i2c1_bf->ICR.val, I2C_ICR_STOPCF);
+    SET_BIT(dev()->comm->i2c1->ICR, I2C_ICR_STOPCF);
 }
 
 
 /*******************  Bit definition for I2C_OAR1 register  ******************/
 static void i2c1_own_address(uint8_t address) {
-	WRITE_FIELD(dev()->comm->i2c1_bf->OAR1.val,I2C_OAR1_OA1,I2C_OAR1_OA1_Pos,address);
+	WRITE_FIELD(dev()->comm->i2c1->OAR1,I2C_OAR1_OA1,I2C_OAR1_OA1_Pos,address);
 }
 static void i2c1_own_address_10bit_mode_enable(void) {
-	SET_BIT(dev()->comm->i2c1_bf->OAR1.val,I2C_OAR1_OA1MODE);
+	SET_BIT(dev()->comm->i2c1->OAR1,I2C_OAR1_OA1MODE);
 }
 static void i2c1_own_address_10bit_mode_disable(void) {
-	CLEAR_BIT(dev()->comm->i2c1_bf->OAR1.val,I2C_OAR1_OA1MODE);
+	CLEAR_BIT(dev()->comm->i2c1->OAR1,I2C_OAR1_OA1MODE);
 }
 static void i2c1_own_address_enable(void) {
-	SET_BIT(dev()->comm->i2c1_bf->OAR1.val,I2C_OAR1_OA1EN);
+	SET_BIT(dev()->comm->i2c1->OAR1,I2C_OAR1_OA1EN);
 }
 static void i2c1_own_address_disable(void) {
-	CLEAR_BIT(dev()->comm->i2c1_bf->OAR1.val,I2C_OAR1_OA1EN);
+	CLEAR_BIT(dev()->comm->i2c1->OAR1,I2C_OAR1_OA1EN);
 }
 /*******************  Bit definition for I2C_TIMINGR register *******************/
 static void i2c1_low_period(uint8_t ll) {
-	WRITE_FIELD(dev()->comm->i2c1_bf->TIMINGR.val,I2C_TIMINGR_SCLL,I2C_TIMINGR_SCLL_Pos,ll);
+	WRITE_FIELD(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SCLL,I2C_TIMINGR_SCLL_Pos,ll);
 }
 static void i2c1_high_period(uint8_t hh) {
-	WRITE_FIELD(dev()->comm->i2c1_bf->TIMINGR.val,I2C_TIMINGR_SCLH,I2C_TIMINGR_SCLH_Pos,hh);
+	WRITE_FIELD(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SCLH,I2C_TIMINGR_SCLH_Pos,hh);
 }
 static void i2c1_hold_timing(uint8_t hold) {
-	WRITE_FIELD(dev()->comm->i2c1_bf->TIMINGR.val,I2C_TIMINGR_SDADEL,I2C_TIMINGR_SDADEL_Pos,hold & 0xF);
+	WRITE_FIELD(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SDADEL,I2C_TIMINGR_SDADEL_Pos,hold & 0xF);
 }
 static void i2c1_setup_timing(uint8_t setup) {
-	WRITE_FIELD(dev()->comm->i2c1_bf->TIMINGR.val,I2C_TIMINGR_SCLDEL,I2C_TIMINGR_SCLDEL_Pos,setup & 0xF);
+	WRITE_FIELD(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SCLDEL,I2C_TIMINGR_SCLDEL_Pos,setup & 0xF);
 }
 static void i2c1_timing_prescaler(uint8_t prescaler) {
-	WRITE_FIELD(dev()->comm->i2c1_bf->TIMINGR.val,I2C_TIMINGR_PRESC,I2C_TIMINGR_PRESC_Pos,prescaler & 0xF);
+	WRITE_FIELD(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_PRESC,I2C_TIMINGR_PRESC_Pos,prescaler & 0xF);
 }
 static uint8_t i2c1_get_low_period(void) {
-	return GET_FIELD(dev()->comm->i2c1_bf->TIMINGR.val,I2C_TIMINGR_SCLL,I2C_TIMINGR_SCLL_Pos);
+	return GET_FIELD(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SCLL,I2C_TIMINGR_SCLL_Pos);
 }
 static uint8_t i2c1_get_high_period(void) {
-	return GET_FIELD(dev()->comm->i2c1_bf->TIMINGR.val,I2C_TIMINGR_SCLH,I2C_TIMINGR_SCLH_Pos);
+	return GET_FIELD(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SCLH,I2C_TIMINGR_SCLH_Pos);
 }
 static uint8_t i2c1_get_hold_timing(void) {
-	return GET_FIELD(dev()->comm->i2c1_bf->TIMINGR.val,I2C_TIMINGR_SDADEL,I2C_TIMINGR_SDADEL_Pos);
+	return GET_FIELD(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SDADEL,I2C_TIMINGR_SDADEL_Pos);
 }
 static uint8_t i2c1_get_setup_timing(void) {
-	return GET_FIELD(dev()->comm->i2c1_bf->TIMINGR.val,I2C_TIMINGR_SCLDEL,I2C_TIMINGR_SCLDEL_Pos);
+	return GET_FIELD(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_SCLDEL,I2C_TIMINGR_SCLDEL_Pos);
 }
 static uint8_t i2c1_get_timing_prescaler(void) {
-	return GET_FIELD(dev()->comm->i2c1_bf->TIMINGR.val,I2C_TIMINGR_PRESC,I2C_TIMINGR_PRESC_Pos);
+	return GET_FIELD(dev()->comm->i2c1->TIMINGR,I2C_TIMINGR_PRESC,I2C_TIMINGR_PRESC_Pos);
 }
 
 /******************* Bit definition for I2C_TIMEOUTR register *******************/
 static void i2c1_bus_timeout(uint16_t timeout) {
-	WRITE_FIELD(dev()->comm->i2c1_bf->TIMEOUTR.val,I2C_TIMEOUTR_TIMEOUTA,I2C_TIMEOUTR_TIMEOUTA_Pos,timeout & 0x0FFF);
+	WRITE_FIELD(dev()->comm->i2c1->TIMEOUTR,I2C_TIMEOUTR_TIMEOUTA,I2C_TIMEOUTR_TIMEOUTA_Pos,timeout & 0x0FFF);
 }
 static void i2c1_idle_timeout_detect_enable(void) {
-	SET_BIT(dev()->comm->i2c1_bf->TIMEOUTR.val,I2C_TIMEOUTR_TIDLE);
+	SET_BIT(dev()->comm->i2c1->TIMEOUTR,I2C_TIMEOUTR_TIDLE);
 }
 static void i2c1_idle_timeout_detect_disable(void) {
-	CLEAR_BIT(dev()->comm->i2c1_bf->TIMEOUTR.val,I2C_TIMEOUTR_TIDLE);
+	CLEAR_BIT(dev()->comm->i2c1->TIMEOUTR,I2C_TIMEOUTR_TIDLE);
 }
 static void i2c1_timeout_enable(void) {
-	SET_BIT(dev()->comm->i2c1_bf->TIMEOUTR.val,I2C_TIMEOUTR_TIMOUTEN);
+	SET_BIT(dev()->comm->i2c1->TIMEOUTR,I2C_TIMEOUTR_TIMOUTEN);
 }
 static void i2c1_timeout_disable(void) {
-	CLEAR_BIT(dev()->comm->i2c1_bf->TIMEOUTR.val,I2C_TIMEOUTR_TIMOUTEN);
+	CLEAR_BIT(dev()->comm->i2c1->TIMEOUTR,I2C_TIMEOUTR_TIMOUTEN);
 }
 
 /******************  Bit definition for I2C_ISR register  *********************/
 static uint32_t i2c1_status(void) { // ACK NACK & ERROR FLAGS
-	return dev()->comm->i2c1_bf->ISR.val;
+	return dev()->comm->i2c1->ISR;
 }
 
 /******************  Bit definition for I2C_PECR register  *********************/
 static uint8_t i2c1_get_pecr(void) {
-	return GET_FIELD(dev()->comm->i2c1_bf->PECR.val,I2C_PECR_PEC,I2C_PECR_PEC_Pos);
+	return GET_FIELD(dev()->comm->i2c1->PECR,I2C_PECR_PEC,I2C_PECR_PEC_Pos);
 }
 
 /******************  Bit definition for I2C_RXDR register  *********************/
 static uint8_t i2c1_get_rxdata(void) {
-	return GET_FIELD(dev()->comm->i2c1_bf->RXDR.val,I2C_RXDR_RXDATA,I2C_RXDR_RXDATA_Pos);
+	return GET_FIELD(dev()->comm->i2c1->RXDR,I2C_RXDR_RXDATA,I2C_RXDR_RXDATA_Pos);
 }
 
 /******************  Bit definition for I2C_TXDR register  *********************/
 static void i2c1_set_txdata(uint8_t data) {
-	WRITE_FIELD(dev()->comm->i2c1_bf->TXDR.val,I2C_TXDR_TXDATA,I2C_TXDR_TXDATA_Pos, data);
+	WRITE_FIELD(dev()->comm->i2c1->TXDR,I2C_TXDR_TXDATA,I2C_TXDR_TXDATA_Pos, data);
 }
 
 /*** Procedure & Function Definition ***/
@@ -318,7 +318,7 @@ static void i2c1_reset(void) {
 }
 
 static uint8_t i2c1_is_idle(void) {
-	uint32_t isr_value = dev()->comm->i2c1_bf->ISR.val;
+	uint32_t isr_value = dev()->comm->i2c1->ISR;
 
 	if ((isr_value & I2C_ISR_BUSY) == 0U) {
 		return 1U;
@@ -393,17 +393,17 @@ static void i2c1_calculate_and_apply_timing(i2c_bus_speed_t target_bus_speed_hz)
 	SET_BIT(timingr_value, ((uint32_t)scldel << I2C_TIMINGR_SCLDEL_Pos) & I2C_TIMINGR_SCLDEL);
 
 	// 5. Commit using an atomic overwrite block while ensuring PE is disabled
-	uint32_t is_enabled = GET_FIELD(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE, I2C_CR1_PE_Pos);
+	uint32_t is_enabled = GET_FIELD(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos);
 	if (is_enabled) {
-		CLEAR_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE);
-		while(GET_FIELD(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE, I2C_CR1_PE_Pos));
+		CLEAR_BIT(dev()->comm->i2c1->CR1, I2C_CR1_PE);
+		while(GET_FIELD(dev()->comm->i2c1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos));
 	}
 
 	// Single atomic push using your structural layout tool
-	WRITE_ENCODED(dev()->comm->i2c1_bf->TIMINGR.val, 0xFFFFFFFFU, timingr_value);
+	WRITE_ENCODED(dev()->comm->i2c1->TIMINGR, 0xFFFFFFFFU, timingr_value);
 
 	if (is_enabled) {
-		SET_BIT(dev()->comm->i2c1_bf->CR1.val, I2C_CR1_PE);
+		SET_BIT(dev()->comm->i2c1->CR1, I2C_CR1_PE);
 	}
 }
 
@@ -416,7 +416,7 @@ static uint8_t i2c1_read_register(uint16_t device_id, uint8_t reg_addr, uint8_t*
 	// Phase 1: Write the target register address (Atomic setup to prevent 1.5V glitches)
 	slave_address_direction(device_id, I2C_DIR_WRITE);
 	i2c1_nbytes(1);
-	dev()->comm->i2c1_bf->ICR.val = (I2C_ICR_ALERTCF | I2C_ICR_TIMOUTCF | I2C_ICR_PECCF | I2C_ICR_OVRCF |
+	dev()->comm->i2c1->ICR = (I2C_ICR_ALERTCF | I2C_ICR_TIMOUTCF | I2C_ICR_PECCF | I2C_ICR_OVRCF |
 									I2C_ICR_ARLOCF | I2C_ICR_BERRCF | I2C_ICR_STOPCF | I2C_ICR_ADDRCF | I2C_ICR_NACKCF);
 	i2c1_start();
 
@@ -486,7 +486,7 @@ static uint8_t i2c1_write_register(uint16_t device_id, uint8_t reg_addr, uint8_t
 	i2c1_nbytes(length + 1U);
 
 	// Clear clearing/status flags before knocking on the wire
-	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U);
+	SET_BIT(dev()->comm->i2c1->ICR, 0x3F38U);
 
 	// 2. Fire the hardware start sequence safely
 	i2c1_start();
@@ -523,7 +523,7 @@ static uint8_t i2c1_read_buffer(uint16_t device_id, uint8_t* p_buffer, uint8_t l
 	// 1. Stage parameters
 	slave_address_direction(device_id, I2C_DIR_READ);
 	i2c1_nbytes(length);
-	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U);
+	SET_BIT(dev()->comm->i2c1->ICR, 0x3F38U);
 	// 2. Fire Start
 	i2c1_start();
 	// 3. Stream data in sequentially
@@ -544,7 +544,7 @@ static uint8_t i2c1_write_buffer(uint16_t device_id, uint8_t* p_data, uint8_t le
 	slave_address_direction(device_id, I2C_DIR_WRITE);
 	i2c1_nbytes(length);
 	// 2. Clear out any leftover hardware status error flags before starting
-	SET_BIT(dev()->comm->i2c1_bf->ICR.val, 0x3F38U);
+	SET_BIT(dev()->comm->i2c1->ICR, 0x3F38U);
 	// 3. Fire the hardware start sequence!
 	i2c1_start();
 	// 4. Stream data out sequentially
@@ -570,24 +570,24 @@ static void init(void) {
 
 	/*** 2. SET PIN MODES TO ALTERNATE FUNCTION ***/
 	// Route the internal I2C logic out to the physical pins
-	gpio()->moder( GPIOA, par_setup.scl_pin, MODE_AF ); // SCL on PA15
-	gpio()->moder( GPIOB, par_setup.sda_pin,  MODE_AF ); // SDA on PB9
+	gpio()->moder( GPIOA, MODE_AF, par_setup.scl_pin ); // SCL on PA15
+	gpio()->moder( GPIOB, MODE_AF, par_setup.sda_pin ); // SDA on PB9
 
 	/*** 3. FORCE OPEN-DRAIN PIN DRIVERS (CRITICAL SAFETY STEP) ***/
 	// Disconnect the high-side push-pull transistors so the pins can only pull LOW.
 	// This prevents internal or external short-circuits.
-	gpio()->otype(par_setup.scl_gpio, par_setup.scl_pin, ONE);
-	gpio()->otype(par_setup.sda_gpio, par_setup.sda_pin, ONE);
+	gpio()->otype(par_setup.scl_gpio, ONE, par_setup.scl_pin);
+	gpio()->otype(par_setup.sda_gpio, ONE, par_setup.sda_pin);
 
 	/*** 4. MAP TO ALTERNATE FUNCTION 4 (I2C1) ***/
 	// Tell the internal pin matrix to explicitly hook PA15 and PB9 up to I2C1
-	gpio()->af( par_setup.scl_gpio, par_setup.scl_pin, par_setup.scl_af ); // AF4 for SCL
-	gpio()->af( par_setup.sda_gpio, par_setup.sda_pin, par_setup.sda_af ); // AF4 for SDA
+	gpio()->af( par_setup.scl_gpio, par_setup.scl_af, par_setup.scl_pin ); // AF4 for SCL
+	gpio()->af( par_setup.sda_gpio, par_setup.sda_af, par_setup.sda_pin ); // AF4 for SDA
 
 	/*** 5. ENABLE WEAK INTERNAL PULL-UPS ***/
 	// Keep the internal weak resistors active to assist your external 4.7k pull-ups
-	gpio()->pupd( par_setup.scl_gpio, par_setup.scl_pin, GPIO_PULLUP );
-	gpio()->pupd( par_setup.sda_gpio, par_setup.sda_pin,  GPIO_PULLUP );
+	gpio()->pupd( par_setup.scl_gpio, GPIO_PULLUP, par_setup.scl_pin );
+	gpio()->pupd( par_setup.sda_gpio, GPIO_PULLUP, par_setup.sda_pin );
 
 	/*** 6. CONFIGURE HARDWARE DEFENSIVE TIMEOUTS (ATMEL-STYLE PROTECTION) ***/
 	// Enable the STM32G4 Power peripheral clock to access system control registers

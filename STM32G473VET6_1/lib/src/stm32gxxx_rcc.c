@@ -168,11 +168,11 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
         switch(choice) {
             case RCC_CLK_HSI: // HSION: Internal high-speed clock enable
                 if(set) {
-                    dev()->sys->rcc_bf->CR.par.HSION = 1; // Enable HSI
+                    dev()->sys->rcc->CR |= 1 << RCC_CR_HSION_Pos; // Enable HSI
                     timeout = 0x1FFFFF;
                     set = 0;
                 }
-                else if(dev()->sys->rcc_bf->CR.par.HSIRDY) { // Wait for HSIRDY
+                else if(dev()->sys->rcc->CR & RCC_CR_HSIRDY) { // Wait for HSIRDY
                     rdy = 0;
                 }
                 else {
@@ -184,11 +184,11 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
             break;
             case RCC_CLK_HSE: // HSEON: External high-speed clock enable
                 if(set) {
-                    dev()->sys->rcc_bf->CR.par.HSEON = 1; // Enable HSE
+                    dev()->sys->rcc->CR |= 1 << RCC_CR_HSEON_Pos; // Enable HSE
                     timeout = 0x1FFFFF;
                     set = 0;
                 }
-                else if(dev()->sys->rcc_bf->CR.par.HSERDY) { // Wait for HSERDY
+                else if(dev()->sys->rcc->CR & RCC_CR_HSERDY) { // Wait for HSERDY
                     rdy = 0;
                 }
                 else {
@@ -200,7 +200,7 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
             break;
 
             case RCC_CLK_HSEBYP: // HSEBYP: HSE clock bypass
-                dev()->sys->rcc_bf->CR.par.HSEBYP = 1; // Enable HSE bypass
+                dev()->sys->rcc->CR |= 1 << RCC_CR_HSEBYP_Pos; // Enable HSE bypass
                 choice = RCC_CLK_HSE; // Switch to enabling HSE path
                 break;
 
@@ -210,8 +210,8 @@ void STM32GXXX_Rcc_HEnable(uint8_t clock)
         }
     }
     if (choice == RCC_CLK_HSE) {
-        if (dev()->sys->rcc_bf->CR.par.HSERDY) {
-            dev()->sys->rcc_bf->CR.par.CSSON = 1;
+        if (dev()->sys->rcc->CR & RCC_CR_HSERDY) {
+            dev()->sys->rcc->CR |= 1 << RCC_CR_CSSON_Pos;
         }
     }
 }

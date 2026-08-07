@@ -38,7 +38,7 @@ HC595_Handler hc595_enable(volatile IO_var *ddr, volatile IO_var *port, uint8_t 
 		},
 		.run = &run_setup
 	};
-	#if defined (STM32F4XXX)
+	#if defined (STM32F4) || defined (STM32G4)
 		*setup_hc595.par.hc595_DDR &= (IO_var) ~((3 << (datapin * 2)) | (3 << (clkpin * 2)) | (3 << (outpin * 2)));
 		*setup_hc595.par.hc595_DDR |= ((1 << (datapin * 2)) | (1 << (clkpin * 2)) | (1 << (outpin * 2)));
 	#else

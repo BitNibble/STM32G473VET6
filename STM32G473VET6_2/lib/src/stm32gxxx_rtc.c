@@ -36,6 +36,13 @@ static uint8_t _rtc_bcd2dec(uint8_t num);
 static uint8_t _rtc_dec2bcd(uint8_t num);
 
 /*** Procedure & Function Definition ***/
+static void pwr_clock_enable(void) {
+	SET_BIT((dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
+}
+
+static void pwr_clock_disable(void) {
+	CLEAR_BIT((dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
+}
 
 static uint8_t RTC_get_year(void) {
     RTC_Wait_sync();
@@ -212,14 +219,6 @@ static uint16_t RTC_get_ss(void) {
     return (uint16_t)(RTC->SSR & RTC_SSR_SS_Msk);
 }
 
-static void pwr_clock_enable(void) {
-	SET_BIT((dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
-}
-
-static void pwr_clock_disable(void) {
-	CLEAR_BIT((dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
-}
-
 static void RTC_clock_enable(void) {
     RTC_Write_enable();
     SET_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
@@ -291,33 +290,7 @@ static void RTC_inic(void) {
     RTC_Wait_sync();
 }
 
-
-/*** LSI ***
-static void RTC_inic(void) {
-    pwr_clock_enable();          // Turn on PWR interface clock
-    RTC_Write_enable();    // Unprotect the backup domain registers (PWR->CR1 |= PWR_CR1_DBP)
-
-    // Force a clean, deterministic Backup Domain Reset to unlock the routing multiplexer
-    SET_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
-    CLEAR_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
-
-    // Turn on the internal LSI (Safe, stable internal clock source)
-    SET_BIT((dev()->sys->rcc->CSR), RCC_CSR_LSION);
-    while(!get_reg_field_value(dev()->sys->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
-
-    // Route RTC to use LSI (0x02)
-    write_reg_field_value(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, 0x02U);
-
-    // Enable the RTC peripheral clock
-    RTC_clock_enable();        // (RCC->BDCR |= RCC_BDCR_RTCEN)
-
-    RTC_Write_disable();   // Re-lock backup protection structures
-    RTC_Wait_sync();       // Clear and sync calendar shadow registers
-}
-***/
-
 /*** Under-The-Hood Private Utilities ***/
-
 static void RTC_Write_enable(void) {
     SET_BIT((dev()->sys->pwr->CR1), PWR_CR1_DBP);
 }
@@ -330,13 +303,6 @@ static void RTC_Reg_unlock(void) {
     RTC->WPR = RTC_KEY1;
     RTC->WPR = RTC_KEY2;
 }
-
-/**
-static void RTC_Wait_sync(void) {
-    CLEAR_BIT((RTC->ICSR), RTC_ICSR_RSF);
-    while(!get_reg_field_value(RTC->ICSR, RTC_ICSR_RSF_Msk, RTC_ICSR_RSF_Pos));
-}
-**/
 
 static void RTC_Wait_sync(void) {
     CLEAR_BIT((RTC->ICSR), RTC_ICSR_RSF);
