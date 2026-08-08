@@ -1,16 +1,16 @@
+
 stm32g473vet6.h--|
                  |<--stm32g4_dev.h--|
-                 |                  |<--------stm32g4_hw.h--|
-                 |                  |                       |<---------stm32g4xx.h--|
-                 |                  |                                               |<------stm32g473xx.h--|
-                 |                  |                                               |                      |<-core_cm4.h
-                 |                  |                                               |                      |<-system_stm32g4xx.h
-                 |                  |                                               |                      |<-stdint.h
-                 |                  |                                               |
-                 |                  |                                               |x----stm32g4xx_hal.h--|
-                 |                  |                                               |                      |x-not used
-                 |                  |                                               |
-                 |                  |                                               |---> usart_irq.c, timer_irq.c, dma_irq.c, etc
+                 |                  |<---------stm32g4xx.h--|
+                 |                  |                       |<------stm32g473xx.h--|
+                 |                  |                       |                      |<-core_cm4.h
+                 |                  |                       |                      |<-system_stm32g4xx.h
+                 |                  |                       |                      |<-stdint.h
+                 |                  |                       |
+                 |                  |                       |x----stm32g4xx_hal.h--|
+                 |                  |                       |                      |x-not used
+                 |                  |                       |
+                 |                  |                       |---> usart_irq.c, timer_irq.c, dma_irq.c, etc
 				 |                  |
 	             |                  |
                  |                  |<----custom_hal_def.h--|
