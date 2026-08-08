@@ -36,7 +36,6 @@ static inline uint8_t get_pllp(void)
     return (uint8_t)p;
 }
 
-
 static inline uint8_t get_pllq(void)
 {
     /* Output divisor = (value + 1) * 2 */
@@ -54,7 +53,7 @@ static inline uint8_t get_pllr(void)
 static inline uint32_t get_pll_vco_in(void)
 {
     uint32_t m = get_pllm();
-    if (m < 1 || m > 16) return 0;
+    if (m == 0) return 0;
     return get_pll_source() / m;
 }
 
@@ -97,7 +96,7 @@ static inline uint32_t get_hclk(void)
 
 static uint8_t get_systickpre(void) {
     uint32_t value = exe()->get_field(SysTick->CTRL, SysTick_CTRL_CLKSOURCE_Msk, SysTick_CTRL_CLKSOURCE_Pos);
-    return value ? 8 : 1;
+    return value ? 1 : 8; /* Standard ARM Cortex rule: 1 = Core Clock, 0 = External Reference (/8) */
 }
 
 uint32_t get_systickclk(void) {
@@ -121,17 +120,21 @@ static inline uint32_t get_pclk2(void)
 static inline uint32_t get_timclk1(void)
 {
     uint32_t ppre1 = exe()->get_field(RCC->CFGR, RCC_CFGR_PPRE1_Msk, RCC_CFGR_PPRE1_Pos);
-    uint32_t pclk1 = get_pclk1();
-    uint32_t apb_div = ((ppre1 & 0x04U) == 0U) ? 1U : 2U;
-    return pclk1 * apb_div;
+    /* If APB1 Prescaler is 1, Timer Clock = PCLK1. Otherwise, Timer Clock = HCLK (PCLK1 * Prescaler) */
+    if ((ppre1 & 0x04U) == 0U) {
+        return get_pclk1();
+    }
+    return get_hclk();
 }
 
 static inline uint32_t get_timclk2(void)
 {
     uint32_t ppre2 = exe()->get_field(RCC->CFGR, RCC_CFGR_PPRE2_Msk, RCC_CFGR_PPRE2_Pos);
-    uint32_t pclk2 = get_pclk2();
-    uint32_t apb_div = ((ppre2 & 0x04U) == 0U) ? 1U : 2U;
-    return pclk2 * apb_div;
+    /* If APB2 Prescaler is 1, Timer Clock = PCLK2. Otherwise, Timer Clock = HCLK (PCLK2 * Prescaler) */
+    if ((ppre2 & 0x04U) == 0U) {
+        return get_pclk2();
+    }
+    return get_hclk();
 }
 
 static uint32_t get_adc12_hclk(void)
@@ -152,7 +155,12 @@ static uint32_t get_adc12_ker_ck_input(void)
             return get_sysclk();
 
         case 1:
-            return get_pllclk() / get_pllp();
+            {
+                /* Hardfault protection barrier check against division by zero */
+                uint32_t pllp = get_pllp();
+                if (pllp == 0) return 0;
+                return get_pllclk() / pllp;
+            }
 
         default:
             return 0;
@@ -162,19 +170,19 @@ static uint32_t get_adc12_ker_ck_input(void)
 static uint32_t get_adc12_ker_ck(void)
 {
     uint32_t input = get_adc12_ker_ck_input();
-
-    if (input == 0)
-        return 0;
+    if (input == 0) return 0;
 
     uint32_t ckmode = exe()->get_field( ADC12_COMMON->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
 
     /* PRESC only applies in asynchronous mode */
     if (ckmode == 0)
     {
+        /* Added official STM32G4 non-linear ADC clock prescaler lookup array mapping */
+        static const uint16_t adc_presc_table[16] = {
+            1, 2, 4, 6, 8, 10, 12, 16, 32, 64, 128, 256, 256, 256, 256, 256
+        };
         uint32_t presc = exe()->get_field( ADC12_COMMON->CCR, ADC_CCR_PRESC_Msk, ADC_CCR_PRESC_Pos );
-
-        uint32_t div = 1U << presc;
-        return input / div;
+        return input / adc_presc_table[presc & 0x0FU];
     }
 
     /* synchronous mode: kernel clock bypassed */
@@ -184,36 +192,26 @@ static uint32_t get_adc12_ker_ck(void)
 static uint32_t get_freq_adc12(void)
 {
     uint32_t hclk = get_hclk();
-
     uint32_t ckmode = exe()->get_field( ADC12_COMMON->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos );
 
     switch (ckmode)
     {
-        case 0:
-            return get_adc12_ker_ck();
-
-        case 1:
-            return hclk;
-
-        case 2:
-            return hclk / 2U;
-
-        case 3:
-            return hclk / 4U;
-
-        default:
-            return 0;
+        case 0: return get_adc12_ker_ck();
+        case 1: return hclk;
+        case 2: return hclk / 2U;
+        case 3: return hclk / 4U;
+        default: return 0;
     }
 }
 
 /*** enable ***/
-static void fpu_enable(void) {
+void enable_fpu(void) {
     #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
 	SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
     #endif
 }
 
-static void VBAT_Battery_Charging(void) {
+void enable_battery_charging(void) {
     SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_PWREN);
     volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_PWREN;
     (void)tmpreg;
@@ -534,13 +532,13 @@ static void dac4_clock(void) {
     (void)tmpreg;
 }
 
-static void opamp_clock(void) {
+static void enable_opamp_clock(void) {
     SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
     volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_SYSCFGEN;
     (void)tmpreg;
 }
 
-static void comp_clock(void) {
+static void enable_comp_clock(void) {
     SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
     volatile uint32_t tmpreg = RCC->APB2ENR & RCC_APB2ENR_SYSCFGEN;
     (void)tmpreg;
@@ -550,6 +548,273 @@ static void rng_clock(void) {
     SET_BIT(RCC->AHB2ENR, RCC_AHB2ENR_RNGEN);
     volatile uint32_t tmpreg = RCC->AHB2ENR & RCC_AHB2ENR_RNGEN;
     (void)tmpreg;
+}
+static void unmapped_callback(void) { }
+
+/* ========================================================================== */
+/*                      API Address Routing Mechanism                         */
+/* ========================================================================== */
+static void dev_peripheral_enable(const void *peripheral_base) {
+    if (peripheral_base == NULL) return;
+
+    /*
+     * By casting to a uint32_t, the compiler recognizes these as contiguous
+     * hardware base integers and optimizes this block into an instant O(1) jump table.
+     */
+    switch ((uint32_t)peripheral_base) {
+        /* Core Elements */
+        case SYSCFG_BASE:                 syscfg_clock();            break;
+        case FLASH_BASE:                  flash_clock();             break;
+
+        /* GPIO Subsystems */
+        case GPIOA_BASE:                  gpioa_clock();             break;
+        case GPIOB_BASE:                  gpiob_clock();             break;
+        case GPIOC_BASE:                  gpioc_clock();             break;
+        case GPIOD_BASE:                  gpiod_clock();             break;
+        case GPIOE_BASE:                  gpioe_clock();             break;
+        case GPIOF_BASE:                  gpiof_clock();             break;
+        case GPIOG_BASE:                  gpiog_clock();             break;
+
+        /* Core AHB1 Engines */
+        case DMA1_BASE:                   dma1_clock();              break;
+        case DMA2_BASE:                   dma2_clock();              break;
+        case DMAMUX1_BASE:                dmamux_clock();            break;
+        case CORDIC_BASE:                 cordic_clock();            break;
+        case FMAC_BASE:                   fmac_clock();              break;
+        case CRC_BASE:                    crc_clock();               break;
+
+        /* Storage Bus Subsystems */
+        case QSPI_BASE:                   qspi_clock();              break;
+        case FMC_Bank1_R_BASE:            fmc_clock();               break;
+
+        /* APB2 High Performance Timers */
+        case TIM1_BASE:                   tim1_clock();              break;
+        case TIM8_BASE:                   tim8_clock();              break;
+        case TIM15_BASE:                  tim15_clock();             break;
+        case TIM16_BASE:                  tim16_clock();             break;
+        case TIM17_BASE:                  tim17_clock();             break;
+        case TIM20_BASE:                  tim20_clock();             break;
+
+        /* APB1 Standard Timers */
+        case TIM2_BASE:                   tim2_clock();              break;
+        case TIM3_BASE:                   tim3_clock();              break;
+        case TIM4_BASE:                   tim4_clock();              break;
+        case TIM5_BASE:                   tim5_clock();              break;
+        case TIM6_BASE:                   tim6_clock();              break;
+        case TIM7_BASE:                   tim7_clock();              break;
+        case LPTIM1_BASE:                 lptim1_clock();            break;
+
+        /* Communications Lines Matrix */
+        case USART1_BASE:                 usart1_clock();            break;
+        case USART2_BASE:                 usart2_clock();            break;
+        case USART3_BASE:                 usart3_clock();            break;
+        case UART4_BASE:                  uart4_clock();             break;
+        case UART5_BASE:                  uart5_clock();             break;
+
+        /* I2C Direct Blocks */
+        case I2C1_BASE:                   i2c1_clock();              break;
+        case I2C2_BASE:                   i2c2_clock();              break;
+        case I2C3_BASE:                   i2c3_clock();              break;
+        case I2C4_BASE:                   i2c4_clock();              break;
+
+        /* SPI Standard Buses */
+        case SPI1_BASE:                   spi1_clock();              break;
+        case SPI2_BASE:                   spi2_clock();              break;
+        case SPI3_BASE:                   spi3_clock();              break;
+        case SPI4_BASE:                   spi4_clock();              break;
+
+        /* Interconnectivity Channels */
+        case FDCAN1_BASE:                 fdcan_clock();             break;
+        case CRS_BASE:                    crs_clock();               break;
+        case USB_BASE:                    usb_clock();               break;
+
+        /* Analog Converters Base Elements */
+        case ADC1_BASE: /* fallthrough */
+        case ADC2_BASE:                   adc12_clock();             break;
+        case ADC3_BASE: /* fallthrough */
+        case ADC4_BASE: /* fallthrough */
+        case ADC5_BASE:                   adc345_clock();            break;
+        case DAC1_BASE:                   dac1_clock();              break;
+        case DAC2_BASE:                   dac2_clock();              break;
+        case DAC3_BASE:                   dac3_clock();              break;
+        case DAC4_BASE:                   dac4_clock();              break;
+        case RNG_BASE:                    rng_clock();               break;
+
+        default:
+            unmapped_callback();
+        break;
+    }
+
+    /* Force register flush synchronization */
+    __DSB();
+}
+
+/*** disable ***/
+/* ========================================================================== */
+/*            Private Static Core & Peripheral Clock Disable Functions        */
+/* ========================================================================== */
+static void disable_fpu(void)                 { SCB->CPACR &= ~((3UL << 10*2)|(3UL << 11*2)); }
+static void disable_battery_charging(void)    { CLEAR_BIT(PWR->CR4, PWR_CR4_VBE | PWR_CR4_VBRS); }
+static void syscfg_clock_disable(void)        { CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN); }
+
+static void gpioa_clock_disable(void)         { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOAEN); }
+static void gpiob_clock_disable(void)         { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOBEN); }
+static void gpioc_clock_disable(void)         { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOCEN); }
+static void gpiod_clock_disable(void)         { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIODEN); }
+static void gpioe_clock_disable(void)         { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOEEN); }
+static void gpiof_clock_disable(void)         { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOFEN); }
+static void gpiog_clock_disable(void)         { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_GPIOGEN); }
+
+static void dma1_clock_disable(void)          { CLEAR_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN); }
+static void dma2_clock_disable(void)          { CLEAR_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA2EN); }
+static void dmamux_clock_disable(void)        { CLEAR_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMAMUX1EN); }
+static void cordic_clock_disable(void)        { CLEAR_BIT(RCC->AHB1ENR, RCC_AHB1ENR_CORDICEN); }
+static void fmac_clock_disable(void)          { CLEAR_BIT(RCC->AHB1ENR, RCC_AHB1ENR_FMACEN); }
+static void flash_clock_disable(void)         { CLEAR_BIT(RCC->AHB1ENR, RCC_AHB1ENR_FLASHEN); }
+static void crc_clock_disable(void)           { CLEAR_BIT(RCC->AHB1ENR, RCC_AHB1ENR_CRCEN); }
+
+static void qspi_clock_disable(void)          { CLEAR_BIT(RCC->AHB3ENR, RCC_AHB3ENR_QSPIEN); }
+static void fmc_clock_disable(void)           { CLEAR_BIT(RCC->AHB3ENR, RCC_AHB3ENR_FMCEN); }
+
+static void tim1_clock_disable(void)          { CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM1EN); }
+static void tim8_clock_disable(void)          { CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM8EN); }
+static void tim15_clock_disable(void)         { CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM15EN); }
+static void tim16_clock_disable(void)         { CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM16EN); }
+static void tim17_clock_disable(void)         { CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM17EN); }
+static void tim20_clock_disable(void)         { CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM20EN); }
+
+static void tim2_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM2EN); }
+static void tim3_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM3EN); }
+static void tim4_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM4EN); }
+static void tim5_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM5EN); }
+static void tim6_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM6EN); }
+static void tim7_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_TIM7EN); }
+static void lptim1_clock_disable(void)        { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_LPTIM1EN); }
+
+static void usart1_clock_disable(void)        { CLEAR_BIT(RCC->APB2ENR,  RCC_APB2ENR_USART1EN); }
+static void usart2_clock_disable(void)        { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_USART2EN); }
+static void usart3_clock_disable(void)        { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_USART3EN); }
+static void uart4_clock_disable(void)         { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_UART4EN); }
+static void uart5_clock_disable(void)         { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_UART5EN); }
+
+static void i2c1_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_I2C1EN); }
+static void i2c2_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_I2C2EN); }
+static void i2c3_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_I2C3EN); }
+static void i2c4_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR2, RCC_APB1ENR2_I2C4EN); }
+
+static void spi1_clock_disable(void)          { CLEAR_BIT(RCC->APB2ENR,  RCC_APB2ENR_SPI1EN); }
+static void spi2_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_SPI2EN); }
+static void spi3_clock_disable(void)          { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_SPI3EN); }
+static void spi4_clock_disable(void)          { CLEAR_BIT(RCC->APB2ENR,  RCC_APB2ENR_SPI4EN); }
+
+static void fdcan_clock_disable(void)         { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_FDCANEN); }
+static void crs_clock_disable(void)           { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_CRSEN); }
+static void usb_clock_disable(void)           { CLEAR_BIT(RCC->APB1ENR1, RCC_APB1ENR1_USBEN); }
+
+static void adc12_clock_disable(void)         { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_ADC12EN); }
+static void adc345_clock_disable(void)        { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_ADC345EN); }
+static void dac1_clock_disable(void)          { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_DAC1EN); }
+static void dac2_clock_disable(void)          { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_DAC2EN); }
+static void dac3_clock_disable(void)          { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_DAC3EN); }
+static void dac4_clock_disable(void)          { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_DAC4EN); }
+
+static void disable_opamp_clock(void)         { CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN); }
+static void disable_comp_clock(void)          { CLEAR_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN); }
+
+static void rng_clock_disable(void)           { CLEAR_BIT(RCC->AHB2ENR, RCC_AHB2ENR_RNGEN); }
+
+/* ========================================================================== */
+/*                      API Address Disable Routing Mechanism                 */
+/* ========================================================================== */
+static void dev_peripheral_disable(const void *peripheral_base) {
+    if (peripheral_base == NULL) return;
+
+    switch ((uint32_t)peripheral_base) {
+        /* Core Elements */
+        case SYSCFG_BASE:                 syscfg_clock_disable();        break;
+        case FLASH_BASE:                  flash_clock_disable();         break;
+
+        /* GPIO Subsystems */
+        case GPIOA_BASE:                  gpioa_clock_disable();         break;
+        case GPIOB_BASE:                  gpiob_clock_disable();         break;
+        case GPIOC_BASE:                  gpioc_clock_disable();         break;
+        case GPIOD_BASE:                  gpiod_clock_disable();         break;
+        case GPIOE_BASE:                  gpioe_clock_disable();         break;
+        case GPIOF_BASE:                  gpiof_clock_disable();         break;
+        case GPIOG_BASE:                  gpiog_clock_disable();         break;
+
+        /* Core AHB1 Engines */
+        case DMA1_BASE:                   dma1_clock_disable();          break;
+        case DMA2_BASE:                   dma2_clock_disable();          break;
+        case DMAMUX1_BASE:                dmamux_clock_disable();        break;
+        case CORDIC_BASE:                 cordic_clock_disable();        break;
+        case FMAC_BASE:                   fmac_clock_disable();          break;
+        case CRC_BASE:                    crc_clock_disable();           break;
+
+        /* Storage Bus Subsystems */
+        case QSPI_BASE:                   qspi_clock_disable();          break;
+        case FMC_Bank1_R_BASE:            fmc_clock_disable();           break;
+
+        /* APB2 High Performance Timers */
+        case TIM1_BASE:                   tim1_clock_disable();          break;
+        case TIM8_BASE:                   tim8_clock_disable();          break;
+        case TIM15_BASE:                  tim15_clock_disable();         break;
+        case TIM16_BASE:                  tim16_clock_disable();         break;
+        case TIM17_BASE:                  tim17_clock_disable();         break;
+        case TIM20_BASE:                  tim20_clock_disable();         break;
+
+        /* APB1 Standard Timers */
+        case TIM2_BASE:                   tim2_clock_disable();          break;
+        case TIM3_BASE:                   tim3_clock_disable();          break;
+        case TIM4_BASE:                   tim4_clock_disable();          break;
+        case TIM5_BASE:                   tim5_clock_disable();          break;
+        case TIM6_BASE:                   tim6_clock_disable();          break;
+        case TIM7_BASE:                   tim7_clock_disable();          break;
+        case LPTIM1_BASE:                 lptim1_clock_disable();        break;
+
+        /* Communications Lines Matrix */
+        case USART1_BASE:                 usart1_clock_disable();        break;
+        case USART2_BASE:                 usart2_clock_disable();        break;
+        case USART3_BASE:                 usart3_clock_disable();        break;
+        case UART4_BASE:                  uart4_clock_disable();         break; /*  FIXED: Changed from uart4_clock() */
+        case UART5_BASE:                  uart5_clock_disable();         break; /*  FIXED: Changed from uart5_clock() */
+
+        /* I2C Direct Blocks */
+        case I2C1_BASE:                   i2c1_clock_disable();          break;
+        case I2C2_BASE:                   i2c2_clock_disable();          break;
+        case I2C3_BASE:                   i2c3_clock_disable();          break;
+        case I2C4_BASE:                   i2c4_clock_disable();          break;
+
+        /* SPI Standard Buses */
+        case SPI1_BASE:                   spi1_clock_disable();          break;
+        case SPI2_BASE:                   spi2_clock_disable();          break;
+        case SPI3_BASE:                   spi3_clock_disable();          break;
+        case SPI4_BASE:                   spi4_clock_disable();          break;
+
+        /* Interconnectivity Channels */
+        case FDCAN1_BASE:                 fdcan_clock_disable();         break;
+        case CRS_BASE:                    crs_clock_disable();           break;
+        case USB_BASE:                    usb_clock_disable();           break;
+
+        /* Analog Converters Base Elements */
+        case ADC1_BASE: /* fallthrough */
+        case ADC2_BASE:                   adc12_clock_disable();         break;
+        case ADC3_BASE: /* fallthrough */
+        case ADC4_BASE: /* fallthrough */
+        case ADC5_BASE:                   adc345_clock_disable();        break;
+        case DAC1_BASE:                   dac1_clock_disable();          break;
+        case DAC2_BASE:                   dac2_clock_disable();          break;
+        case DAC3_BASE:                   dac3_clock_disable();          break;
+        case DAC4_BASE:                   dac4_clock_disable();          break;
+        case RNG_BASE:                    rng_clock_disable();           break;
+
+        default:
+            unmapped_callback();
+        break;
+    }
+
+    /* Force register flush synchronization to guarantee write completion */
+    __DSB();
 }
 
 /*** clock ***/
@@ -576,83 +841,24 @@ static DEV_get get_setup = {
 	.freq_adc12 = get_freq_adc12
 };
 
-/*** enable ***/
-static DEV_enable enable_setup = {
-    /* Assigning Core Subsystems */
-    .fpu              = fpu_enable,
-    .battery_charging = VBAT_Battery_Charging,
-    .syscfg           = syscfg_clock,
-    /* Assigning GPIO Subsystems */
-    .gpioa            = gpioa_clock,
-    .gpiob            = gpiob_clock,
-    .gpioc            = gpioc_clock,
-    .gpiod            = gpiod_clock,
-    .gpioe            = gpioe_clock,
-    .gpiof            = gpiof_clock,
-    .gpiog            = gpiog_clock,
-    /* Assigning AHB1 Core Infrastructure */
-    .dma1             = dma1_clock,
-    .dma2             = dma2_clock,
-    .dmamux           = dmamux_clock,
-    .cordic           = cordic_clock,
-    .fmac             = fmac_clock,
-    .flash            = flash_clock,
-    .crc              = crc_clock,
-    /* Assigning High Speed Storage Buses */
-    .qspi             = qspi_clock,
-    .fmc              = fmc_clock,
-    /* Assigning High Performance APB2 Timers */
-    .tim1             = tim1_clock,
-    .tim8             = tim8_clock,
-    .tim15            = tim15_clock,
-    .tim16            = tim16_clock,
-    .tim17            = tim17_clock,
-    .tim20            = tim20_clock,
-    /* Assigning Core APB1 Timers */
-    .tim2             = tim2_clock,
-    .tim3             = tim3_clock,
-    .tim4             = tim4_clock,
-    .tim5             = tim5_clock,
-    .tim6             = tim6_clock,
-    .tim7             = tim7_clock,
-    .lptim1           = lptim1_clock,
-    /* Assigning Serial Communications */
-    .usart1           = usart1_clock,
-    .usart2           = usart2_clock,
-    .usart3           = usart3_clock,
-    .uart4            = uart4_clock,
-    .uart5            = uart5_clock,
-    /* Assigning Inter-Integrated Circuit Buses */
-    .i2c1             = i2c1_clock,
-    .i2c2             = i2c2_clock,
-    .i2c3             = i2c3_clock,
-    .i2c4             = i2c4_clock,
-    /* Assigning Serial Interfaces */
-    .spi1             = spi1_clock,
-    .spi2             = spi2_clock,
-    .spi3             = spi3_clock,
-    .spi4             = spi4_clock,
-    /* Assigning Custom Transceivers */
-    .fdcan            = fdcan_clock,
-    .crs              = crs_clock,
-    .usb              = usb_clock,
-    /* Assigning Converters */
-    .adc12            = adc12_clock,
-    .adc345           = adc345_clock,
-    .dac1             = dac1_clock,
-    .dac2             = dac2_clock,
-    .dac3             = dac3_clock,
-    .dac4             = dac4_clock,
-    /* Assigning Amplifiers & Analog Routing */
-    .opamp            = opamp_clock,
-    .comp             = comp_clock,
-    .rng              = rng_clock
+/*** generic ***/
+static DEV_run run_setup = {
+	.fpu = enable_fpu,
+	.battery_charging = enable_battery_charging,
+	.disable_fpu = disable_fpu,
+	.disable_battery_charging = disable_battery_charging,
+	.enable_opamp_clock = enable_opamp_clock,
+	.enable_comp_clock = enable_comp_clock,
+	.disable_opamp_clock = disable_opamp_clock,
+	.disable_comp_clock = disable_comp_clock
 };
 
 /*** DEV HANDLER ***/
 static STM32_DEVICE device = {
 	.get = &get_setup,
-	.enable = &enable_setup
+	.enable = dev_peripheral_enable,
+	.disable = dev_peripheral_disable,
+	.run = &run_setup
 };
 
 /*** DEV ACCESSOR FUNCTION ***/

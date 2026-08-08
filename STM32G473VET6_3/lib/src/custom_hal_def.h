@@ -63,14 +63,17 @@ License:  GNU General Public License
 #define MODE_OUTPUT                             (0x1UL << GPIO_MODE_Pos)
 #define MODE_AF                                 (0x2UL << GPIO_MODE_Pos)
 #define MODE_ANALOG                             (0x3UL << GPIO_MODE_Pos)
+
 #define OUTPUT_TYPE_Pos                         0U
 #define OUTPUT_TYPE                             (0x1UL << OUTPUT_TYPE_Pos)
 #define OUTPUT_PP                               (0x0UL << OUTPUT_TYPE_Pos)
 #define OUTPUT_OD                               (0x1UL << OUTPUT_TYPE_Pos)
+
 #define EXTI_MODE_Pos                           0U
 #define EXTI_MODE                               (0x3UL << EXTI_MODE_Pos)
 #define EXTI_IT                                 (0x1UL << EXTI_MODE_Pos)
 #define EXTI_EVT                                (0x2UL << EXTI_MODE_Pos)
+
 #define TRIGGER_MODE_Pos                        0U
 #define TRIGGER_MODE                            (0x7UL << TRIGGER_MODE_Pos)
 #define TRIGGER_RISING                          (0x1UL << TRIGGER_MODE_Pos)

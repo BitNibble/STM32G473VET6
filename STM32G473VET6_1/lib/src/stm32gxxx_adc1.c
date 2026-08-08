@@ -95,7 +95,7 @@ static inline void _adc1_cal_differential(void) {
 
 static void adc1_temp_init(void) {
 	/* Ativar o clock do circuito do ADC12 no RCC */
-	dev()->enable->adc12();
+	dev()->enable(ADC1);
 
 	_adc1_init();
     /* Selecionar Clock Síncrono (HCLK/1) no registo comum */

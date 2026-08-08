@@ -34,7 +34,7 @@ void rtc_ui_init(void);
 int main(void)
 {
 	rcc()->run->inic();
-	dev()->enable->fpu();
+	dev()->run->fpu();
 
 	uint32_t count = 0;
 
@@ -42,7 +42,7 @@ int main(void)
 
 	rtc_ui_init();
 
-	dev()->enable->gpiof();
+	dev()->enable(GPIOF);
 	gpio()->hmoder( GPIOF, MODE_OUTPUT, 1 << 2 );
 
 	ST7789 lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
@@ -73,7 +73,7 @@ int main(void)
 void rtc_ui_init(void)
 {
     // Enable GPIO Port D Clock via your helper
-	dev()->enable->gpiod();
+	dev()->enable(GPIOD);
     // Batch set PD8-PD13 to Input Mode (0)
 	gpio()->hmoder(GPIOD, 0, BTN_ALL_PINS_MASK);
     // Batch set PD8-PD13 to internal Pull-Up (1)

@@ -50,7 +50,7 @@ void application_init(void)
     // Define target pins for TIM1 CH1, CH2, CH3 (PA8 | PA9 | PA10)
     uint16_t tim1_pins = (1UL << 8) | (1UL << 9) | (1UL << 10);
     // 1. Fire up the clock gating blocks through the accessors
-    dev()->enable->gpioa();
+    dev()->enable(GPIOA);
     // 2. Multi-pin batch setup: Mode = Alternate Function (0x02)
     gpio()->hmoder(GPIOA, MODE_AF, tim1_pins);
     // 3. Speed selection: Very High Speed (0x03) for crisp PWM edges
@@ -71,14 +71,14 @@ void application_init(void)
 int main(void)
 {
 	rcc()->run->inic();
-	dev()->enable->fpu();
+	dev()->run->fpu();
 	rtc()->run->inic();
 
 	//char str[32];
 	//char vecD[8]; // for calendar date
 	//char vecT[8]; // for calendar time
 
-	dev()->enable->gpiof();
+	dev()->enable(GPIOF);
 	gpio()->hmoder( GPIOF, MODE_OUTPUT, 1 << 2 );
 
 	//clear_pin(GPIOF, 1 << 2);

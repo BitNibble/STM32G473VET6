@@ -83,8 +83,8 @@ void blink(void);
 int main(void)
 {
     rcc()->run->inic();
-    dev()->enable->fpu();
-    dev()->enable->battery_charging();
+    dev()->run->fpu();
+    dev()->run->battery_charging();
     rtc()->run->inic();
 
     char str[32];
@@ -93,7 +93,7 @@ int main(void)
     speed = 530;
     uint16_t idle_colour = 0x0000;
 
-    dev()->enable->gpiof();
+    dev()->enable(GPIOF);
     gpio()->moder(GPIOF, MODE_OUTPUT, 2);
 
     rtc_ui_init();
@@ -107,7 +107,7 @@ int main(void)
 
     drive = l293d_enable(GPIOE, ZERO);
 
-    dev()->enable->tim1();
+    dev()->enable(TIM1);
     tim1()->par->prescaler = 119;
     tim1()->par->autoreload = 1999999;
     tim1()->run->init_by_ticks(tim1()->par->prescaler, tim1()->par->autoreload);
@@ -197,9 +197,9 @@ int main(void)
 
 void rtc_ui_init(void)
 {
-    gpio()->clock(GPIOD, 1);
-    gpio()->hmoder(GPIOD, 0, BTN_ALL_PINS_MASK);
-    gpio()->hpupd(GPIOD, 1, BTN_ALL_PINS_MASK);
+    dev()->enable(GPIOD);
+    gpio()->hmoder(GPIOD, MODE_INPUT, BTN_ALL_PINS_MASK);
+    gpio()->hpupd(GPIOD, GPIO_PULLUP, BTN_ALL_PINS_MASK);
     btn_engine = EXPLODE_enable();
 }
 
