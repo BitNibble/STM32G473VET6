@@ -42,7 +42,7 @@ void tim1_blink_setup(void)
 }
 void tim1_u_callback(void)
 {
-	gpio()->toggle_hpin(dev()->gpio->f, 1 << 2);
+	gpio()->toggle_hpin(GPIOF, 1 << 2);
 }
 
 void application_init(void)
@@ -50,13 +50,13 @@ void application_init(void)
     // Define target pins for TIM1 CH1, CH2, CH3 (PA8 | PA9 | PA10)
     uint16_t tim1_pins = (1UL << 8) | (1UL << 9) | (1UL << 10);
     // 1. Fire up the clock gating blocks through the accessors
-    gpio()->clock(dev()->gpio->a, 1);
+    dev()->enable->gpioa();
     // 2. Multi-pin batch setup: Mode = Alternate Function (0x02)
-    gpio()->hmoder(dev()->gpio->a, MODE_AF, tim1_pins);
+    gpio()->hmoder(GPIOA, MODE_AF, tim1_pins);
     // 3. Speed selection: Very High Speed (0x03) for crisp PWM edges
-    gpio()->hospeed(dev()->gpio->a, 3, tim1_pins);
+    gpio()->hospeed(GPIOA, 3, tim1_pins);
     // 4. Batch assign Alternate Function 6 (AF6 = TIM1) across your target array
-    gpio()->haf(dev()->gpio->a, 6, tim1_pins);
+    gpio()->haf(GPIOA, 6, tim1_pins);
     // 5. Initialize TIM1 to fire at a clean 20kHz target using your frequency tool
     tim1()->run->init_by_freq(0, 20000);
     // 6. Set initial 50% duty cycle pulses (assuming ARR configured via auto calculation)
@@ -78,12 +78,12 @@ int main(void)
 	//char vecD[8]; // for calendar date
 	//char vecT[8]; // for calendar time
 
-	gpio()->clock( dev()->gpio->f, 1 );
-	gpio()->hmoder( dev()->gpio->f, MODE_OUTPUT, 1 << 2 );
+	dev()->enable->gpiof();
+	gpio()->hmoder( GPIOF, MODE_OUTPUT, 1 << 2 );
 
-	//clear_pin(dev()->gpio->f, 1 << 2);
+	//clear_pin(GPIOF, 1 << 2);
 
-	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
+	ST7789 lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
 	(void) lcd1;
 
 	Serial1 = usart1();
@@ -110,7 +110,7 @@ int main(void)
 		lcd1.run->drawstring16x24_size(&lcd1.par,"LeD ON",10,20,ST77XX_MAGENTA,BG_colour, 8);
 		lcd1.run->stop(&lcd1.par);
 		_delay_ms(500);
-		//toggle_hpin( dev()->gpio->f, 1 << 2 );
+		//toggle_hpin( GPIOF, 1 << 2 );
 		lcd1.run->start(&lcd1.par);
 		lcd1.run->drawstring16x24_size(&lcd1.par,"LED OFF",10,20,ST77XX_MAGENTA,BG_colour, 8);
 		lcd1.run->drawstring24x48_size( &lcd1.par, func()->ui32toa(dev()->get->sysclk()), 10, 100, ST77XX_MAGENTA, BG_colour, 10 );
@@ -118,7 +118,7 @@ int main(void)
 		//lcd1.run->drawstring24x48_size( &lcd1.par, func()->ui32toa(get_pll_vco_out()), 10, 100, ST77XX_MAGENTA, ST77XX_GREEN, 10 );
 		lcd1.run->stop(&lcd1.par);
 		_delay_ms(500);
-		//toggle_hpin( dev()->gpio->f, 1 << 2 );
+		//toggle_hpin( GPIOF, 1 << 2 );
 
 		lcd1.run->start(&lcd1.par);
 		//func()->format_string(str,32,"%u", 60);
@@ -159,7 +159,7 @@ int main(void)
 
 				// Safe command structure execution context
 				if (strcmp(token[0], "s00") == 0) {
-					gpio()->toggle_hpin(dev()->gpio->f, 1 << 2);
+					gpio()->toggle_hpin(GPIOF, 1 << 2);
 					Serial1->run->send((uint8_t *) "ACK: Pin Toggled\r\n", 18);
 				}
 			}

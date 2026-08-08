@@ -42,10 +42,10 @@ int main(void)
 
 	rtc_ui_init();
 
-	gpio()->clock( dev()->gpio->f, 1 ); //
-	gpio()->hmoder( dev()->gpio->f, MODE_OUTPUT, 1 << 2 );
+	dev()->enable->gpiof();
+	gpio()->hmoder( GPIOF, MODE_OUTPUT, 1 << 2 );
 
-	ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
+	ST7789 lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
 	(void) lcd1;
 
 
@@ -56,7 +56,7 @@ int main(void)
 
 	while(1)
 	{
-		if(btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR & BTN_ALL_PINS_MASK)) {
+		if(btn_engine.run->update(&btn_engine.par, GPIOD->IDR & BTN_ALL_PINS_MASK)) {
 
 			lcd1.run->start(&lcd1.par);
 			lcd1.run->drawstring8x12_size(&lcd1.par,func()->ui32toa(dev()->get->pclk1()),10,10,ST77XX_BLUE,BG_colour,10);
@@ -73,11 +73,11 @@ int main(void)
 void rtc_ui_init(void)
 {
     // Enable GPIO Port D Clock via your helper
-	gpio()->clock(dev()->gpio->d, 1);
+	dev()->enable->gpiod();
     // Batch set PD8-PD13 to Input Mode (0)
-	gpio()->hmoder(dev()->gpio->d, 0, BTN_ALL_PINS_MASK);
+	gpio()->hmoder(GPIOD, 0, BTN_ALL_PINS_MASK);
     // Batch set PD8-PD13 to internal Pull-Up (1)
-    gpio()->hpupd(dev()->gpio->d, 1, BTN_ALL_PINS_MASK);
+    gpio()->hpupd(GPIOD, 1, BTN_ALL_PINS_MASK);
     // Initialize the edge detector tracking instance
     btn_engine = EXPLODE_enable();
 }

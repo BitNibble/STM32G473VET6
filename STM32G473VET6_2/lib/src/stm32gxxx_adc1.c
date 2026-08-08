@@ -20,9 +20,9 @@ static adc1_par par_setup= {
    =========================================================== */
 static inline void _adc1_init(void) {
 	/* Sair do modo Deep Power Down do ADC1 */
-	CLEAR_BIT(dev()->analog->adc1->CR, ADC_CR_DEEPPWD);
+	CLEAR_BIT(ADC1->CR, ADC_CR_DEEPPWD);
 	/* Ativar o regulador de tensão interno do ADC1 */
-	SET_BIT(dev()->analog->adc1->CR, ADC_CR_ADVREGEN);
+	SET_BIT(ADC1->CR, ADC_CR_ADVREGEN);
 	/* Aguardar a estabilização do regulador interno (~20us) */
 	_delay_us(20);
 }
@@ -30,17 +30,17 @@ static inline void _adc1_init(void) {
 static inline void _adc1_enable(void) {
 	uint32_t timeout = 0x1FFFFF;
 	/* Garantir que o flag ADRDY está limpo antes de ligar */
-	SET_BIT(dev()->analog->adc1->ISR, ADC_ISR_ADRDY);
+	SET_BIT(ADC1->ISR, ADC_ISR_ADRDY);
 	/* Ligar o ADC e aguardar o flag de pronto */
-	SET_BIT(dev()->analog->adc1->CR, ADC_CR_ADEN);
-	while (!(dev()->analog->adc1->ISR & ADC_ISR_ADRDY) && timeout--);
+	SET_BIT(ADC1->CR, ADC_CR_ADEN);
+	while (!(ADC1->ISR & ADC_ISR_ADRDY) && timeout--);
 }
 
 static inline int _adc1_disable(void)
 {
     uint32_t timeout;
     // pointer alias for readability
-    ADC_TypeDef *adc = dev()->analog->adc1;
+    ADC_TypeDef *adc = ADC1;
     // Stop regular conversion if running
     if (exe()->get_block(adc->CR, 1, ADC_CR_ADSTART_Pos))
     {
@@ -73,24 +73,24 @@ static inline void _adc1_cal_single(void) {
 	uint32_t timeout = 0x1FFFFF;
 	_adc1_init();
 	/* Iniciar a calibração do ADC1 */
-	if (exe()->get_block(dev()->analog->adc1->CR, 1, ADC_CR_ADEN_Pos))
+	if (exe()->get_block(ADC1->CR, 1, ADC_CR_ADEN_Pos))
 	    _adc1_disable();
 	// Select single-ended calibration
-	exe()->write_block( &dev()->analog->adc1->CR, 1, ADC_CR_ADCALDIF_Pos, 0 );
-	SET_BIT(dev()->analog->adc1->CR, ADC_CR_ADCAL);
-	while ((dev()->analog->adc1->CR & ADC_CR_ADCAL) && timeout--);
+	exe()->write_block( &ADC1->CR, 1, ADC_CR_ADCALDIF_Pos, 0 );
+	SET_BIT(ADC1->CR, ADC_CR_ADCAL);
+	while ((ADC1->CR & ADC_CR_ADCAL) && timeout--);
 }
 
 static inline void _adc1_cal_differential(void) {
 	uint32_t timeout = 0x1FFFFF;
 	_adc1_init();
 	/* Iniciar a calibração do ADC1 */
-	if (exe()->get_block(dev()->analog->adc1->CR, 1, ADC_CR_ADEN_Pos))
+	if (exe()->get_block(ADC1->CR, 1, ADC_CR_ADEN_Pos))
 	    _adc1_disable();
 	// Select differential calibration
-	exe()->write_block( &dev()->analog->adc1->CR, 1, ADC_CR_ADCALDIF_Pos, 1 );
-	SET_BIT(dev()->analog->adc1->CR, ADC_CR_ADCAL);
-	while ((dev()->analog->adc1->CR & ADC_CR_ADCAL) && timeout--);
+	exe()->write_block( &ADC1->CR, 1, ADC_CR_ADCALDIF_Pos, 1 );
+	SET_BIT(ADC1->CR, ADC_CR_ADCAL);
+	while ((ADC1->CR & ADC_CR_ADCAL) && timeout--);
 }
 
 static void adc1_temp_init(void) {
@@ -99,20 +99,20 @@ static void adc1_temp_init(void) {
 
 	_adc1_init();
     /* Selecionar Clock Síncrono (HCLK/1) no registo comum */
-	exe()->write_field( &dev()->analog->adc12_common->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos, 1 );
+	exe()->write_field( &ADC12_COMMON->CCR, ADC_CCR_CKMODE_Msk, ADC_CCR_CKMODE_Pos, 1 );
 
     _adc1_cal_single();
     /* Ativar o canal do sensor de temperatura interno (Partilhado) */
-    SET_BIT(dev()->analog->adc12_common->CCR, ADC_CCR_VSENSESEL );
+    SET_BIT(ADC12_COMMON->CCR, ADC_CCR_VSENSESEL );
     /* CONFIGURAR O TEMPO DE AMOSTRAGEM (CRÍTICO)
        O sensor interno do STM32G4 exige um tempo de amostragem de pelo menos 4.9 us.
        Configuramos o Canal 16 para usar o máximo de ciclos disponível (SMP2 = 111 -> 640.5 ciclos) */
-    exe()->write_field( &dev()->analog->adc1->SMPR2, ADC_SMPR2_SMP16_Msk, ADC_SMPR2_SMP16_Pos, 7 );
+    exe()->write_field( &ADC1->SMPR2, ADC_SMPR2_SMP16_Msk, ADC_SMPR2_SMP16_Pos, 7 );
     /* CONFIGURAR O SEQUENCIADOR (SQR1)
        Definimos que vamos fazer apenas 1 conversão (L = 0000) e que o
        primeiro canal a ser lido (SQ1) é o Canal 16. */
-    exe()->write_field( &dev()->analog->adc1->SQR1, ADC_SQR1_L_Msk, ADC_SQR1_L_Pos, 0 );
-    exe()->write_field( &dev()->analog->adc1->SQR1, ADC_SQR1_SQ1_Msk, ADC_SQR1_SQ1_Pos, 16 );
+    exe()->write_field( &ADC1->SQR1, ADC_SQR1_L_Msk, ADC_SQR1_L_Pos, 0 );
+    exe()->write_field( &ADC1->SQR1, ADC_SQR1_SQ1_Msk, ADC_SQR1_SQ1_Pos, 16 );
 
     _adc1_enable();
 }
@@ -123,13 +123,13 @@ static void adc1_temp_init(void) {
 static uint16_t adc1_temp_read_raw(void)
 {
 	uint32_t timeout = 0x1FFFFF;
-    SET_BIT(dev()->analog->adc1->CR,
+    SET_BIT(ADC1->CR,
         ADC_CR_ADSTART
     );
 
-    while (!(dev()->analog->adc1->ISR & ADC_ISR_EOC) && timeout--);
+    while (!(ADC1->ISR & ADC_ISR_EOC) && timeout--);
 
-    return (uint16_t)dev()->analog->adc1->DR;
+    return (uint16_t)ADC1->DR;
 }
 
 /* ============================================================

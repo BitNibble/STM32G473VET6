@@ -1093,7 +1093,6 @@ void st7789_setup_spi(ST7789_par* par)
 {
     if(!par->spi) return;
 
-    const STM32_DEVICE* device = dev();
     SPI_TypeDef* spi = par->spi;
 
     // F - Enable clock
@@ -1103,11 +1102,11 @@ void st7789_setup_spi(ST7789_par* par)
 
     // G
     if(spi == SPI1)
-    	device->sys->rcc->APB2ENR |= RCC_APB2ENR_SPI1EN_Msk;
+    	RCC->APB2ENR |= RCC_APB2ENR_SPI1EN_Msk;
     else if(spi == SPI2)
-    	device->sys->rcc->APB1ENR1 |= RCC_APB1ENR1_SPI2EN_Msk;
+    	RCC->APB1ENR1 |= RCC_APB1ENR1_SPI2EN_Msk;
     else if(spi == SPI3)
-    	device->sys->rcc->APB1ENR1 |= RCC_APB1ENR1_SPI3EN_Msk;
+    	RCC->APB1ENR1 |= RCC_APB1ENR1_SPI3EN_Msk;
 
     spi->CR1 &= ~SPI_CR1_SPE_Msk;
 

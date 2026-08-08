@@ -13,17 +13,6 @@ Hardware: STM32G4 Family
 
 /*** DEV HANDLER ***/
 typedef const struct {
-	CORE_Block* core;
-	SYSTEM_Block* sys;
-	GPIO_Block* gpio;
-	TIM_Block* timer;
-	DMA_Block* dma;
-	ANALOG_Block* analog;
-	COMM_Block* comm;
-	EXT_Block* ext;
-	WD_Block* wd;
-	MEMORY_Block* memory;
-	EVENT_Block* event;
 	DEV_get* get;
 	DEV_enable* enable;
 } STM32_DEVICE;

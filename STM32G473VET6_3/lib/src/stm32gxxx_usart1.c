@@ -49,12 +49,12 @@ static void default_usart1_dma_tx_irq(void);
    DRIVER CODE IMPLEMENTATIONS
    ============================================================================ */
 static inline uint16_t _rx_dma_write_snapshot(void) {
-    return USART1_RX_SIZE - dev()->dma->dma1_ch1->CNDTR;
+    return USART1_RX_SIZE - DMA1_Channel1->CNDTR;
 }
 
 /******/
 void impl_set_wordlength(uint8_t wordlength) {
-	volatile uint32_t* cr1_reg = &(dev()->comm->usart1->CR1);
+	volatile uint32_t* cr1_reg = &(USART1->CR1);
 	// Setup Word Length (Split across CR1->M1 and CR1->M0)
 	uint32_t m0_val = 0;
 	uint32_t m1_val = 0;
@@ -79,12 +79,12 @@ void impl_set_wordlength(uint8_t wordlength) {
 }
 
 void impl_set_stopbit(uint8_t stopbit) {
-	volatile uint32_t* cr2_reg = &(dev()->comm->usart1->CR2);
+	volatile uint32_t* cr2_reg = &(USART1->CR2);
 	exe()->write_field(cr2_reg, USART_CR2_STOP_Msk, USART_CR2_STOP_Pos, stopbit);
 }
 
 void impl_set_samplingmode(uint8_t samplingmode) {
-	volatile uint32_t* cr1_reg = &(dev()->comm->usart1->CR1);
+	volatile uint32_t* cr1_reg = &(USART1->CR1);
 	if(samplingmode == 8) {
 	    exe()->write_field(cr1_reg, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos, ONE);
 	} else {
@@ -93,7 +93,7 @@ void impl_set_samplingmode(uint8_t samplingmode) {
 }
 
 static uint8_t impl_get_samplingmode(void) {
-	if(exe()->get_field(dev()->comm->usart1->CR1, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos)){
+	if(exe()->get_field(USART1->CR1, USART_CR1_OVER8_Msk, USART_CR1_OVER8_Pos)){
 		return 8;
 	} else {
 		return 16;
@@ -115,15 +115,15 @@ static void impl_set_baudrate(uint32_t baudrate) {
 		brr_calculated_val = pclk / baudrate;
 	}
 	// Write calculated value to the USART1 BRR Register
-	exe()->write_field(&(dev()->comm->usart1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
+	exe()->write_field(&(USART1->BRR), USART_BRR_BRR_Msk, USART_BRR_BRR_Pos, brr_calculated_val);
 }
 
 static void impl_init(void) {
     // Gating Clocks via Native GPIO and Clock System tree APIs
 	gpio()->clock(par_setup.rx_gpio, ONE);
 	gpio()->clock(par_setup.tx_gpio, ONE);
-    SET_BIT((dev()->sys->rcc->AHB1ENR), RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMAMUX1EN);
-    SET_BIT((dev()->sys->rcc->APB2ENR), RCC_APB2ENR_USART1EN);
+    SET_BIT((RCC->AHB1ENR), RCC_AHB1ENR_DMA1EN | RCC_AHB1ENR_DMAMUX1EN);
+    SET_BIT((RCC->APB2ENR), RCC_APB2ENR_USART1EN);
 
     // Configure Alternate Pin Functions using your tool functions (AF7 for USART1)
     gpio()->moder(par_setup.tx_gpio, MODE_AF, par_setup.tx_pin);  // PA9  -> TX Line
@@ -141,30 +141,30 @@ static void impl_init(void) {
     gpio()->pupd(par_setup.rx_gpio, 1, par_setup.rx_pin);
 
     // Routing Peripheral Signals into DMAMUX Matrices (Ch1=RX, Ch2=TX)
-    exe()->write_field(&(dev()->dma->dmamux1_ch1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.rx_dma_ch);
-    exe()->write_field(&(dev()->dma->dmamux1_ch2->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.tx_dma_ch);
+    exe()->write_field(&(DMAMUX1_Channel0->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.rx_dma_ch);
+    exe()->write_field(&(DMAMUX1_Channel1->CCR), DMAMUX_CxCR_DMAREQ_ID_Msk, DMAMUX_CxCR_DMAREQ_ID_Pos, par_setup.tx_dma_ch);
 
     // Configure DMA RX Channel (Circular mode)
-    CLEAR_BIT((dev()->dma->dma1_ch1->CCR), DMA_CCR_EN);
-    dev()->dma->dma1_ch1->CPAR  = (uint32_t)&(dev()->comm->usart1->RDR);
-    dev()->dma->dma1_ch1->CMAR  = (uint32_t)par_setup.buff_rx;
-    dev()->dma->dma1_ch1->CNDTR = USART1_RX_SIZE;
-    SET_BIT((dev()->dma->dma1_ch1->CCR), DMA_CCR_MINC | DMA_CCR_CIRC | DMA_CCR_PL_0);
+    CLEAR_BIT((DMA1_Channel1->CCR), DMA_CCR_EN);
+    DMA1_Channel1->CPAR  = (uint32_t)&(USART1->RDR);
+    DMA1_Channel1->CMAR  = (uint32_t)par_setup.buff_rx;
+    DMA1_Channel1->CNDTR = USART1_RX_SIZE;
+    SET_BIT((DMA1_Channel1->CCR), DMA_CCR_MINC | DMA_CCR_CIRC | DMA_CCR_PL_0);
 
     // Configure DMA TX Channel (Normal Single-Shot mode)
-    CLEAR_BIT((dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
-    dev()->dma->dma1_ch2->CPAR  = (uint32_t)&(dev()->comm->usart1->TDR);
-    SET_BIT((dev()->dma->dma1_ch2->CCR), DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE);
-    //SET_BIT((dev()->dma->dma1_ch2->CCR), DMA_CCR_MINC | DMA_CCR_DIR);
+    CLEAR_BIT((DMA1_Channel2->CCR), DMA_CCR_EN);
+    DMA1_Channel2->CPAR  = (uint32_t)&(USART1->TDR);
+    SET_BIT((DMA1_Channel2->CCR), DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE);
+    //SET_BIT((DMA1_Channel2->CCR), DMA_CCR_MINC | DMA_CCR_DIR);
 
     // Set USART registers using dynamic system clock reading helper
-    CLEAR_BIT((dev()->comm->usart1->CR1), USART_CR1_UE);
+    CLEAR_BIT((USART1->CR1), USART_CR1_UE);
 
     impl_set_baudrate(par_setup.baudrate);
 
-    SET_BIT((dev()->comm->usart1->CR1), USART_CR1_TE | USART_CR1_RE | USART_CR1_IDLEIE);
-    SET_BIT((dev()->comm->usart1->CR3), USART_CR3_DMAT | USART_CR3_DMAR);
-    SET_BIT((dev()->comm->usart1->CR1), USART_CR1_UE);
+    SET_BIT((USART1->CR1), USART_CR1_TE | USART_CR1_RE | USART_CR1_IDLEIE);
+    SET_BIT((USART1->CR3), USART_CR3_DMAT | USART_CR3_DMAR);
+    SET_BIT((USART1->CR1), USART_CR1_UE);
 
     // Core NVIC Interrupt Vectors Configurations
     NVIC_SetPriority(USART1_IRQn, par_setup.usart_priority);
@@ -181,7 +181,7 @@ static void impl_init(void) {
 static void impl_start_rx(void) {
     par_setup.rx_read_index  = ZERO;
     par_setup.rx_write_index = ZERO;
-    SET_BIT((dev()->dma->dma1_ch1->CCR), DMA_CCR_EN);
+    SET_BIT((DMA1_Channel1->CCR), DMA_CCR_EN);
 }
 
 static uint16_t impl_read(uint8_t *out) {
@@ -256,14 +256,14 @@ static void impl_send(const uint8_t *data, uint16_t len) {
     par_setup.tx_busy = ONE;
     memcpy(par_setup.buff_tx, data, len);
 
-    CLEAR_BIT((dev()->dma->dma1_ch2->CCR), DMA_CCR_EN);
-    dev()->dma->dma1_ch2->CMAR  = (uint32_t)par_setup.buff_tx;
-    dev()->dma->dma1_ch2->CNDTR = len;
-    SET_BIT((dev()->dma->dma1_ch2->CCR), DMA_CCR_EN); /* FIXED: This was commented out!*/
+    CLEAR_BIT((DMA1_Channel2->CCR), DMA_CCR_EN);
+    DMA1_Channel2->CMAR  = (uint32_t)par_setup.buff_tx;
+    DMA1_Channel2->CNDTR = len;
+    SET_BIT((DMA1_Channel2->CCR), DMA_CCR_EN); /* FIXED: This was commented out!*/
 }
 
 static uint8_t impl_tx_ready(void) {
-    if (!(dev()->dma->dma1_ch2->CCR & DMA_CCR_EN)) {
+    if (!(DMA1_Channel2->CCR & DMA_CCR_EN)) {
         par_setup.tx_busy = ZERO;
     }
     return !par_setup.tx_busy;
@@ -273,7 +273,7 @@ static uint8_t impl_tx_ready(void) {
    MEMORY INSPECTION TRACKING HELPER UTILITIES
    ============================================================================ */
 static uint16_t impl_get_rx_left(void) {
-	par_setup.rx_left = dev()->dma->dma1_ch1->CNDTR;
+	par_setup.rx_left = DMA1_Channel1->CNDTR;
     return par_setup.rx_left;
 }
 
@@ -315,18 +315,18 @@ static uint16_t impl_rx_available(void) {
    INTERRUPT VECTOR LAYER DRIVER CONNECTIONS
    ============================================================================ */
 static void default_usart1_idle_irq(void) {
-	dev()->comm->usart1->ICR = USART_ICR_IDLECF;
+	USART1->ICR = USART_ICR_IDLECF;
 	par_setup.rx_write_index = _rx_dma_write_snapshot();
 	par_setup.rx_available = impl_rx_available();
 }
 
 static void default_usart1_ore_irq(void) {
-	dev()->comm->usart1->ICR = USART_ICR_ORECF;
+	USART1->ICR = USART_ICR_ORECF;
 }
 
 static void default_usart1_dma_tx_irq(void) {
 	// Clear the Channel 2 Transfer Complete flag using your native helper/register
-	dev()->dma->dma1->IFCR = DMA_IFCR_CTCIF2;
+	DMA1->IFCR = DMA_IFCR_CTCIF2;
 	par_setup.tx_busy = ZERO; // Release the lock so next transfers can happen
 }
 

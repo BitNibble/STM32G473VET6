@@ -37,11 +37,11 @@ static uint8_t _rtc_dec2bcd(uint8_t num);
 
 /*** Procedure & Function Definition ***/
 static void pwr_clock_enable(void) {
-	SET_BIT((dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
+	SET_BIT((RCC->APB1ENR1), RCC_APB1ENR1_PWREN);
 }
 
 static void pwr_clock_disable(void) {
-	CLEAR_BIT((dev()->sys->rcc->APB1ENR1), RCC_APB1ENR1_PWREN);
+	CLEAR_BIT((RCC->APB1ENR1), RCC_APB1ENR1_PWREN);
 }
 
 static uint8_t RTC_get_year(void) {
@@ -221,13 +221,13 @@ static uint16_t RTC_get_ss(void) {
 
 static void RTC_clock_enable(void) {
     RTC_Write_enable();
-    SET_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
+    SET_BIT((RCC->BDCR), RCC_BDCR_RTCEN);
     RTC_Write_disable();
 }
 
 static void RTC_clock_disable(void) {
     RTC_Write_enable();
-    CLEAR_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_RTCEN);
+    CLEAR_BIT((RCC->BDCR), RCC_BDCR_RTCEN);
     RTC_Write_disable();
 }
 
@@ -269,20 +269,20 @@ static void RTC_inic(void) {
     pwr_clock_enable();
     RTC_Write_enable();
 
-    if (exe()->get_field(dev()->sys->rcc->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos) == RTCSEL_NONE) {
-        SET_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
-        CLEAR_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_BDRST);
+    if (exe()->get_field(RCC->BDCR, RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos) == RTCSEL_NONE) {
+        SET_BIT((RCC->BDCR), RCC_BDCR_BDRST);
+        CLEAR_BIT((RCC->BDCR), RCC_BDCR_BDRST);
         
-        SET_BIT((dev()->sys->rcc->BDCR), RCC_BDCR_LSEON);
+        SET_BIT((RCC->BDCR), RCC_BDCR_LSEON);
         uint32_t timeout = RTC_INIT_TIMEOUT;
-        while(!exe()->get_field(dev()->sys->rcc->BDCR, RCC_BDCR_LSERDY_Msk, RCC_BDCR_LSERDY_Pos) && --timeout);
+        while(!exe()->get_field(RCC->BDCR, RCC_BDCR_LSERDY_Msk, RCC_BDCR_LSERDY_Pos) && --timeout);
 
         if (timeout == 0) { 
-            SET_BIT((dev()->sys->rcc->CSR), RCC_CSR_LSION);
-            while(!exe()->get_field(dev()->sys->rcc->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
-            exe()->write_field(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSI);
+            SET_BIT((RCC->CSR), RCC_CSR_LSION);
+            while(!exe()->get_field(RCC->CSR, RCC_CSR_LSIRDY_Msk, RCC_CSR_LSIRDY_Pos));
+            exe()->write_field(&(RCC->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSI);
         } else {
-            exe()->write_field(&(dev()->sys->rcc->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSE);
+            exe()->write_field(&(RCC->BDCR), RCC_BDCR_RTCSEL_Msk, RCC_BDCR_RTCSEL_Pos, RTCSEL_LSE);
         }
     }
     
@@ -292,11 +292,11 @@ static void RTC_inic(void) {
 
 /*** Under-The-Hood Private Utilities ***/
 static void RTC_Write_enable(void) {
-    SET_BIT((dev()->sys->pwr->CR1), PWR_CR1_DBP);
+    SET_BIT((PWR->CR1), PWR_CR1_DBP);
 }
 
 static void RTC_Write_disable(void) {
-    CLEAR_BIT((dev()->sys->pwr->CR1), PWR_CR1_DBP);
+    CLEAR_BIT((PWR->CR1), PWR_CR1_DBP);
 }
 
 static void RTC_Reg_unlock(void) {

@@ -102,7 +102,7 @@ int main(void)
     EXPLODE_Handler tr = EXPLODE_enable();
     EXPLODE_Handler dr = EXPLODE_enable();
 
-    ST7789 lcd1 = st7789_enable(dev()->comm->spi3, 7, 8, 9, NULL);
+    ST7789 lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
     (void) lcd1;
 
     drive = l293d_enable(GPIOE, ZERO);
@@ -123,7 +123,7 @@ int main(void)
     while(1)
     {
         // 1. Process Button Transitions & Display Configuration Mode
-        if(btn_engine.run->update(&btn_engine.par, dev()->gpio->d->IDR & BTN_ALL_PINS_MASK)) {
+        if(btn_engine.run->update(&btn_engine.par, GPIOD->IDR & BTN_ALL_PINS_MASK)) {
             select_mode(btn_engine);
             adjust_active_field(btn_engine);
 
@@ -197,9 +197,9 @@ int main(void)
 
 void rtc_ui_init(void)
 {
-    gpio()->clock(dev()->gpio->d, 1);
-    gpio()->hmoder(dev()->gpio->d, 0, BTN_ALL_PINS_MASK);
-    gpio()->hpupd(dev()->gpio->d, 1, BTN_ALL_PINS_MASK);
+    gpio()->clock(GPIOD, 1);
+    gpio()->hmoder(GPIOD, 0, BTN_ALL_PINS_MASK);
+    gpio()->hpupd(GPIOD, 1, BTN_ALL_PINS_MASK);
     btn_engine = EXPLODE_enable();
 }
 
@@ -279,7 +279,7 @@ void speed_inc(void) {
 
 void blink(void){
     // Keep interrupt linear and lightweight
-    gpio()->toggle_hpin(dev()->gpio->f, 1 << 2);
+    gpio()->toggle_hpin(GPIOF, 1 << 2);
 }
 
 /*** EOF ***/

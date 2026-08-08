@@ -8,9 +8,6 @@ Hardware: STM32
 	#define STM32X_GPIO_H
 
 #include <stm32g4xx.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <stddef.h>
 
 /*** DEV V-TABLE ***/
 typedef const struct {
