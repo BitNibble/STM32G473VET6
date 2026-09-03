@@ -1,0 +1,2 @@
+# STM32G473VET6
+stm32g473ve6
