@@ -1,0 +1,16 @@
+float cordic_cos_deg(float degrees)
+{
+    uint32_t angle = (uint32_t)(degrees * (4294967296.0f / 360.0f));
+    return cordic_cos(angle);
+}            
+              
+COS    = 0
+SIN    = FUNC_0
+PHASE  = FUNC_1
+MODULUS = FUNC_1 | FUNC_0
+ATAN   = FUNC_2
+HCOS   = FUNC_2 | FUNC_0
+HSIN   = FUNC_2 | FUNC_1
+HATAN  = FUNC_2 | FUNC_1 | FUNC_0
+LN     = FUNC_3
+SQRT   = FUNC_3 | FUNC_0

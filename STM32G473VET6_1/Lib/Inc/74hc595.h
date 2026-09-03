@@ -1,0 +1,61 @@
+/************************************************************************
+	MAIN
+Author:   <sergio.salazar.santos@gmail.com>
+License:  GNU General Public License
+************************************************************************/
+#ifndef _74HC595_H_
+	#define _74HC595_H_
+
+/*** Library ***/
+#include <inttypes.h>
+
+#ifndef STM32G4
+	#define STM32G4
+#endif
+
+/*** Global Constant & Macro ***/
+#if defined (STM32F4) || defined (STM32G4)
+	#define IO_var uint32_t
+#else
+	#define IO_var uint8_t
+#endif
+/*** File TypeDef ***/
+typedef struct{
+	uint8_t HC595_datapin;
+	uint8_t HC595_clkpin;
+	uint8_t HC595_outpin;
+	volatile IO_var *hc595_DDR;
+	volatile IO_var *hc595_PORT;
+}hc595_par;
+typedef const struct{
+	void (*shift_bit)(hc595_par* par, uint8_t state);
+	void (*shift_ibyte)(hc595_par* par, uint8_t byte);
+	void (*shift_byte)(hc595_par* par, uint8_t byte);
+	void (*ibyte)(hc595_par* par, uint8_t byte);
+	void (*byte)(hc595_par* par, uint8_t byte);
+	void (*out)(hc595_par* par);
+}hc595_run;
+/*** 74HC595 TypeDef ***/
+typedef struct
+{
+	hc595_par par;
+	hc595_run* run;
+}HC595_Handler;
+
+HC595_Handler hc595_enable(volatile IO_var *ddr, volatile IO_var *port, uint8_t datapin, uint8_t clkpin, uint8_t outpin);
+
+#endif
+
+/***EOF***/
+
+/******
+1º Sequence
+2º Scope
+	- Library Scope
+	- File Scope
+	- Function Scope
+	- Precedence Scope
+3º Pointer and Variable
+4º Casting
+******/
+

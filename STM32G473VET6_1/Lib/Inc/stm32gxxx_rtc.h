@@ -1,0 +1,95 @@
+/******************************************************************************
+	STM32G473 RTC Header Library
+Author:   <sergio.salazar.santos@gmail.com>
+License:  GNU General Public License
+Hardware: STM32G473VET6
+Date:     08/06/2026
+*******************************************************************************/
+#ifndef STM32GXXX_RTC_H
+	#define STM32GXXX_RTC_H
+
+/*** Libraries ***/
+#include "stm32g473vet6.h"
+
+/*** Define & Macro ***/
+#ifndef RTC_KEY1
+	#define RTC_KEY1 0xCA
+#endif
+#ifndef RTC_KEY2
+	#define RTC_KEY2 0x53
+#endif
+
+/*** RTC Interrupt Enum ***/
+typedef enum {
+    RTC_ENABLE_WAKEUP  = 0b01,
+    RTC_ENABLE_ALARM   = 0b10,
+    RTC_DISABLE_WAKEUP = 0b101,
+    RTC_DISABLE_ALARM  = 0b110
+} RTC_NVIC_config;
+
+typedef enum {
+	RTC_IRQ_ALARM = 0,
+	RTC_IRQ_WAKEUP,
+	RTC_IRQ_TAMPER,
+	RTC_IRQ_TS,
+} RTC_IRQ_config;
+
+/*** RTC GET ***/
+typedef const struct {
+	uint8_t (*year)(void);
+	uint8_t (*month)(void);
+	uint8_t (*weekday)(void);
+	uint8_t (*day)(void);
+	uint8_t (*hour)(void);
+	uint8_t (*minute)(void);
+	uint8_t (*second)(void);
+	uint16_t (*ss)(void);
+	uint32_t (*dr)(void);
+	uint32_t (*tr)(void);
+}RTC_get;
+
+/*** RTC SET ***/
+typedef const struct {
+	void (*day)(uint8_t day);
+	void (*month)(uint8_t month);
+	void (*weekday)(uint8_t weekday);
+	void (*year)(uint8_t year);
+	void (*hour)(uint8_t hour);
+	void (*minute)(uint8_t minute);
+	void (*second)(uint8_t second);
+}RTC_set;
+
+/*** RTC V-TABLE ***/
+typedef const struct {
+	void (*dr2vec)(uint8_t* rtc_vect);
+	void (*tr2vec)(uint8_t* rtc_vect);
+	void (*bkp_write)(uint8_t registerIndex, uint32_t data);
+	uint32_t (*bkp_read)(uint8_t registerIndex);
+	/*** Clock and Nvic ***/
+	void (*pwr_clock_enable)(void);
+	void (*pwr_clock_disable)(void);
+	void (*clock_enable)(void);
+	void (*clock_disable)(void);
+	void (*init)(void);
+	void (*nvic)(uint8_t config);
+	void (*irq_enable)(uint8_t type);
+	void (*irq_disable)(uint8_t type);
+} RTC_run;
+
+/*** RTC HANDLER ***/
+typedef const struct
+{
+	RTC_get* get;
+	RTC_set* set;
+	RTC_run* run;
+} STM32G473_RTC_Handler;
+
+/*** RTC ACCESSOR FUNCTION ***/
+STM32G473_RTC_Handler* rtc(void);
+
+const char* WeekDay_String(uint8_t weekday_n);
+
+#endif
+
+/*** EOF ***/
+
