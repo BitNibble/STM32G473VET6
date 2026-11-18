@@ -239,7 +239,7 @@ adc1_handler* adc1(void){return &adc1_setup;}
 /*** INIT ***/
 static void adc1_temp_init(void) {
 	/* Ativar o clock do circuito do ADC12 no RCC */
-	dev()->enable(ADC1);
+	dev()->enable_peripheral(ADC1);
 
 	_adc1_init();
     /* Selecionar Clock Síncrono (HCLK/1) no registo comum */

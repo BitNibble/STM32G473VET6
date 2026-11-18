@@ -205,12 +205,12 @@ static uint32_t get_freq_adc12(void)
 }
 
 /*** enable ***/
-void enable_fpu(void) {
+void enable_dev_fpu(void) {
     #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
 	SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
     #endif
 }
-void enable_battery_charging(void) {
+void enable_dev_battery_charging(void) {
     SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_PWREN);
     volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_PWREN;
     (void)tmpreg;
@@ -219,7 +219,7 @@ void enable_battery_charging(void) {
     (void)PWR->CR4;
 }
 
-static void dev_peripheral_enable(const void *peripheral_base) {
+static void enable_dev_peripheral(const void *peripheral_base) {
     if (peripheral_base == NULL) return;
 
     /*
@@ -313,10 +313,10 @@ static void dev_peripheral_enable(const void *peripheral_base) {
 }
 
 /*** disable ***/
-static void disable_fpu(void)              { SCB->CPACR &= ~((3UL << 10*2)|(3UL << 11*2)); }
-static void disable_battery_charging(void) { CLEAR_BIT(PWR->CR4, PWR_CR4_VBE | PWR_CR4_VBRS); }
+static void disable_dev_fpu(void)              { SCB->CPACR &= ~((3UL << 10*2)|(3UL << 11*2)); }
+static void disable_dev_battery_charging(void) { CLEAR_BIT(PWR->CR4, PWR_CR4_VBE | PWR_CR4_VBRS); }
 
-static void dev_peripheral_disable(const void *peripheral_base) {
+static void disable_dev_peripheral(const void *peripheral_base) {
     if (peripheral_base == NULL) return;
 
     /*
@@ -435,17 +435,17 @@ static DEV_get get_setup = {
 
 /*** generic ***/
 static DEV_run run_setup = {
-	.fpu = enable_fpu,
-	.battery_charging = enable_battery_charging,
-	.disable_fpu = disable_fpu,
-	.disable_battery_charging = disable_battery_charging,
+	.enable_fpu = enable_dev_fpu,
+	.enable_battery_charging = enable_dev_battery_charging,
+	.disable_fpu = disable_dev_fpu,
+	.disable_battery_charging = disable_dev_battery_charging,
 };
 
 /*** DEV HANDLER ***/
 static STM32_DEVICE device = {
 	.get = &get_setup,
-	.enable = dev_peripheral_enable,
-	.disable = dev_peripheral_disable,
+	.enable_peripheral = enable_dev_peripheral,
+	.disable_peripheral = disable_dev_peripheral,
 	.run = &run_setup
 };
 

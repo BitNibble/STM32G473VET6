@@ -37,8 +37,8 @@ typedef const struct {
 
 /*** DEV RUN ***/
 typedef const struct {
-	void (*fpu)(void);
-	void (*battery_charging)(void);
+	void (*enable_fpu)(void);
+	void (*enable_battery_charging)(void);
 	void (*disable_fpu)(void);
 	void (*disable_battery_charging)(void);
 }DEV_run;
@@ -46,8 +46,8 @@ typedef const struct {
 /*** DEV HANDLER ***/
 typedef const struct {
 	DEV_get* get;
-	void (*enable)(const void *peripheral_base);
-	void (*disable)(const void *peripheral_base);
+	void (*enable_peripheral)(const void *peripheral_base);
+	void (*disable_peripheral)(const void *peripheral_base);
 	DEV_run* run;
 } STM32_DEVICE;
 

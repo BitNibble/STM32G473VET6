@@ -710,8 +710,8 @@ i2c1_handler* i2c1(void){return &i2c1_setup;}
 static void init(i2c1_par* par) {
 	/*** 1. ENABLE GPIO PERIPHERAL CLOCKS ***/
 	// Turn on the peripheral clock gates for both Port A and Port B
-	dev()->enable(par->scl_gpio);
-	dev()->enable(par->sda_gpio);
+	dev()->enable_peripheral(par->scl_gpio);
+	dev()->enable_peripheral(par->sda_gpio);
 
 	/*** 2. SET PIN MODES TO ALTERNATE FUNCTION ***/
 	// Route the internal I2C logic out to the physical pins
@@ -736,7 +736,7 @@ static void init(i2c1_par* par) {
 
 	/*** 6. CONFIGURE HARDWARE DEFENSIVE TIMEOUTS (ATMEL-STYLE PROTECTION) ***/
 	// Enable the STM32G4 Power peripheral clock to access system control registers
-	dev()->enable(PWR);
+	dev()->enable_peripheral(PWR);
 
 	// Turn on the I2C1 hardware timeout detector block.
 	// If SCL or SDA are held low for more than ~25ms (due to a burned resistor or broken wire),

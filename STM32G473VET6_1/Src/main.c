@@ -87,10 +87,10 @@ void tim_cc1_callback(){
 int main(void)
 {
 	rcc()->run->init();
-	dev()->run->fpu();
+	dev()->run->enable_fpu();
 	rtc()->run->init();
 
-	dev()->enable(GPIOF);
+	dev()->enable_peripheral(GPIOF);
 	gpio()->hmoder( GPIOF, MODE_OUTPUT, 1 << 2 );
 
 	gpio()->clear_pin(GPIOF, 2);
@@ -117,7 +117,7 @@ int main(void)
 	irq()->timer->tim1->cc1 = tim_cc1_callback;
 	uint8_t time[10];
 
-	dev()->enable(CORDIC);
+	dev()->enable_peripheral(CORDIC);
 	while(1)
 	{
 		rtc()->run->tr2vec(time);
