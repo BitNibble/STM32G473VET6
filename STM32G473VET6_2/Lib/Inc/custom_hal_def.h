@@ -107,15 +107,15 @@ typedef union{
 }U_byte;
 
 typedef union{
-	struct UN16byte{
+	struct UN16bit{
 		uint8_t l;
 		uint8_t h;
 	}par;
 	uint16_t var;
-}U_hword;
+}U_dbyte;
 
 typedef union{
-	struct UN32word{
+	struct UN32bit{
 		uint16_t l;
 		uint16_t h;
 	}par;
@@ -123,7 +123,7 @@ typedef union{
 }U_word;
 
 typedef union{
-	struct UN64dword{
+	struct UN64bit{
 		uint32_t l;
 		uint32_t h;
 	}par;

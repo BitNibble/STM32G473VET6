@@ -190,7 +190,7 @@ int main(void)
         }
 
         uint16_t a = 5025;
-        uint8_t b = ((U_hword)a).par.l;
+        uint8_t b = ((U_dbyte)a).par.l;
         (void)b;
     }
 }
