@@ -201,7 +201,7 @@ static irq_t irq_root =
     &spi,   /* spi */
     &dma,   /* dma */
     &adc,   /* adc */
-    &exti,   /* exti */
+    &exti,  /* exti */
 	&rtc    /* rtc */
 };
 

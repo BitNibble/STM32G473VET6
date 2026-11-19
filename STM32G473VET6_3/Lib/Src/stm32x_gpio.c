@@ -12,11 +12,11 @@ Hardware: STM32
 #ifndef NIBBLE_BITS
 	#define NIBBLE_BITS 4UL
 #endif
-#ifndef WORD_BITS
-	#define WORD_BITS 16UL
+#ifndef DBYTE_BITS
+	#define DBYTE_BITS 16UL
 #endif
-#ifndef DWORD_BITS
-	#define DWORD_BITS 32UL
+#ifndef WORD_BITS
+	#define WORD_BITS 32UL
 #endif
 
 static void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable)
@@ -70,7 +70,7 @@ static void GPIO_clock(GPIO_TypeDef* GPIO, uint8_t enable)
 
 static void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t mode, uint8_t pin )
 {
-	if(pin < WORD_BITS && mode < NIBBLE_BITS){
+	if(pin < DBYTE_BITS && mode < NIBBLE_BITS){
 		const uint8_t BLOCK_SIZE = TWO;
 		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
 		const uint8_t Pos = pin * BLOCK_SIZE;
@@ -84,7 +84,7 @@ static void GPIO_moder( GPIO_TypeDef* GPIO, uint8_t mode, uint8_t pin )
 
 static void GPIO_otype( GPIO_TypeDef* GPIO, uint8_t otype, uint8_t pin )
 {
-    if(pin < WORD_BITS && otype < TWO){
+    if(pin < DBYTE_BITS && otype < TWO){
         uint32_t temp = GPIO->OTYPER;
     	temp &= ~(1UL << pin);
     	temp |= ( (uint32_t)otype << pin );
@@ -94,7 +94,7 @@ static void GPIO_otype( GPIO_TypeDef* GPIO, uint8_t otype, uint8_t pin )
 
 static void GPIO_ospeed( GPIO_TypeDef* GPIO, uint8_t ospeed, uint8_t pin )
 {
-	if(pin < WORD_BITS && ospeed < NIBBLE_BITS){
+	if(pin < DBYTE_BITS && ospeed < NIBBLE_BITS){
 		const uint8_t BLOCK_SIZE = TWO;
 		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
 		const uint8_t Pos = (pin * BLOCK_SIZE);
@@ -108,7 +108,7 @@ static void GPIO_ospeed( GPIO_TypeDef* GPIO, uint8_t ospeed, uint8_t pin )
 
 static void GPIO_pupd( GPIO_TypeDef* GPIO, uint8_t pupd, uint8_t pin )
 {
-	if(pin < WORD_BITS && pupd < NIBBLE_BITS){
+	if(pin < DBYTE_BITS && pupd < NIBBLE_BITS){
 		const uint8_t BLOCK_SIZE = TWO;
 		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
 		const uint8_t Pos = (pin * BLOCK_SIZE);
@@ -126,7 +126,7 @@ static void GPIO_hmoder( GPIO_TypeDef* GPIO, uint8_t mode, uint16_t hpin )
 		uint32_t hmoder = GPIO->MODER;
 		const uint8_t BLOCK_SIZE = TWO;
 		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-		for (uint8_t pin = 0; pin < WORD_BITS; pin++)
+		for (uint8_t pin = 0; pin < DBYTE_BITS; pin++)
 		{
 			if (hpin & (1UL << pin)) {
 				uint8_t Pos = pin * BLOCK_SIZE;
@@ -142,7 +142,7 @@ static void GPIO_hotype( GPIO_TypeDef* GPIO, uint8_t otype, uint16_t hpin )
 {
 	if(otype < TWO) {
 		uint32_t hotype = GPIO->OTYPER;
-		for(uint8_t pin = 0; pin < WORD_BITS; pin++)
+		for(uint8_t pin = 0; pin < DBYTE_BITS; pin++)
 		{
 			if(hpin & (1UL << pin)) {
 				hotype &= ~(1UL << pin);
@@ -159,7 +159,7 @@ static void GPIO_hospeed( GPIO_TypeDef* GPIO, uint8_t ospeed, uint16_t hpin )
 		uint32_t hospeed = GPIO->OSPEEDR;
 		const uint8_t BLOCK_SIZE = TWO;
 		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-		for(uint8_t pin = 0; pin < WORD_BITS; pin++)
+		for(uint8_t pin = 0; pin < DBYTE_BITS; pin++)
 		{
 			if (hpin & (1UL << pin)) {
 				uint8_t Pos = (pin * BLOCK_SIZE);
@@ -177,7 +177,7 @@ static void GPIO_hpupd( GPIO_TypeDef* GPIO, uint8_t pupd, uint16_t hpin )
 		uint32_t hpupd = GPIO->PUPDR;
 		const uint8_t BLOCK_SIZE = TWO;
 		const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-		for(uint8_t pin = 0; pin < WORD_BITS; pin++)
+		for(uint8_t pin = 0; pin < DBYTE_BITS; pin++)
 		{
 			if (hpin & (1UL << pin)) {
 				const uint8_t Pos = (pin * BLOCK_SIZE);
@@ -191,26 +191,22 @@ static void GPIO_hpupd( GPIO_TypeDef* GPIO, uint8_t pupd, uint16_t hpin )
 
 static void GPIO_lck(GPIO_TypeDef* GPIO, uint16_t hpin)
 {
-    uint32_t tmp;
-
-    GPIO->LCKR = hpin | (1UL << 16);
+    GPIO->LCKR = hpin | (1UL << DBYTE_BITS);
     GPIO->LCKR = hpin;
-    GPIO->LCKR = hpin | (1UL << 16);
+    GPIO->LCKR = hpin | (1UL << DBYTE_BITS);
 
-    tmp = GPIO->LCKR;
-    (void)tmp;
-
-    tmp = GPIO->LCKR;
-    (void)tmp;
+    (void)GPIO->LCKR;
+    (void)GPIO->LCKR;
 }
+
 
 static void GPIO_af( GPIO_TypeDef* GPIO, uint8_t af, uint8_t pin )
 {
-	if(pin < WORD_BITS && af < WORD_BITS){
+	if(pin < DBYTE_BITS && af < DBYTE_BITS){
 		const uint8_t BLOCK_SIZE = NIBBLE_BITS;
     	const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
-    	const uint8_t index = (pin * BLOCK_SIZE) / DWORD_BITS;
-    	const uint16_t Pos = (pin * BLOCK_SIZE) % DWORD_BITS;
+    	const uint8_t index = (pin * BLOCK_SIZE) / WORD_BITS;
+    	const uint16_t Pos = (pin * BLOCK_SIZE) % WORD_BITS;
 
     	if(index < TWO){
     	    uint32_t temp = GPIO->AFR[index];
@@ -223,18 +219,18 @@ static void GPIO_af( GPIO_TypeDef* GPIO, uint8_t af, uint8_t pin )
 
 static void GPIO_haf( GPIO_TypeDef* GPIO, uint8_t af, uint16_t hpin )
 {
-    if(af < WORD_BITS) {
+    if(af < DBYTE_BITS) {
         const uint8_t BLOCK_SIZE = NIBBLE_BITS;
         const uint8_t BLOCK = (1U << BLOCK_SIZE) - 1U;
 
         // Cache both AFR array masks to run modifications locally before write back
         uint32_t hafr[2] = { GPIO->AFR[0], GPIO->AFR[1] };
 
-        for(uint8_t pin = 0; pin < WORD_BITS; pin++)
+        for(uint8_t pin = 0; pin < DBYTE_BITS; pin++)
         {
             if(hpin & (1UL << pin)) {
-                const uint8_t index = (pin * BLOCK_SIZE) / DWORD_BITS;
-                const uint16_t Pos = (pin * BLOCK_SIZE) % DWORD_BITS;
+                const uint8_t index = (pin * BLOCK_SIZE) / WORD_BITS;
+                const uint16_t Pos = (pin * BLOCK_SIZE) % WORD_BITS;
 
                 hafr[index] &= ~( BLOCK << Pos );
                 hafr[index] |= ( ((uint32_t)af & BLOCK) << Pos );
@@ -252,7 +248,7 @@ static inline void SET_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
 }
 static inline void CLEAR_hpin(GPIO_TypeDef* reg, uint16_t hpin) {
 #if defined(STM32F4)
-    reg->BSRR = hpin << WORD_BITS;
+    reg->BSRR = hpin << DBYTE_BITS;
 #endif
 #if defined(STM32G4)
     reg->BRR = hpin;
@@ -266,7 +262,7 @@ static inline void SET_pin(GPIO_TypeDef* reg, uint8_t pin) {
 }
 static inline void CLEAR_pin(GPIO_TypeDef* reg, uint8_t pin) {
 #if defined(STM32F4)
-    reg->BSRR = (1UL << (pin + WORD_BITS));
+    reg->BSRR = (1UL << (pin + DBYTE_BITS));
 #endif
 #if defined(STM32G4)
     reg->BRR = (1UL << pin);
