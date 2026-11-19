@@ -198,39 +198,16 @@ long cordic_trimmer( long x, long in_min, long in_max, long out_min, long out_ma
     );
 }
 
-uint32_t cordic_q31_to_pwm_v1(int32_t q31, uint32_t arr)
+static uint32_t cordic_q31_to_pwm(int32_t q31, uint32_t arr)
 {
     uint32_t u = (uint32_t)q31 + 0x80000000U;
 
-    uint32_t pwm = (uint32_t)(((uint64_t)u * (uint64_t)(arr + 1U)) >> 32);
+    uint32_t pwm = (uint32_t)(
+        ((uint64_t)u * (uint64_t)(arr + 1U)) >> 32
+    );
 
     if (pwm > arr)
         pwm = arr;
-
-    return pwm;
-}
-
-uint32_t cordic_q31_to_pwm(int32_t q31, uint32_t arr)
-{
-    uint32_t pwm;
-
-    if (q31 < 0)
-    {
-        /* Negative sine: 0 ... 50% */
-        pwm = (uint32_t)(
-            ((uint64_t)(-q31) * (arr / 2U)) >> 31
-        );
-
-        pwm = (arr / 2U) - pwm;
-    }
-    else
-    {
-        /* Positive sine: 50% ... 100% */
-        pwm = (arr / 2U) +
-              (uint32_t)(
-                  ((uint64_t)q31 * (arr / 2U)) >> 31
-              );
-    }
 
     return pwm;
 }

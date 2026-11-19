@@ -48,18 +48,17 @@ typedef const struct {
 	DEV_get* get;
 	void (*enable_peripheral)(const void *peripheral_base);
 	void (*disable_peripheral)(const void *peripheral_base);
+	void (*enable_irq)(IRQn_Type IRQn);
+	void (*disable_irq)(IRQn_Type IRQn);
+	void (*irq_setpriority)(IRQn_Type IRQn, uint32_t priority);
 	DEV_run* run;
 } STM32_DEVICE;
 
 /*** DEV ACCESSOR FUNCTION ***/
 STM32_DEVICE* dev(void);
 
-void __NVIC_EnableIRQ(IRQn_Type IRQn);
-void __NVIC_DisableIRQ(IRQn_Type IRQn);
-void __NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority);
-void __NVIC_SystemReset(void);
-void __enable_irq(void);
-void __disable_irq(void);
+//void __enable_irq(void);
+//void __disable_irq(void);
 
 #endif
 

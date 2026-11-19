@@ -99,7 +99,7 @@ static uint8_t get_systickpre(void) {
     return value ? 1 : 8; /* Standard ARM Cortex rule: 1 = Core Clock, 0 = External Reference (/8) */
 }
 
-uint32_t get_systickclk(void) {
+static uint32_t get_systickclk(void) {
     return get_hclk() / get_systickpre();
 }
 
@@ -159,7 +159,7 @@ static uint32_t get_adc12_ker_ck_input(void)
                 /* Hardfault protection barrier check against division by zero */
                 uint32_t pllp = get_pllp();
                 if (pllp == 0) return 0;
-                return get_pllclk() / pllp;
+                return get_pll_vco_out() / pllp;
             }
 
         default:
@@ -205,12 +205,12 @@ static uint32_t get_freq_adc12(void)
 }
 
 /*** enable ***/
-void enable_dev_fpu(void) {
+static void enable_dev_fpu(void) {
     #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
 	SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2));
     #endif
 }
-void enable_dev_battery_charging(void) {
+static void enable_dev_battery_charging(void) {
     SET_BIT(RCC->APB1ENR1, RCC_APB1ENR1_PWREN);
     volatile uint32_t tmpreg = RCC->APB1ENR1 & RCC_APB1ENR1_PWREN;
     (void)tmpreg;
@@ -308,8 +308,11 @@ static void enable_dev_peripheral(const void *peripheral_base) {
         default:                                                         break;
     }
 
-    /* Force register flush synchronization */
+    /* Flush write buffer and stall until RCC bus bridge completes */
     __DSB();
+    volatile uint32_t dummy = RCC->APB1ENR1;
+    (void)dummy;
+
 }
 
 /*** disable ***/
@@ -446,6 +449,9 @@ static STM32_DEVICE device = {
 	.get = &get_setup,
 	.enable_peripheral = enable_dev_peripheral,
 	.disable_peripheral = disable_dev_peripheral,
+	.enable_irq = __NVIC_EnableIRQ,
+	.disable_irq = __NVIC_DisableIRQ,
+	.irq_setpriority = __NVIC_SetPriority,
 	.run = &run_setup
 };
 
