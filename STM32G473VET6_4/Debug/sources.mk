@@ -22,6 +22,8 @@ C_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
+Lib/Src \
+Lib/Src/font \
 Src \
 Startup \
 
