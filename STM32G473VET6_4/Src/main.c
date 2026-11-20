@@ -48,9 +48,11 @@ void tim1_blink_setup(void)
 
 void tim_u_callback(void)
 {
+	cordic_arg dimmer = { .arg_1 = phase };
     phase += 21474837U;
-    cordic()->q31(CORDIC_SIN, (cordic_arg){ .arg_1 = phase });
-    int32_t sine = cordic()->par->out_1;
+    //cordic()->q31(CORDIC_SIN, (cordic_arg){ .arg_1 = phase });
+    cordic()->q31(CORDIC_SIN, &dimmer );
+    int32_t sine = dimmer.out_1;;
     TIM1->CCR1 = exe()->q31_to_pwm(sine, TIM1->ARR);
     gpio()->set_hpin(GPIOF, 1 << 2);
 }
@@ -95,6 +97,7 @@ int main(void)
 
     uint8_t time[10];
     uint8_t last_sec = 0xFF;
+    cordic_arg Lissajous;
 
     while (1)
     {
@@ -105,13 +108,17 @@ int main(void)
             t_a += step_a;
             t_b += step_b;
 
-            NVIC_DisableIRQ(TIM1_UP_TIM16_IRQn);
-            cordic()->q31(CORDIC_COS, (cordic_arg){ .arg_1 = t_a });
-            int32_t x_q31 = cordic()->par->out_1;
+            dev()->disable_irq(TIM1_UP_TIM16_IRQn);
 
-            cordic()->q31(CORDIC_SIN, (cordic_arg){ .arg_1 = t_b });
-            int32_t y_q31 = cordic()->par->out_1;
-            NVIC_EnableIRQ(TIM1_UP_TIM16_IRQn);
+            Lissajous = (cordic_arg){ t_a, 0, 0, 0 };
+            cordic()->q31(CORDIC_COS, &Lissajous);
+            int32_t x_q31 = Lissajous.out_1;
+
+            Lissajous = (cordic_arg){ t_b, 0, 0, 0 };
+            cordic()->q31(CORDIC_SIN, &Lissajous);
+            int32_t y_q31 = Lissajous.out_1;
+
+            dev()->enable_irq(TIM1_UP_TIM16_IRQn);
 
             int16_t px = 120 + (int16_t)(((int64_t)x_q31 * 95) >> 31);
             int16_t py = 165 + (int16_t)(((int64_t)y_q31 * 95) >> 31);

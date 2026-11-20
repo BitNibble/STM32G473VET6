@@ -36,14 +36,12 @@ typedef struct
 
 } cordic_arg;
 
-typedef void (*cordic_vector)(cordic_arg arg);
+typedef void (*cordic_vector)(cordic_arg *arg);
 
 typedef const struct
 {
-    cordic_arg *par;
-
-    void (*q31)(cordic_operation operation, cordic_arg arg);
-    void (*q15)(cordic_operation operation, cordic_arg arg);
+    void (*q31)(cordic_operation operation, cordic_arg *arg);
+    void (*q15)(cordic_operation operation, cordic_arg *arg);
 
 } cordic_handler;
 
@@ -54,4 +52,3 @@ cordic_handler* cordic(void);
 #endif
 
 /*** EOF ***/
-

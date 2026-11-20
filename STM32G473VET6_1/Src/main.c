@@ -61,6 +61,8 @@ void tim1_blink_setup(void)
 
 void tim_u_callback(void)
 {
+	cordic_arg dimmer = { .arg_1 = phase };
+
 	//50hz   -85899346U
 	//100Hz  -42949673U - 1hz
 	//100Hz  -21474837U  - 0.5Hz
@@ -70,8 +72,8 @@ void tim_u_callback(void)
 	//200Hz  -5368709U
 	//2Khz   -2147484U
     phase += 21474837U ;
-    cordic()->q31( CORDIC_SIN, (cordic_arg){ .arg_1 = phase });
-    int32_t sine = cordic()->par->out_1;
+    cordic()->q31( CORDIC_SIN, &dimmer);
+    int32_t sine = dimmer.out_1;
     TIM1->CCR1 = exe()->q31_to_pwm(sine, TIM1->ARR);
 
     gpio()->set_hpin(GPIOF, 1 << 2);
@@ -118,6 +120,8 @@ int main(void)
 	uint8_t time[10];
 
 	dev()->enable_peripheral(CORDIC);
+	cordic_arg angle;
+
 	while(1)
 	{
 		rtc()->run->tr2vec(time);
@@ -134,9 +138,10 @@ int main(void)
 		//lcd1.run->stop(&lcd1.par);
 		_delay_ms(500);
 
-		cordic()->q31(CORDIC_COS,(cordic_arg){.arg_1 = exe()->deg_to_angle(60.0f)});
+		angle = (cordic_arg){ exe()->deg_to_angle(60.0f), 0, 0, 0 };
+		cordic()->q31(CORDIC_COS, &angle);
 
-		float result = exe()->q31_to_float(cordic()->par->out_1);
+		float result = exe()->q31_to_float(angle.out_1);
 
 		lcd1.run->start(&lcd1.par);
 		//func()->format_string(str,32,"%u", 60);
