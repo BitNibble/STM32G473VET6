@@ -38,6 +38,16 @@ typedef const struct {
 	void (*init_freq)(uint32_t target_freq_hz);
 	void (*clock_enable)(void);
 	void (*clock_disable)(void);
+
+	void (*interrupt_u_enable)(void);
+	void (*interrupt_u_disable)(void);
+	void (*interrupt_t_enable)(void);
+	void (*interrupt_t_disable)(void);
+	void (*interrupt_cc_enable)(void);
+	void (*interrupt_cc_disable)(void);
+	void (*interrupt_cc1_enable)(void);
+	void (*interrupt_cc1_disable)(void);
+
 	void (*nvic_u_enable)(uint8_t priority);
 	void (*nvic_u_disable)(void);
 	void (*nvic_t_enable)(uint8_t priority);
@@ -46,6 +56,7 @@ typedef const struct {
 	void (*nvic_cc_disable)(void);
 	void (*nvic_cc1_enable)(uint8_t priority);
 	void (*nvic_cc1_disable)(void);
+
 	void (*start)(void);
 	void (*stop)(void);
 	void (*config_pwm)(tim1_ch_t ch, pwm_mode_t mode, uint32_t pulse_width);

@@ -37,6 +37,7 @@ static volatile uint32_t val;
 
 void tim1_blink_setup(void)
 {
+	dev()->enable_peripheral(TIM1);
 	//50hz-(4799,199)
 	//100Hz-(23,19999)
 	//500Hz-(23,3999)
@@ -54,8 +55,15 @@ void tim1_blink_setup(void)
 
     // Enable Auto-Reload Preload (ARPE) in Control Register 1
     TIM1->CR1 |= TIM_CR1_ARPE;
-    tim1()->run->nvic_u_enable(2);
-    tim1()->run->nvic_cc1_enable(2);
+
+    //tim1()->run->nvic_u_enable(2);
+    tim1()->run->interrupt_u_enable();
+    dev()->enable_irq(TIM1_UP_TIM16_IRQn);
+
+    //tim1()->run->nvic_cc1_enable(2);
+    tim1()->run->interrupt_cc1_enable();
+    dev()->enable_irq(TIM1_CC_IRQn);
+
     tim1()->run->start();
 }
 
@@ -138,7 +146,8 @@ int main(void)
 		//lcd1.run->stop(&lcd1.par);
 		_delay_ms(500);
 
-		angle = (cordic_arg){ exe()->deg_to_angle(60.0f), 0, 0, 0 };
+		//angle = (cordic_arg){ exe()->deg_to_angle(60.0f), 0, 0, 0 };
+		angle.arg_1 = exe()->deg_to_angle(60.0f);
 		cordic()->q31(CORDIC_COS, &angle);
 
 		float result = exe()->q31_to_float(angle.out_1);

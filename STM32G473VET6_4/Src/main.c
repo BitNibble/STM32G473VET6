@@ -37,6 +37,7 @@ static const uint16_t palette[] = {
 
 void tim1_blink_setup(void)
 {
+	dev()->enable_peripheral(TIM1);
     tim1()->run->init_by_ticks(23, 19999); // 100 Hz
     TIM1->CCMR1 |= TIM_CCMR1_OC1PE;
     TIM1->CR2   &= ~TIM_CR2_CCPC;

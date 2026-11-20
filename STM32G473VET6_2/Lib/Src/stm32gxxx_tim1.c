@@ -20,7 +20,7 @@ static void t1_clk_di(void) {
 }
 
 static void t1_init_by_ticks(uint16_t prescaler, uint32_t autoreload) {
-    t1_clk_en();
+    //t1_clk_en();
 
     TIM1->PSC = prescaler;
     TIM1->ARR = autoreload;
@@ -47,7 +47,7 @@ static void t1_init_by_freq(uint16_t prescaler, uint32_t target_freq_hz) {
     t1_par.autoreload = calculated_arr;
 }
 
-void t1_init_freq(uint32_t target_freq_hz) {
+static void t1_init_freq(uint32_t target_freq_hz) {
 	if (target_freq_hz == 0U) return;
 
 	uint32_t tim_input_clk = dev()->get->timclk2();
@@ -110,10 +110,18 @@ static void t1_nvic_u_en(uint8_t p) {
     SET_BIT(NVIC->ISER[irq >> 5U], (1U << (irq & 0x1FU)));
 }
 
+static void t1_interrupt_u_en(void) {
+    SET_BIT(TIM1->DIER, TIM_DIER_UIE);
+}
+
 static void t1_nvic_u_di(void) {
     CLEAR_BIT(TIM1->DIER, TIM_DIER_UIE);
     uint32_t irq = (uint32_t)TIM1_UP_TIM16_IRQn;
     SET_BIT(NVIC->ICER[irq >> 5U], (1U << (irq & 0x1FU)));
+}
+
+static void t1_interrupt_u_di(void) {
+    CLEAR_BIT(TIM1->DIER, TIM_DIER_UIE);
 }
 
 static void t1_nvic_t_en(uint8_t p) {
@@ -124,10 +132,18 @@ static void t1_nvic_t_en(uint8_t p) {
     SET_BIT(NVIC->ISER[irq >> 5U], (1U << (irq & 0x1FU)));
 }
 
+static void t1_interrupt_t_en(void) {
+    SET_BIT(TIM1->DIER, TIM_DIER_TIE);
+}
+
 static void t1_nvic_t_di(void) {
     CLEAR_BIT(TIM1->DIER, TIM_DIER_TIE);
     uint32_t irq = (uint32_t)TIM1_TRG_COM_TIM17_IRQn;
     SET_BIT(NVIC->ICER[irq >> 5U], (1U << (irq & 0x1FU)));
+}
+
+static void t1_interrupt_t_di(void) {
+    CLEAR_BIT(TIM1->DIER, TIM_DIER_TIE);
 }
 
 static void t1_nvic_cc_en(uint8_t p) {
@@ -138,10 +154,18 @@ static void t1_nvic_cc_en(uint8_t p) {
     SET_BIT(NVIC->ISER[irq >> 5U], (1U << (irq & 0x1FU)));
 }
 
+static void t1_interrupt_cc_en(void) {
+    SET_BIT(TIM1->DIER, (TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC3IE | TIM_DIER_CC4IE));
+}
+
 static void t1_nvic_cc_di(void) {
     CLEAR_BIT(TIM1->DIER, (TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC3IE | TIM_DIER_CC4IE));
     uint32_t irq = (uint32_t)TIM1_CC_IRQn;
     SET_BIT(NVIC->ICER[irq >> 5U], (1U << (irq & 0x1FU)));
+}
+
+static void t1_interrupt_cc_di(void) {
+    CLEAR_BIT(TIM1->DIER, (TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC3IE | TIM_DIER_CC4IE));
 }
 
 static void t1_nvic_cc1_en(uint8_t p)
@@ -153,10 +177,19 @@ static void t1_nvic_cc1_en(uint8_t p)
     SET_BIT(NVIC->ISER[irq >> 5U],(1U << (irq & 0x1FU)));
 }
 
+static void t1_interrupt_cc1_en(void)
+{
+    SET_BIT(TIM1->DIER, TIM_DIER_CC1IE);
+}
+
 static void t1_nvic_cc1_di(void) {
     CLEAR_BIT(TIM1->DIER, TIM_DIER_CC1IE);
     uint32_t irq = (uint32_t)TIM1_CC_IRQn;
     SET_BIT(NVIC->ICER[irq >> 5U], (1U << (irq & 0x1FU)));
+}
+
+static void t1_interrupt_cc1_di(void) {
+    CLEAR_BIT(TIM1->DIER, TIM_DIER_CC1IE);
 }
 
 static void t1_start(void) { 
@@ -241,6 +274,16 @@ static tim1_run t1_run = {
 	.init_freq            = t1_init_freq,
 	.clock_enable         = t1_clk_en,
 	.clock_disable        = t1_clk_di,
+
+	.interrupt_u_enable        = t1_interrupt_u_en,
+	.interrupt_u_disable       = t1_interrupt_u_di,
+	.interrupt_t_enable        = t1_interrupt_t_en,
+	.interrupt_t_disable       = t1_interrupt_t_di,
+	.interrupt_cc_enable       = t1_interrupt_cc_en,
+	.interrupt_cc_disable      = t1_interrupt_cc_di,
+	.interrupt_cc1_enable      = t1_interrupt_cc1_en,
+	.interrupt_cc1_disable     = t1_interrupt_cc1_di,
+
 	.nvic_u_enable        = t1_nvic_u_en,
 	.nvic_u_disable       = t1_nvic_u_di,
 	.nvic_t_enable        = t1_nvic_t_en,
@@ -249,6 +292,7 @@ static tim1_run t1_run = {
 	.nvic_cc_disable      = t1_nvic_cc_di,
     .nvic_cc1_enable      = t1_nvic_cc1_en,
     .nvic_cc1_disable     = t1_nvic_cc1_di,
+
 	.start                = t1_start,
 	.stop                 = t1_stop,
     .config_pwm           = t1_config_pwm,
