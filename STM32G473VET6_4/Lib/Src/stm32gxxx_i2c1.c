@@ -1,0 +1,756 @@
+/************************************************************************
+	STM32GXXX_I2C1
+Author:   <sergio.salazar.santos@gmail.com>
+License:  GNU General Public License
+Hardware: STM32G4
+Date:     02/07/2026
+************************************************************************/
+#include "stm32gxxx_i2c1.h"
+
+// Define standard tracking status identifiers matching I2C_ISR bit offsets
+#define I2C_FLAG_TXIS  I2C_ISR_TXIS
+#define I2C_FLAG_RXNE  I2C_ISR_RXNE
+#define I2C_FLAG_TC    I2C_ISR_TC
+#define I2C_FLAG_NACK  I2C_ISR_NACKF
+
+/*** i2c1 PARAMETER ***/
+static i2c1_par par_setup = { // DEFAULT
+	.scl_gpio = GPIOA,    // Port A
+	.sda_gpio = GPIOB,    // Port B
+	.scl_af = 4U,
+	.sda_af = 4U,
+	.scl_pin = 15,            // SCL Pin 15
+	.sda_pin = 9,             // SDA Pin 9
+	.bus_speed = I2C_SPEED_STANDARD,
+	.address_mode = I2C_ADDR_7BIT
+};
+
+static void init(i2c1_par* par);
+
+/*** Procedure & Function Definition ***/
+static void i2c1_clock_enable(void) {
+	SET_BIT(RCC->APB1ENR1,RCC_APB1ENR1_I2C1EN);
+}
+static void i2c1_clock_disable(void) {
+	CLEAR_BIT(RCC->APB1ENR1,RCC_APB1ENR1_I2C1EN);
+}
+//helper to handle configuration safety locks
+static inline void _i2c1_modify_cr1_protected(void (*modify_func)(void)) {
+    uint32_t is_enabled = GET_FIELD(I2C1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos);
+    if (is_enabled) {
+        CLEAR_BIT(I2C1->CR1, I2C_CR1_PE);
+        while(GET_FIELD(I2C1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos));
+    }
+    modify_func();
+    if (is_enabled) {
+        SET_BIT(I2C1->CR1, I2C_CR1_PE);
+    }
+}
+// Universal non-blocking status check helper
+static uint8_t _i2c1_get_flag(uint32_t flag_mask) {
+    // Read the whole register and isolate the single flag bit
+    return (I2C1->ISR & flag_mask) ? 1U : 0U;
+}
+// Fixed-timeout polling engine to protect your MCU from locking up indefinitely on bus faults
+uint8_t _i2c1_wait_flag_timeout(uint32_t flag_mask, uint8_t status_expected, uint32_t timeout_loops) {
+    volatile uint32_t timeout = timeout_loops;
+    while (_i2c1_get_flag(flag_mask) != status_expected) {
+        if (--timeout == 0) {
+            return 0; // Operation failed / Timed out
+        }
+    }
+    return 1; // Success
+}
+// Helper to safely read specific flags from the ISR status register
+static uint8_t _i2c1_get_status_flag(uint32_t msk) {
+	// Uses your get_field_value tool (Pos is 0 since we want the masked raw bit location)
+	return GET_FIELD(I2C1->ISR, msk, 0) ? 1U : 0U;
+}
+// Fixed loop timeout polling engine to prevent the MCU from hanging on a dead bus
+static uint8_t _i2c1_wait_status_flag(uint32_t msk, uint8_t expected_state, uint32_t timeout_loops) {
+	volatile uint32_t timeout = timeout_loops;
+	while (_i2c1_get_status_flag(msk) != expected_state) {
+		if (--timeout == 0) {
+			return 0; // Failed / Timed Out
+		}
+		// If a NACK occurs during transmission, abort early
+		if (msk != I2C_ISR_NACKF && _i2c1_get_status_flag(I2C_ISR_NACKF)) {
+			SET_BIT(I2C1->ICR, I2C_ICR_NACKCF); // Clear NACK flag
+			return 0;
+		}
+	}
+	return 1; // Success
+}
+
+/*******************  Bit definition for I2C_CR1 register  *******************/
+uint8_t _i2c1_is_enabled(void) {
+	return GET_FIELD(I2C1->CR1,I2C_CR1_PE,I2C_CR1_PE_Pos);
+}
+static uint8_t _i2c1_is_disabled(void) {
+	return !GET_FIELD(I2C1->CR1,I2C_CR1_PE,I2C_CR1_PE_Pos);
+}
+static void i2c1_enable(void) {
+	SET_BIT(I2C1->CR1,I2C_CR1_PE);
+}
+static void i2c1_disable(void) {
+	CLEAR_BIT(I2C1->CR1,I2C_CR1_PE);
+}
+static void i2c1_digital_filter(uint8_t filter) {
+	uint32_t is_enabled = GET_FIELD(I2C1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos);
+
+	if (is_enabled) {
+		CLEAR_BIT(I2C1->CR1, I2C_CR1_PE);
+		while(GET_FIELD(I2C1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos));
+	}
+
+	WRITE_FIELD(I2C1->CR1,I2C_CR1_DNF,I2C_CR1_DNF_Pos,filter);
+
+	if (is_enabled) {
+		SET_BIT(I2C1->CR1, I2C_CR1_PE);
+	}
+}
+static void i2c1_analog_filter_enable(void) {
+	uint32_t is_enabled = GET_FIELD(I2C1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos);
+	if (is_enabled) {
+		CLEAR_BIT(I2C1->CR1, I2C_CR1_PE);
+		while(GET_FIELD(I2C1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos));
+	}
+
+	CLEAR_BIT(I2C1->CR1, I2C_CR1_ANFOFF);
+
+	if (is_enabled) {
+		SET_BIT(I2C1->CR1, I2C_CR1_PE);
+	}
+}
+static void i2c1_analog_filter_disable(void) {
+	uint32_t is_enabled = GET_FIELD(I2C1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos);
+
+	if (is_enabled) {
+		CLEAR_BIT(I2C1->CR1, I2C_CR1_PE);
+		while(GET_FIELD(I2C1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos));
+	}
+
+	SET_BIT(I2C1->CR1, I2C_CR1_ANFOFF);
+
+	if (is_enabled) {
+		SET_BIT(I2C1->CR1, I2C_CR1_PE);
+	}
+}
+static void i2c1_software_reset(void) {
+	SET_BIT(I2C1->CR1,I2C_CR1_SWRST);
+}
+static void i2c1_clock_stretch_enable(void) {
+	CLEAR_BIT(I2C1->CR1,I2C_CR1_NOSTRETCH);
+}
+static void i2c1_clock_stretch_disable(void) {
+	SET_BIT(I2C1->CR1,I2C_CR1_NOSTRETCH);
+}
+static void i2c1_general_call_enable(void) {
+	SET_BIT(I2C1->CR1,I2C_CR1_GCEN);
+}
+static void i2c1_general_call_disable(void) {
+	CLEAR_BIT(I2C1->CR1,I2C_CR1_GCEN);
+}
+static void i2c1_pec_enable(void) {
+	SET_BIT(I2C1->CR1,I2C_CR1_PECEN);
+}
+static void i2c1_pec_disable(void) {
+	CLEAR_BIT(I2C1->CR1,I2C_CR1_PECEN);
+}
+
+/******************  Bit definition for I2C_CR2 register  ********************/
+void slave_address_direction(uint16_t device_ID, i2c_direction_t r_w) {
+    // 1. Clear old address, direction, and execution flags
+    CLEAR_BIT(I2C1->CR2, I2C_CR2_SADD | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP);
+
+    // 2. Shift the 7-bit device address into bits [7:1] of SADD
+    uint32_t address = (device_ID & 0x7FU) << 1;
+    WRITE_FIELD(I2C1->CR2, I2C_CR2_SADD_Msk, I2C_CR2_SADD_Pos, address);
+
+    // 3. Assign direction bit
+    if (r_w == I2C_DIR_READ) {
+        WRITE_FIELD(I2C1->CR2, I2C_CR2_RD_WRN_Msk, I2C_CR2_RD_WRN_Pos, I2C_DIR_READ);
+    }
+}
+
+static void i2c1_addressing_mode(i2c_addr_mode_t mode) {
+	if(mode == I2C_ADDR_10BIT)
+		SET_BIT(I2C1->CR2, I2C_CR2_ADD10);
+	else
+		CLEAR_BIT(I2C1->CR2, I2C_CR2_ADD10);
+}
+static void i2c1_mode10_read_enable(void) {
+	SET_BIT(I2C1->CR2, I2C_CR2_HEAD10R);
+}
+static void i2c1_mode10_read_disable(void) {
+	CLEAR_BIT(I2C1->CR2, I2C_CR2_HEAD10R);
+}
+static void i2c1_nbytes(uint8_t nbytes) {
+	WRITE_FIELD(I2C1->CR2, I2C_CR2_NBYTES, I2C_CR2_NBYTES_Pos, nbytes);
+}
+static void i2c1_reload_enable(void) {
+	SET_BIT(I2C1->CR2, I2C_CR2_RELOAD);
+}
+static void i2c1_reload_disable(void) {
+	CLEAR_BIT(I2C1->CR2, I2C_CR2_RELOAD);
+}
+static void i2c1_autoend_enable(void) {
+	SET_BIT(I2C1->CR2, I2C_CR2_AUTOEND);
+}
+static void i2c1_autoend_disable(void) {
+	CLEAR_BIT(I2C1->CR2, I2C_CR2_AUTOEND);
+}
+static void i2c1_pecbyte_enable(void) {
+	SET_BIT(I2C1->CR2, I2C_CR2_PECBYTE);
+}
+static void i2c1_pecbyte_disable(void) {
+	CLEAR_BIT(I2C1->CR2, I2C_CR2_PECBYTE);
+}
+static void i2c1_start(void) {
+    // Safely assert only the START bit on top of your existing CR2 register layout
+    SET_BIT(I2C1->CR2, I2C_CR2_START);
+}
+
+static uint8_t i2c1_get_start(void) {
+	return GET_FIELD(I2C1->CR2, I2C_CR2_START, I2C_CR2_START_Pos);
+}
+void i2c1_stop_v1(void) {
+	// STOP can be asserted directly to hardware safely to terminate/abort sequences
+	SET_BIT(I2C1->CR2, I2C_CR2_STOP);
+}
+static void i2c1_stop(void) {
+    SET_BIT(I2C1->CR2, I2C_CR2_STOP);
+    // Wait for the stop condition to actually clear the bus safely
+    while (!_i2c1_get_status_flag(I2C_ISR_STOPF));
+    // Immediately clear the stop detection flag to leave a pristine state
+    SET_BIT(I2C1->ICR, I2C_ICR_STOPCF);
+}
+
+
+/*******************  Bit definition for I2C_OAR1 register  ******************/
+static void i2c1_own_address(uint8_t address) {
+	WRITE_FIELD(I2C1->OAR1,I2C_OAR1_OA1,I2C_OAR1_OA1_Pos,address);
+}
+static void i2c1_own_address_10bit_mode_enable(void) {
+	SET_BIT(I2C1->OAR1,I2C_OAR1_OA1MODE);
+}
+static void i2c1_own_address_10bit_mode_disable(void) {
+	CLEAR_BIT(I2C1->OAR1,I2C_OAR1_OA1MODE);
+}
+static void i2c1_own_address_enable(void) {
+	SET_BIT(I2C1->OAR1,I2C_OAR1_OA1EN);
+}
+static void i2c1_own_address_disable(void) {
+	CLEAR_BIT(I2C1->OAR1,I2C_OAR1_OA1EN);
+}
+/*******************  Bit definition for I2C_TIMINGR register *******************/
+static void i2c1_low_period(uint8_t ll) {
+	WRITE_FIELD(I2C1->TIMINGR,I2C_TIMINGR_SCLL,I2C_TIMINGR_SCLL_Pos,ll);
+}
+static void i2c1_high_period(uint8_t hh) {
+	WRITE_FIELD(I2C1->TIMINGR,I2C_TIMINGR_SCLH,I2C_TIMINGR_SCLH_Pos,hh);
+}
+static void i2c1_hold_timing(uint8_t hold) {
+	WRITE_FIELD(I2C1->TIMINGR,I2C_TIMINGR_SDADEL,I2C_TIMINGR_SDADEL_Pos,hold & 0xF);
+}
+static void i2c1_setup_timing(uint8_t setup) {
+	WRITE_FIELD(I2C1->TIMINGR,I2C_TIMINGR_SCLDEL,I2C_TIMINGR_SCLDEL_Pos,setup & 0xF);
+}
+static void i2c1_timing_prescaler(uint8_t prescaler) {
+	WRITE_FIELD(I2C1->TIMINGR,I2C_TIMINGR_PRESC,I2C_TIMINGR_PRESC_Pos,prescaler & 0xF);
+}
+static uint8_t i2c1_get_low_period(void) {
+	return GET_FIELD(I2C1->TIMINGR,I2C_TIMINGR_SCLL,I2C_TIMINGR_SCLL_Pos);
+}
+static uint8_t i2c1_get_high_period(void) {
+	return GET_FIELD(I2C1->TIMINGR,I2C_TIMINGR_SCLH,I2C_TIMINGR_SCLH_Pos);
+}
+static uint8_t i2c1_get_hold_timing(void) {
+	return GET_FIELD(I2C1->TIMINGR,I2C_TIMINGR_SDADEL,I2C_TIMINGR_SDADEL_Pos);
+}
+static uint8_t i2c1_get_setup_timing(void) {
+	return GET_FIELD(I2C1->TIMINGR,I2C_TIMINGR_SCLDEL,I2C_TIMINGR_SCLDEL_Pos);
+}
+static uint8_t i2c1_get_timing_prescaler(void) {
+	return GET_FIELD(I2C1->TIMINGR,I2C_TIMINGR_PRESC,I2C_TIMINGR_PRESC_Pos);
+}
+
+/******************* Bit definition for I2C_TIMEOUTR register *******************/
+static void i2c1_bus_timeout(uint16_t timeout) {
+	WRITE_FIELD(I2C1->TIMEOUTR,I2C_TIMEOUTR_TIMEOUTA,I2C_TIMEOUTR_TIMEOUTA_Pos,timeout & 0x0FFF);
+}
+static void i2c1_idle_timeout_detect_enable(void) {
+	SET_BIT(I2C1->TIMEOUTR,I2C_TIMEOUTR_TIDLE);
+}
+static void i2c1_idle_timeout_detect_disable(void) {
+	CLEAR_BIT(I2C1->TIMEOUTR,I2C_TIMEOUTR_TIDLE);
+}
+static void i2c1_timeout_enable(void) {
+	SET_BIT(I2C1->TIMEOUTR,I2C_TIMEOUTR_TIMOUTEN);
+}
+static void i2c1_timeout_disable(void) {
+	CLEAR_BIT(I2C1->TIMEOUTR,I2C_TIMEOUTR_TIMOUTEN);
+}
+
+/******************  Bit definition for I2C_ISR register  *********************/
+static uint32_t i2c1_status(void) { // ACK NACK & ERROR FLAGS
+	return I2C1->ISR;
+}
+
+/******************  Bit definition for I2C_PECR register  *********************/
+static uint8_t i2c1_get_pecr(void) {
+	return GET_FIELD(I2C1->PECR,I2C_PECR_PEC,I2C_PECR_PEC_Pos);
+}
+
+/******************  Bit definition for I2C_RXDR register  *********************/
+static uint8_t i2c1_get_rxdata(void) {
+	return GET_FIELD(I2C1->RXDR,I2C_RXDR_RXDATA,I2C_RXDR_RXDATA_Pos);
+}
+
+/******************  Bit definition for I2C_TXDR register  *********************/
+static void i2c1_set_txdata(uint8_t data) {
+	WRITE_FIELD(I2C1->TXDR,I2C_TXDR_TXDATA,I2C_TXDR_TXDATA_Pos, data);
+}
+
+/*** Procedure & Function Definition ***/
+static void i2c1_reset(void) {
+	i2c1_disable();
+	while(!_i2c1_is_disabled());
+	i2c1_enable();
+}
+
+static uint8_t i2c1_is_idle(void) {
+	uint32_t isr_value = I2C1->ISR;
+
+	if ((isr_value & I2C_ISR_BUSY) == 0U) {
+		return 1U;
+	}
+
+	return 0U;
+}
+
+uint8_t wait_for_bus_idle(uint32_t timeout_loops) {
+	volatile uint32_t timeout = timeout_loops;
+
+	while (i2c1_is_idle() == 0U) {
+		if (--timeout == 0U) {
+			i2c1()->run->reset();
+			return 0U;
+		}
+	}
+	return 1U;
+}
+
+static void i2c1_calculate_and_apply_timing(i2c_bus_speed_t target_bus_speed_hz) {
+	uint32_t i2c_clk_hz = dev()->get->pclk1();
+
+	// 1. Dynamic Prescaler derivation targeting an optimal internal timing clock.
+	// For Standard Mode, we target 4MHz. For Fast Modes, we target 8MHz-16MHz for resolution.
+	uint32_t target_internal_clk = (target_bus_speed_hz <= I2C_SPEED_STANDARD) ? 4000000UL : 10000000UL;
+	uint32_t presc_val = i2c_clk_hz / target_internal_clk;
+
+	if (presc_val > 0) presc_val -= 1UL;
+	if (presc_val > 0x0FUL) presc_val = 0x0FUL; // Clamp to the hardware's 4-bit limit
+
+	uint32_t prescaled_clk_hz = i2c_clk_hz / (presc_val + 1UL);
+
+	// 2. Use signed variables for cycle derivation to capture low-frequency underflow risks
+	int32_t total_cycles = (int32_t)(prescaled_clk_hz / (uint32_t)target_bus_speed_hz);
+
+	// Adjust for inner hardware synchronization delay pipelines
+	total_cycles -= 3;
+	if (total_cycles < 4) total_cycles = 4; // Absolute minimum hardware safety floor
+
+	int32_t scl_low = 0;
+	int32_t scl_high = 0;
+	uint8_t sdadel = 0;
+	uint8_t scldel = 0;
+
+	if (target_bus_speed_hz <= I2C_SPEED_STANDARD) {
+		// Standard Mode (100 kHz)
+		scl_low  = ((total_cycles * 50) / 100) - 1;
+		scl_high = (total_cycles - (scl_low + 1)) - 1;
+		sdadel   = 0x02U;
+		scldel   = 0x04U;
+	} else {
+		// Fast Mode (400 kHz)
+		scl_low  = ((total_cycles * 66) / 100) - 1;
+		scl_high = (total_cycles - (scl_low + 1)) - 1;
+		sdadel   = 0x01U;
+		scldel   = 0x03U;
+	}
+
+	// 3. Prevent variable underflows from turning into maximum register limits (0xFF)
+	if (scl_low  < 0) scl_low  = 0;
+	if (scl_high < 0) scl_high = 0;
+	if (scl_low  > 255) scl_low  = 255;
+	if (scl_high > 255) scl_high = 255;
+
+	// 4. Combine the calculated fields into a single local tracking layout variable
+	uint32_t timingr_value = 0;
+	SET_BIT(timingr_value, (presc_val << I2C_TIMINGR_PRESC_Pos) & I2C_TIMINGR_PRESC);
+	SET_BIT(timingr_value, ((uint32_t)scl_low << I2C_TIMINGR_SCLL_Pos) & I2C_TIMINGR_SCLL);
+	SET_BIT(timingr_value, ((uint32_t)scl_high << I2C_TIMINGR_SCLH_Pos) & I2C_TIMINGR_SCLH);
+	SET_BIT(timingr_value, ((uint32_t)sdadel << I2C_TIMINGR_SDADEL_Pos) & I2C_TIMINGR_SDADEL);
+	SET_BIT(timingr_value, ((uint32_t)scldel << I2C_TIMINGR_SCLDEL_Pos) & I2C_TIMINGR_SCLDEL);
+
+	// 5. Commit using an atomic overwrite block while ensuring PE is disabled
+	uint32_t is_enabled = GET_FIELD(I2C1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos);
+	if (is_enabled) {
+		CLEAR_BIT(I2C1->CR1, I2C_CR1_PE);
+		while(GET_FIELD(I2C1->CR1, I2C_CR1_PE, I2C_CR1_PE_Pos));
+	}
+
+	// Single atomic push using your structural layout tool
+	WRITE_ENCODED(I2C1->TIMINGR, 0xFFFFFFFFU, timingr_value);
+
+	if (is_enabled) {
+		SET_BIT(I2C1->CR1, I2C_CR1_PE);
+	}
+}
+
+static uint8_t i2c1_read_register(uint16_t device_id, uint8_t reg_addr, uint8_t* p_buffer, uint8_t length) {
+	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
+
+	// Make sure AUTOEND is disabled in Phase 1 so we can issue a Repeated Start safely
+	CLEAR_BIT(I2C1->CR2, I2C_CR2_AUTOEND);
+
+	// Phase 1: Write the target register address (Atomic setup to prevent 1.5V glitches)
+	slave_address_direction(device_id, I2C_DIR_WRITE);
+	i2c1_nbytes(1);
+	I2C1->ICR = (I2C_ICR_ALERTCF | I2C_ICR_TIMOUTCF | I2C_ICR_PECCF | I2C_ICR_OVRCF |
+									I2C_ICR_ARLOCF | I2C_ICR_BERRCF | I2C_ICR_STOPCF | I2C_ICR_ADDRCF | I2C_ICR_NACKCF);
+	i2c1_start();
+
+	// Wait for TXIS with a software timeout counter (Atmel style protection)
+	if (!_i2c1_wait_status_flag(I2C_ISR_TXIS, 1, 50000UL)) {
+		i2c1_stop();
+		return 0; // Safe abort if bus fails
+	}
+	i2c1_set_txdata(reg_addr);
+
+	// Wait for Transfer Complete (TC) - Meaning address and register byte are completely out
+	if (!_i2c1_wait_status_flag(I2C_ISR_TC, 1, 50000UL)) {
+		i2c1_stop();
+		return 0;
+	}
+
+	// =========================================================================
+	// Phase 2: Atomic Repeated Start Update (Bypasses all STM32G4 register gaps)
+	// =========================================================================
+	uint32_t tmpreg = I2C1->CR2;
+
+	// 1. Wipe out previous fields entirely to clear old NBYTES and Write mode tracking
+	CLEAR_BIT(tmpreg, I2C_CR2_NBYTES | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP);
+
+	// 2. Load the requested read length, device ID, Read direction, and auto-stop config
+	SET_BIT(tmpreg, (uint32_t)length << I2C_CR2_NBYTES_Pos);
+	SET_BIT(tmpreg, I2C_CR2_RD_WRN);
+	SET_BIT(tmpreg, I2C_CR2_AUTOEND);
+	SET_BIT(tmpreg, I2C_CR2_START);
+
+	// 3. Commit all changes simultaneously in a single clock cycle
+	I2C1->CR2 = tmpreg;
+	// =========================================================================
+
+	// Stream incoming data from the PCF8563 safely into your array
+	for (uint8_t i = 0; i < length; i++) {
+		// Drop out cleanly if the slave suddenly issues a NACK mid-transfer
+		if (I2C1->ISR & I2C_ISR_NACKF) {
+			I2C1->ICR = I2C_ICR_NACKCF;
+			i2c1_stop();
+			return 0;
+		}
+
+		if (!_i2c1_wait_status_flag(I2C_ISR_RXNE, 1, 50000UL)) {
+			i2c1_stop();
+			return 0; // Timeout exit if lines drop low
+		}
+		p_buffer[i] = i2c1_get_rxdata();
+	}
+
+	// Wait for the hardware to automatically assert the STOPF flag via AUTOEND
+	if (!_i2c1_wait_status_flag(I2C_ISR_STOPF, 1, 50000UL)) {
+		return 0;
+	}
+
+	I2C1->ICR = I2C_ICR_STOPCF; // Clear stop flag to leave bus ready
+	return 1;
+}
+
+static uint8_t i2c1_write_register(uint16_t device_id, uint8_t reg_addr, uint8_t* p_data, uint8_t length) {
+	if (length == 0 || exe()->isPtrNull(p_data)) return 0;
+
+	// 1. Stage transaction parameters
+	slave_address_direction(device_id, I2C_DIR_WRITE);
+
+	// Total bytes = 1 byte for register address + payload length
+	i2c1_nbytes(length + 1U);
+
+	// Clear clearing/status flags before knocking on the wire
+	SET_BIT(I2C1->ICR, 0x3F38U);
+
+	// 2. Fire the hardware start sequence safely
+	i2c1_start();
+
+	// 3. Transmit the target internal register address first
+	if (!_i2c1_wait_status_flag(I2C_ISR_TXIS, 1, 100000UL)) {
+		i2c1_stop(); // Safe abort on timeout or NACK
+		return 0;
+	}
+	i2c1_set_txdata(reg_addr);
+
+	// 4. Stream out the remaining payload data sequentially
+	for (uint8_t i = 0; i < length; i++) {
+		if (!_i2c1_wait_status_flag(I2C_ISR_TXIS, 1, 100000UL)) {
+			i2c1_stop();
+			return 0;
+		}
+		i2c1_set_txdata(p_data[i]);
+	}
+
+	// 5. Wait for the standard Transfer Complete (TC) flag to wrap up
+	if (!_i2c1_wait_status_flag(I2C_ISR_TC, 1, 100000UL)) {
+		i2c1_stop();
+		return 0;
+	}
+
+	// Terminate sequence and free the bus
+	i2c1_stop();
+	return 1;
+}
+
+static uint8_t i2c1_read_buffer(uint16_t device_id, uint8_t* p_buffer, uint8_t length) {
+	if (length == 0 || exe()->isPtrNull(p_buffer)) return 0;
+	// 1. Stage parameters
+	slave_address_direction(device_id, I2C_DIR_READ);
+	i2c1_nbytes(length);
+	SET_BIT(I2C1->ICR, 0x3F38U);
+	// 2. Fire Start
+	i2c1_start();
+	// 3. Stream data in sequentially
+	for (uint8_t i = 0; i < length; i++) {
+		// Wait for RXNE (Receive Not Empty) flag indicating data has arrived
+		if (!_i2c1_wait_status_flag(I2C_ISR_RXNE, 1, 100000UL)) {
+			return 0;
+		}
+		// Fetch the raw byte out of hardware
+		p_buffer[i] = i2c1_get_rxdata();
+	}
+	return 1;
+}
+
+static uint8_t i2c1_write_buffer(uint16_t device_id, uint8_t* p_data, uint8_t length) {
+	if (length == 0 || exe()->isPtrNull(p_data)) return 0;
+	// 1. Stage the transaction parameters into your global shadow register
+	slave_address_direction(device_id, I2C_DIR_WRITE);
+	i2c1_nbytes(length);
+	// 2. Clear out any leftover hardware status error flags before starting
+	SET_BIT(I2C1->ICR, 0x3F38U);
+	// 3. Fire the hardware start sequence!
+	i2c1_start();
+	// 4. Stream data out sequentially
+	for (uint8_t i = 0; i < length; i++) {
+		// Wait for TXIS (Transmit Interrupt Status) flag indicating TXDR is empty
+		if (!_i2c1_wait_status_flag(I2C_ISR_TXIS, 1, 100000UL)) {
+			i2c1_stop(); // Safe abort
+			return 0;
+		}
+		// Load next data byte into the hardware transmitter
+		i2c1_set_txdata(p_data[i]);
+	}
+	// 5. If AUTOEND is disabled, manually wait for Transfer Complete (TC) and stop
+	// If AUTOEND is enabled, the hardware handles STOP automatically.
+	return 1;
+}
+
+uint8_t test_v1(void){
+	// Local buffer layout to track power-up responses safely
+	uint8_t time_test_buffer[2] = {0};
+	/*** Communication Wakeup ***/
+	i2c1_enable();
+	i2c1_autoend_enable(); // Enable auto-stop logic to support buffer transfers
+	// Check if a hardware transaction is currently already running
+	if(!i2c1_get_start()){
+		if(i2c1_is_idle()){
+			// Step 1: Tell PCF8563 we want to look at register address 0x02 (Seconds)
+			uint8_t rtc_register_pointer = 0x02;
+
+			if (i2c1_write_buffer(PCF8563, &rtc_register_pointer, 1U)) {
+				// Step 2: Read the 2 raw active time bytes back securely
+				if (i2c1_read_buffer(PCF8563, time_test_buffer, 2U)) {
+
+					// 1. Extract raw seconds data and isolate it from the VL status bit
+					uint8_t raw_seconds = time_test_buffer[0] & 0x7F;
+
+					// 2. Decode the filtered BCD value into a standard decimal format
+					uint8_t decimal_seconds = ((raw_seconds >> 4) * 10) + (raw_seconds & 0x0F);
+
+					return decimal_seconds; // Safely returns 0 to 59
+
+				}
+			}
+		}
+	}
+	return time_test_buffer[0];
+}
+
+static uint8_t test(void) {
+	uint8_t time_test_buffer[2] = {0};
+
+	i2c1_enable();
+
+	// Ensure the physical bus is clear before knocking on the wire
+	if (i2c1_is_idle()) {
+		// Read 2 consecutive bytes starting directly at register 0x02 (Seconds, Minutes)
+		if (i2c1_read_register(PCF8563, 0x02, time_test_buffer, 2U)) {
+			// 1. Extract raw seconds data and isolate it from the VL status bit
+			uint8_t raw_seconds = time_test_buffer[0] & 0x7F;
+
+			// 2. Decode the filtered BCD value into a standard decimal format
+			uint8_t decimal_seconds = ((raw_seconds >> 4) * 10) + (raw_seconds & 0x0F);
+
+			return decimal_seconds; // Safely returns 0 to 59
+		}
+	}
+	return time_test_buffer[0]; // Returns seconds byte
+}
+
+/*** i2c1 GET ***/
+static i2c1_get get_setup = {
+	.status = i2c1_status,
+	.is_idle = i2c1_is_idle,
+	.pecr = i2c1_get_pecr,
+	.rxdata = i2c1_get_rxdata,
+	.low_period = i2c1_get_low_period,
+	.high_period = i2c1_get_high_period,
+	.hold_timing = i2c1_get_hold_timing,
+	.setup_timing = i2c1_get_setup_timing,
+	.timing_prescaler = i2c1_get_timing_prescaler,
+	.start = i2c1_get_start,
+};
+/*** i2c1 SET ***/
+static i2c1_set set_setup = {
+	.digital_filter = i2c1_digital_filter,
+	.slave_address_direction = slave_address_direction,
+	.addressing_mode = i2c1_addressing_mode,
+	.nbytes = i2c1_nbytes,
+	.own_address = i2c1_own_address,
+	.low_period = i2c1_low_period,
+	.high_period = i2c1_high_period,
+	.hold_timing = i2c1_hold_timing,
+	.setup_timing = i2c1_setup_timing,
+	.timing_prescaler = i2c1_timing_prescaler,
+	.bus_timeout = i2c1_bus_timeout,
+	.txdata = i2c1_set_txdata,
+
+	.reload_enable = i2c1_reload_enable,
+	.reload_disable = i2c1_reload_disable,
+	.autoend_enable = i2c1_autoend_enable,
+	.autoend_disable = i2c1_autoend_disable,
+	.pecbyte_enable = i2c1_pecbyte_enable,
+	.pecbyte_disable = i2c1_pecbyte_disable,
+};
+/*** i2c1 V-TABLE ***/
+static i2c1_run run_setup = {
+	.init = init,
+	.clock_enable = i2c1_clock_enable,
+	.clock_disable = i2c1_clock_disable,
+	.enable = i2c1_enable,
+	.disable = i2c1_disable,
+	.analog_filter_enable = i2c1_analog_filter_enable,
+	.analog_filter_disable = i2c1_analog_filter_disable,
+	.software_reset =  i2c1_software_reset,
+	.clock_stretch_enable = i2c1_clock_stretch_enable,
+	.clock_stretch_disable = i2c1_clock_stretch_disable,
+	.general_call_enable = i2c1_general_call_enable,
+	.general_call_disable = i2c1_general_call_disable,
+	.pec_enable = i2c1_pec_enable,
+	.pec_disable = i2c1_pec_disable,
+	.mode10_read_enable = i2c1_mode10_read_enable,
+	.mode10_read_disable = i2c1_mode10_read_disable,
+	.reload_enable = i2c1_reload_enable,
+	.reload_disable = i2c1_reload_disable,
+	.autoend_enable = i2c1_autoend_enable,
+	.autoend_disable = i2c1_autoend_disable,
+	.pecbyte_enable = i2c1_pecbyte_enable,
+	.pecbyte_disable = i2c1_pecbyte_disable,
+	.start = i2c1_start,
+	.stop = i2c1_stop,
+	.own_address_10bit_mode_enable = i2c1_own_address_10bit_mode_enable,
+	.own_address_10bit_mode_disable = i2c1_own_address_10bit_mode_disable,
+	.own_address_enable = i2c1_own_address_enable,
+	.own_address_disable = i2c1_own_address_disable,
+	.idle_timeout_detect_enable = i2c1_idle_timeout_detect_enable,
+	.idle_timeout_detect_disable = i2c1_idle_timeout_detect_disable,
+	.timeout_enable = i2c1_timeout_enable,
+	.timeout_disable = i2c1_timeout_disable,
+	.reset = i2c1_reset,
+	.wait_for_bus_idle = wait_for_bus_idle,
+	.calculate_and_apply_timing = i2c1_calculate_and_apply_timing,
+	.read_register = i2c1_read_register,
+	.write_register = i2c1_write_register,
+	.write_buffer = i2c1_write_buffer,
+	.read_buffer = i2c1_read_buffer,
+	.test = test,
+};
+
+/*** i2c1 HANDLER ***/
+static i2c1_handler i2c1_setup = {
+	.par = &par_setup,
+	.get = &get_setup,
+	.set = &set_setup,
+	.run = &run_setup
+};
+
+/*** i2c1 ACCESSOR FUNCTION ***/
+i2c1_handler* i2c1(void){return &i2c1_setup;}
+
+/*** INIT ***/
+static void init(i2c1_par* par) {
+	/*** 1. ENABLE GPIO PERIPHERAL CLOCKS ***/
+	// Turn on the peripheral clock gates for both Port A and Port B
+	dev()->enable_peripheral(par->scl_gpio);
+	dev()->enable_peripheral(par->sda_gpio);
+
+	/*** 2. SET PIN MODES TO ALTERNATE FUNCTION ***/
+	// Route the internal I2C logic out to the physical pins
+	gpio()->moder( par->scl_gpio, MODE_AF, par->scl_pin ); // SCL on PA15
+	gpio()->moder( par->sda_gpio, MODE_AF, par->sda_pin ); // SDA on PB9
+
+	/*** 3. FORCE OPEN-DRAIN PIN DRIVERS (CRITICAL SAFETY STEP) ***/
+	// Disconnect the high-side push-pull transistors so the pins can only pull LOW.
+	// This prevents internal or external short-circuits.
+	gpio()->otype( par->scl_gpio, ONE, par->scl_pin );
+	gpio()->otype( par->sda_gpio, ONE, par->sda_pin );
+
+	/*** 4. MAP TO ALTERNATE FUNCTION 4 (I2C1) ***/
+	// Tell the internal pin matrix to explicitly hook PA15 and PB9 up to I2C1
+	gpio()->af( par->scl_gpio, par->scl_af, par->scl_pin ); // AF4 for SCL
+	gpio()->af( par->sda_gpio, par->sda_af, par->sda_pin ); // AF4 for SDA
+
+	/*** 5. ENABLE WEAK INTERNAL PULL-UPS ***/
+	// Keep the internal weak resistors active to assist your external 4.7k pull-ups
+	gpio()->pupd( par->scl_gpio, GPIO_PULLUP, par->scl_pin );
+	gpio()->pupd( par->sda_gpio, GPIO_PULLUP, par->sda_pin );
+
+	/*** 6. CONFIGURE HARDWARE DEFENSIVE TIMEOUTS (ATMEL-STYLE PROTECTION) ***/
+	// Enable the STM32G4 Power peripheral clock to access system control registers
+	dev()->enable_peripheral(PWR);
+
+	// Turn on the I2C1 hardware timeout detector block.
+	// If SCL or SDA are held low for more than ~25ms (due to a burned resistor or broken wire),
+	// the hardware will automatically flag it, abort the freeze, and free your CPU.
+	I2C1->TIMEOUTR |= I2C_TIMEOUTR_TIMOUTEN;
+	I2C1->TIMEOUTR |= ( 0xA10U << I2C_TIMEOUTR_TIMEOUTA_Pos );
+
+	/*** 7. INITIALIZE THE INTERNAL I2C SILICON BLOCK ***/
+	i2c1_clock_enable();
+	i2c1_digital_filter(1);
+	i2c1_analog_filter_disable();
+	i2c1_calculate_and_apply_timing(par->bus_speed);
+	i2c1_addressing_mode(par->address_mode);
+}
+
+/*** EOF ***/
+
