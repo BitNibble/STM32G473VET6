@@ -1,0 +1,4 @@
+../Lib/Src/buffer.c:44:6:BUFF_push	0	static
+../Lib/Src/buffer.c:60:11:BUFF_raw	0	static
+../Lib/Src/buffer.c:64:6:BUFF_flush	0	static
+../Lib/Src/buffer.c:35:14:BUFF_enable	0	static

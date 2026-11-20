@@ -1,0 +1,3 @@
+Lib/Src/74hc595.o: ../Lib/Src/74hc595.c \
+ C:/Embedded/STM32G473VET6/STM32G473VET6_1/Lib/Inc/74hc595.h
+C:/Embedded/STM32G473VET6/STM32G473VET6_1/Lib/Inc/74hc595.h:

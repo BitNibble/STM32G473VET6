@@ -1,0 +1,10 @@
+../Lib/Src/stm32gxxx_adc1.c:32:20:_adc1_enable	3
+../Lib/Src/stm32gxxx_adc1.c:101:17:adc1_temp_read_raw	3
+../Lib/Src/stm32gxxx_adc1.c:116:14:adc1_temp_to_celsius	1
+../Lib/Src/stm32gxxx_adc1.c:136:14:adc1_temp_read_celsius	1
+../Lib/Src/stm32gxxx_adc1.c:23:20:_adc1_init	1
+../Lib/Src/stm32gxxx_adc1.c:41:19:_adc1_disable	9
+../Lib/Src/stm32gxxx_adc1.c:86:20:_adc1_cal_differential	4
+../Lib/Src/stm32gxxx_adc1.c:74:20:_adc1_cal_single	4
+../Lib/Src/stm32gxxx_adc1.c:240:13:adc1_temp_init	1
+../Lib/Src/stm32gxxx_adc1.c:237:15:adc1	1

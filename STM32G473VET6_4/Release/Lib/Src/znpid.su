@@ -1,0 +1,7 @@
+../Lib/Src/znpid.c:59:6:ZNPID_set_kc	0	static
+../Lib/Src/znpid.c:64:6:ZNPID_set_ki	0	static
+../Lib/Src/znpid.c:69:6:ZNPID_set_kd	0	static
+../Lib/Src/znpid.c:74:6:ZNPID_set_SP	0	static
+../Lib/Src/znpid.c:79:8:ZNPID_OP	72	static
+../Lib/Src/znpid.c:25:11:znpid_par_init	12	static
+../Lib/Src/znpid.c:48:15:ZNPID_enable	8	static

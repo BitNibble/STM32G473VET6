@@ -1,0 +1,6 @@
+../Lib/Src/explode.c:45:8:EXPLODE_update	1
+../Lib/Src/explode.c:58:8:EXPLODE_hh	1
+../Lib/Src/explode.c:63:8:EXPLODE_ll	1
+../Lib/Src/explode.c:68:8:EXPLODE_lh	1
+../Lib/Src/explode.c:73:8:EXPLODE_hl	1
+../Lib/Src/explode.c:28:17:EXPLODE_enable	1

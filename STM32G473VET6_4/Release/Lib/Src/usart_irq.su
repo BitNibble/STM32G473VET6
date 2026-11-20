@@ -1,0 +1,6 @@
+../Lib/Src/usart_irq.c:10:6:USART1_IRQHandler	16	static
+../Lib/Src/usart_irq.c:245:6:USART2_IRQHandler	16	static
+../Lib/Src/usart_irq.c:480:6:USART3_IRQHandler	16	static
+../Lib/Src/usart_irq.c:715:6:UART4_IRQHandler	16	static
+../Lib/Src/usart_irq.c:950:6:UART5_IRQHandler	16	static
+../Lib/Src/usart_irq.c:1185:6:LPUART1_IRQHandler	16	static

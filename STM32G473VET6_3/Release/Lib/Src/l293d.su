@@ -1,0 +1,9 @@
+../Lib/Src/l293d.c:16:6:l293d_en	0	static
+../Lib/Src/l293d.c:19:6:l293d_dis	0	static
+../Lib/Src/l293d.c:24:6:l293d_forward	8	static
+../Lib/Src/l293d.c:30:6:l293d_reverse	8	static
+../Lib/Src/l293d.c:37:6:l293d_pwm_forward	16	static
+../Lib/Src/l293d.c:47:6:l293d_pwm_reverse	16	static
+../Lib/Src/l293d.c:64:6:l293d_pwm_stop_coast	8	static
+../Lib/Src/l293d.c:57:6:l293d_pwm_stop	8	static
+../Lib/Src/l293d.c:86:15:l293d_enable	24	static

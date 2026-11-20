@@ -1,0 +1,19 @@
+Lib/Src/stm32x_cordic.o: ../Lib/Src/stm32x_cordic.c \
+ C:/Embedded/STM32G473VET6/STM32G473VET6_1/Lib/Inc/stm32x_cordic.h \
+ C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
+ C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g473xx.h \
+ C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Include/core_cm4.h \
+ C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Include/cmsis_version.h \
+ C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Include/cmsis_compiler.h \
+ C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Include/cmsis_gcc.h \
+ C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Include/mpu_armv7.h \
+ C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Device/ST/STM32G4xx/Include/system_stm32g4xx.h
+C:/Embedded/STM32G473VET6/STM32G473VET6_1/Lib/Inc/stm32x_cordic.h:
+C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h:
+C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g473xx.h:
+C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Include/core_cm4.h:
+C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Include/cmsis_version.h:
+C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Include/cmsis_compiler.h:
+C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Include/cmsis_gcc.h:
+C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Include/mpu_armv7.h:
+C:/Embedded/STM32G473VET6/STM32G473VET6_1/Drivers/CMSIS/Device/ST/STM32G4xx/Include/system_stm32g4xx.h:
