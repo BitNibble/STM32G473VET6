@@ -57,6 +57,97 @@ typedef struct
 
 } irq_tim_t;
 
+/******************************************************************************
+* TIM1
+******************************************************************************/
+__attribute__((weak)) void tim1_u_callback(void);
+__attribute__((weak)) void tim1_cc1_callback(void);
+__attribute__((weak)) void tim1_cc2_callback(void);
+__attribute__((weak)) void tim1_cc3_callback(void);
+__attribute__((weak)) void tim1_cc4_callback(void);
+__attribute__((weak)) void tim1_trg_callback(void);
+__attribute__((weak)) void tim1_brk_callback(void);
+__attribute__((weak)) void tim1_brk2_callback(void);
+__attribute__((weak)) void tim1_com_callback(void);
+
+/******************************************************************************
+* TIM8
+******************************************************************************/
+__attribute__((weak)) void tim8_u_callback(void);
+__attribute__((weak)) void tim8_cc1_callback(void);
+__attribute__((weak)) void tim8_cc2_callback(void);
+__attribute__((weak)) void tim8_cc3_callback(void);
+__attribute__((weak)) void tim8_cc4_callback(void);
+__attribute__((weak)) void tim8_trg_callback(void);
+__attribute__((weak)) void tim8_brk_callback(void);
+__attribute__((weak)) void tim8_com_callback(void);
+__attribute__((weak)) void tim8_rep_callback(void);
+__attribute__((weak)) void tim8_dma_callback(void);
+
+/******************************************************************************
+* TIM2–TIM5 (general purpose, full CC capable)
+******************************************************************************/
+__attribute__((weak)) void tim2_u_callback(void);
+__attribute__((weak)) void tim2_cc1_callback(void);
+__attribute__((weak)) void tim2_cc2_callback(void);
+__attribute__((weak)) void tim2_cc3_callback(void);
+__attribute__((weak)) void tim2_cc4_callback(void);
+
+__attribute__((weak)) void tim3_u_callback(void);
+__attribute__((weak)) void tim3_cc1_callback(void);
+__attribute__((weak)) void tim3_cc2_callback(void);
+__attribute__((weak)) void tim3_cc3_callback(void);
+__attribute__((weak)) void tim3_cc4_callback(void);
+
+__attribute__((weak)) void tim4_u_callback(void);
+__attribute__((weak)) void tim4_cc1_callback(void);
+__attribute__((weak)) void tim4_cc2_callback(void);
+__attribute__((weak)) void tim4_cc3_callback(void);
+__attribute__((weak)) void tim4_cc4_callback(void);
+
+__attribute__((weak)) void tim5_u_callback(void);
+__attribute__((weak)) void tim5_cc1_callback(void);
+__attribute__((weak)) void tim5_cc2_callback(void);
+__attribute__((weak)) void tim5_cc3_callback(void);
+__attribute__((weak)) void tim5_cc4_callback(void);
+
+/******************************************************************************
+* TIM6–TIM7 (basic timers)
+******************************************************************************/
+__attribute__((weak)) void tim6_u_callback(void);
+__attribute__((weak)) void tim7_u_callback(void);
+
+/******************************************************************************
+* TIM15–TIM17 (low power timers)
+******************************************************************************/
+__attribute__((weak)) void tim15_u_callback(void);
+__attribute__((weak)) void tim15_cc1_callback(void);
+__attribute__((weak)) void tim15_cc2_callback(void);
+__attribute__((weak)) void tim15_trg_callback(void);
+__attribute__((weak)) void tim15_com_callback(void);
+__attribute__((weak)) void tim15_brk_callback(void);
+
+__attribute__((weak)) void tim16_u_callback(void);
+__attribute__((weak)) void tim16_cc1_callback(void);
+__attribute__((weak)) void tim16_brk_callback(void);
+
+__attribute__((weak)) void tim17_u_callback(void);
+__attribute__((weak)) void tim17_cc1_callback(void);
+__attribute__((weak)) void tim17_brk_callback(void);
+
+/******************************************************************************
+*TIM20 (advanced / high resolution)
+******************************************************************************/
+__attribute__((weak)) void tim20_u_callback(void);
+__attribute__((weak)) void tim20_cc1_callback(void);
+__attribute__((weak)) void tim20_cc2_callback(void);
+__attribute__((weak)) void tim20_cc3_callback(void);
+__attribute__((weak)) void tim20_cc4_callback(void);
+__attribute__((weak)) void tim20_trg_callback(void);
+__attribute__((weak)) void tim20_brk_callback(void);
+__attribute__((weak)) void tim20_brk2_callback(void);
+__attribute__((weak)) void tim20_com_callback(void);
+
 /*-------------------------------------------------------------
     USART / UART
 -------------------------------------------------------------*/
@@ -94,6 +185,138 @@ typedef struct
 
 } irq_uart_t;
 
+/******************************************************************************
+ * USART1
+ ******************************************************************************/
+void usart1_pe_callback(void)    __attribute__((weak));
+void usart1_fe_callback(void)    __attribute__((weak));
+void usart1_ne_callback(void)    __attribute__((weak));
+void usart1_ore_callback(void)   __attribute__((weak));
+
+void usart1_idle_callback(void)  __attribute__((weak));
+void usart1_rxne_callback(void)  __attribute__((weak));
+void usart1_txe_callback(void)   __attribute__((weak));
+void usart1_tc_callback(void)    __attribute__((weak));
+
+void usart1_cts_callback(void)   __attribute__((weak));
+void usart1_rtof_callback(void)  __attribute__((weak));
+void usart1_eob_callback(void)   __attribute__((weak));
+void usart1_cmf_callback(void)   __attribute__((weak));
+void usart1_wuf_callback(void)   __attribute__((weak));
+
+void usart1_txfe_callback(void)  __attribute__((weak));
+void usart1_rxff_callback(void)  __attribute__((weak));
+
+/******************************************************************************
+ * USART2
+ ******************************************************************************/
+void usart2_pe_callback(void)    __attribute__((weak));
+void usart2_fe_callback(void)    __attribute__((weak));
+void usart2_ne_callback(void)    __attribute__((weak));
+void usart2_ore_callback(void)   __attribute__((weak));
+
+void usart2_idle_callback(void)  __attribute__((weak));
+void usart2_rxne_callback(void)  __attribute__((weak));
+void usart2_txe_callback(void)   __attribute__((weak));
+void usart2_tc_callback(void)    __attribute__((weak));
+
+void usart2_cts_callback(void)   __attribute__((weak));
+void usart2_rtof_callback(void)  __attribute__((weak));
+void usart2_eob_callback(void)   __attribute__((weak));
+void usart2_cmf_callback(void)   __attribute__((weak));
+void usart2_wuf_callback(void)   __attribute__((weak));
+
+void usart2_txfe_callback(void)  __attribute__((weak));
+void usart2_rxff_callback(void)  __attribute__((weak));
+
+/******************************************************************************
+ * USART3
+ ******************************************************************************/
+void usart3_pe_callback(void)    __attribute__((weak));
+void usart3_fe_callback(void)    __attribute__((weak));
+void usart3_ne_callback(void)    __attribute__((weak));
+void usart3_ore_callback(void)   __attribute__((weak));
+
+void usart3_idle_callback(void)  __attribute__((weak));
+void usart3_rxne_callback(void)  __attribute__((weak));
+void usart3_txe_callback(void)   __attribute__((weak));
+void usart3_tc_callback(void)    __attribute__((weak));
+
+void usart3_cts_callback(void)   __attribute__((weak));
+void usart3_rtof_callback(void)  __attribute__((weak));
+void usart3_eob_callback(void)   __attribute__((weak));
+void usart3_cmf_callback(void)   __attribute__((weak));
+void usart3_wuf_callback(void)   __attribute__((weak));
+
+void usart3_txfe_callback(void)  __attribute__((weak));
+void usart3_rxff_callback(void)  __attribute__((weak));
+
+/******************************************************************************
+ * UART4
+ ******************************************************************************/
+void uart4_pe_callback(void)     __attribute__((weak));
+void uart4_fe_callback(void)     __attribute__((weak));
+void uart4_ne_callback(void)     __attribute__((weak));
+void uart4_ore_callback(void)    __attribute__((weak));
+
+void uart4_idle_callback(void)   __attribute__((weak));
+void uart4_rxne_callback(void)   __attribute__((weak));
+void uart4_txe_callback(void)    __attribute__((weak));
+void uart4_tc_callback(void)     __attribute__((weak));
+
+void uart4_cts_callback(void)    __attribute__((weak));
+void uart4_rtof_callback(void)   __attribute__((weak));
+void uart4_eob_callback(void)    __attribute__((weak));
+void uart4_cmf_callback(void)    __attribute__((weak));
+void uart4_wuf_callback(void)    __attribute__((weak));
+
+void uart4_txfe_callback(void)   __attribute__((weak));
+void uart4_rxff_callback(void)   __attribute__((weak));
+
+/******************************************************************************
+ * UART5
+ ******************************************************************************/
+void uart5_pe_callback(void)     __attribute__((weak));
+void uart5_fe_callback(void)     __attribute__((weak));
+void uart5_ne_callback(void)     __attribute__((weak));
+void uart5_ore_callback(void)    __attribute__((weak));
+
+void uart5_idle_callback(void)   __attribute__((weak));
+void uart5_rxne_callback(void)   __attribute__((weak));
+void uart5_txe_callback(void)    __attribute__((weak));
+void uart5_tc_callback(void)     __attribute__((weak));
+
+void uart5_cts_callback(void)    __attribute__((weak));
+void uart5_rtof_callback(void)   __attribute__((weak));
+void uart5_eob_callback(void)    __attribute__((weak));
+void uart5_cmf_callback(void)    __attribute__((weak));
+void uart5_wuf_callback(void)    __attribute__((weak));
+
+void uart5_txfe_callback(void)   __attribute__((weak));
+void uart5_rxff_callback(void)   __attribute__((weak));
+
+/******************************************************************************
+ * LPUART1
+ ******************************************************************************/
+void lpuart1_pe_callback(void)   __attribute__((weak));
+void lpuart1_fe_callback(void)   __attribute__((weak));
+void lpuart1_ne_callback(void)   __attribute__((weak));
+void lpuart1_ore_callback(void)  __attribute__((weak));
+
+void lpuart1_idle_callback(void) __attribute__((weak));
+void lpuart1_rxne_callback(void) __attribute__((weak));
+void lpuart1_txe_callback(void)  __attribute__((weak));
+void lpuart1_tc_callback(void)   __attribute__((weak));
+
+void lpuart1_cts_callback(void)  __attribute__((weak));
+void lpuart1_rtof_callback(void) __attribute__((weak));
+void lpuart1_eob_callback(void)  __attribute__((weak));
+void lpuart1_cmf_callback(void)  __attribute__((weak));
+void lpuart1_wuf_callback(void)  __attribute__((weak));
+
+void lpuart1_txfe_callback(void) __attribute__((weak));
+void lpuart1_rxff_callback(void) __attribute__((weak));
+
 /*-------------------------------------------------------------
     I2C
 -------------------------------------------------------------*/
@@ -129,6 +352,86 @@ typedef struct
 
 } irq_i2c_t;
 
+/******************************************************************************
+ * I2C1
+ ******************************************************************************/
+/* Error interrupts */
+void i2c1_berr_callback(void)    __attribute__((weak));
+void i2c1_arlo_callback(void)    __attribute__((weak));
+void i2c1_ovr_callback(void)     __attribute__((weak));
+void i2c1_pecerr_callback(void)  __attribute__((weak));
+void i2c1_timeout_callback(void) __attribute__((weak));
+void i2c1_alert_callback(void)   __attribute__((weak));
+
+/* Event interrupts */
+void i2c1_rxne_callback(void)    __attribute__((weak));
+void i2c1_txis_callback(void)    __attribute__((weak));
+void i2c1_addr_callback(void)    __attribute__((weak));
+void i2c1_nack_callback(void)    __attribute__((weak));
+void i2c1_stop_callback(void)    __attribute__((weak));
+void i2c1_tc_callback(void)      __attribute__((weak));
+void i2c1_tcr_callback(void)     __attribute__((weak));
+
+/******************************************************************************
+ * I2C2
+ ******************************************************************************/
+/* Error interrupts */
+void i2c2_berr_callback(void)    __attribute__((weak));
+void i2c2_arlo_callback(void)    __attribute__((weak));
+void i2c2_ovr_callback(void)     __attribute__((weak));
+void i2c2_pecerr_callback(void)  __attribute__((weak));
+void i2c2_timeout_callback(void) __attribute__((weak));
+void i2c2_alert_callback(void)   __attribute__((weak));
+
+/* Event interrupts */
+void i2c2_rxne_callback(void)    __attribute__((weak));
+void i2c2_txis_callback(void)    __attribute__((weak));
+void i2c2_addr_callback(void)    __attribute__((weak));
+void i2c2_nack_callback(void)    __attribute__((weak));
+void i2c2_stop_callback(void)    __attribute__((weak));
+void i2c2_tc_callback(void)      __attribute__((weak));
+void i2c2_tcr_callback(void)     __attribute__((weak));
+
+/******************************************************************************
+ * I2C3
+ ******************************************************************************/
+/* Error interrupts */
+void i2c3_berr_callback(void)    __attribute__((weak));
+void i2c3_arlo_callback(void)    __attribute__((weak));
+void i2c3_ovr_callback(void)     __attribute__((weak));
+void i2c3_pecerr_callback(void)  __attribute__((weak));
+void i2c3_timeout_callback(void) __attribute__((weak));
+void i2c3_alert_callback(void)   __attribute__((weak));
+
+/* Event interrupts */
+void i2c3_rxne_callback(void)    __attribute__((weak));
+void i2c3_txis_callback(void)    __attribute__((weak));
+void i2c3_addr_callback(void)    __attribute__((weak));
+void i2c3_nack_callback(void)    __attribute__((weak));
+void i2c3_stop_callback(void)    __attribute__((weak));
+void i2c3_tc_callback(void)      __attribute__((weak));
+void i2c3_tcr_callback(void)     __attribute__((weak));
+
+/******************************************************************************
+ * I2C4
+ ******************************************************************************/
+/* Error interrupts */
+void i2c4_berr_callback(void)    __attribute__((weak));
+void i2c4_arlo_callback(void)    __attribute__((weak));
+void i2c4_ovr_callback(void)     __attribute__((weak));
+void i2c4_pecerr_callback(void)  __attribute__((weak));
+void i2c4_timeout_callback(void) __attribute__((weak));
+void i2c4_alert_callback(void)   __attribute__((weak));
+
+/* Event interrupts */
+void i2c4_rxne_callback(void)    __attribute__((weak));
+void i2c4_txis_callback(void)    __attribute__((weak));
+void i2c4_addr_callback(void)    __attribute__((weak));
+void i2c4_nack_callback(void)    __attribute__((weak));
+void i2c4_stop_callback(void)    __attribute__((weak));
+void i2c4_tc_callback(void)      __attribute__((weak));
+void i2c4_tcr_callback(void)     __attribute__((weak));
+
 /*-------------------------------------------------------------
     SPI
 -------------------------------------------------------------*/
@@ -153,6 +456,50 @@ typedef struct
     irq_spi_event_t *spi4;
 
 } irq_spi_t;
+
+/******************************************************************************
+ * SPI1
+ ******************************************************************************/
+void spi1_rxne_callback(void)    __attribute__((weak));
+void spi1_txe_callback(void)     __attribute__((weak));
+
+void spi1_ovr_callback(void)     __attribute__((weak));
+void spi1_modf_callback(void)    __attribute__((weak));
+void spi1_crcerr_callback(void)  __attribute__((weak));
+void spi1_fre_callback(void)     __attribute__((weak));
+
+/******************************************************************************
+ * SPI2
+ ******************************************************************************/
+void spi2_rxne_callback(void)    __attribute__((weak));
+void spi2_txe_callback(void)     __attribute__((weak));
+
+void spi2_ovr_callback(void)     __attribute__((weak));
+void spi2_modf_callback(void)    __attribute__((weak));
+void spi2_crcerr_callback(void)  __attribute__((weak));
+void spi2_fre_callback(void)     __attribute__((weak));
+
+/******************************************************************************
+ * SPI3
+ ******************************************************************************/
+void spi3_rxne_callback(void)    __attribute__((weak));
+void spi3_txe_callback(void)     __attribute__((weak));
+
+void spi3_ovr_callback(void)     __attribute__((weak));
+void spi3_modf_callback(void)    __attribute__((weak));
+void spi3_crcerr_callback(void)  __attribute__((weak));
+void spi3_fre_callback(void)     __attribute__((weak));
+
+/******************************************************************************
+ * SPI4
+ ******************************************************************************/
+void spi4_rxne_callback(void)    __attribute__((weak));
+void spi4_txe_callback(void)     __attribute__((weak));
+
+void spi4_ovr_callback(void)     __attribute__((weak));
+void spi4_modf_callback(void)    __attribute__((weak));
+void spi4_crcerr_callback(void)  __attribute__((weak));
+void spi4_fre_callback(void)     __attribute__((weak));
 
 /*-------------------------------------------------------------
     DMA
@@ -186,6 +533,98 @@ typedef struct
 
 } irq_dma_t;
 
+/******************************************************************************
+ * DMA1
+ ******************************************************************************/
+
+/* Channel 1 */
+void dma1_ch1_gif_callback(void) __attribute__((weak));
+void dma1_ch1_tc_callback(void)  __attribute__((weak));
+void dma1_ch1_ht_callback(void)  __attribute__((weak));
+void dma1_ch1_te_callback(void)  __attribute__((weak));
+
+/* Channel 2 */
+void dma1_ch2_gif_callback(void) __attribute__((weak));
+void dma1_ch2_tc_callback(void)  __attribute__((weak));
+void dma1_ch2_ht_callback(void)  __attribute__((weak));
+void dma1_ch2_te_callback(void)  __attribute__((weak));
+
+/* Channel 3 */
+void dma1_ch3_gif_callback(void) __attribute__((weak));
+void dma1_ch3_tc_callback(void)  __attribute__((weak));
+void dma1_ch3_ht_callback(void)  __attribute__((weak));
+void dma1_ch3_te_callback(void)  __attribute__((weak));
+
+/* Channel 4 */
+void dma1_ch4_gif_callback(void) __attribute__((weak));
+void dma1_ch4_tc_callback(void)  __attribute__((weak));
+void dma1_ch4_ht_callback(void)  __attribute__((weak));
+void dma1_ch4_te_callback(void)  __attribute__((weak));
+
+/* Channel 5 */
+void dma1_ch5_gif_callback(void) __attribute__((weak));
+void dma1_ch5_tc_callback(void)  __attribute__((weak));
+void dma1_ch5_ht_callback(void)  __attribute__((weak));
+void dma1_ch5_te_callback(void)  __attribute__((weak));
+
+/* Channel 6 */
+void dma1_ch6_gif_callback(void) __attribute__((weak));
+void dma1_ch6_tc_callback(void)  __attribute__((weak));
+void dma1_ch6_ht_callback(void)  __attribute__((weak));
+void dma1_ch6_te_callback(void)  __attribute__((weak));
+
+/* Channel 7 */
+void dma1_ch7_gif_callback(void) __attribute__((weak));
+void dma1_ch7_tc_callback(void)  __attribute__((weak));
+void dma1_ch7_ht_callback(void)  __attribute__((weak));
+void dma1_ch7_te_callback(void)  __attribute__((weak));
+
+/******************************************************************************
+ * DMA2
+ ******************************************************************************/
+
+/* Channel 1 */
+void dma2_ch1_gif_callback(void) __attribute__((weak));
+void dma2_ch1_tc_callback(void)  __attribute__((weak));
+void dma2_ch1_ht_callback(void)  __attribute__((weak));
+void dma2_ch1_te_callback(void)  __attribute__((weak));
+
+/* Channel 2 */
+void dma2_ch2_gif_callback(void) __attribute__((weak));
+void dma2_ch2_tc_callback(void)  __attribute__((weak));
+void dma2_ch2_ht_callback(void)  __attribute__((weak));
+void dma2_ch2_te_callback(void)  __attribute__((weak));
+
+/* Channel 3 */
+void dma2_ch3_gif_callback(void) __attribute__((weak));
+void dma2_ch3_tc_callback(void)  __attribute__((weak));
+void dma2_ch3_ht_callback(void)  __attribute__((weak));
+void dma2_ch3_te_callback(void)  __attribute__((weak));
+
+/* Channel 4 */
+void dma2_ch4_gif_callback(void) __attribute__((weak));
+void dma2_ch4_tc_callback(void)  __attribute__((weak));
+void dma2_ch4_ht_callback(void)  __attribute__((weak));
+void dma2_ch4_te_callback(void)  __attribute__((weak));
+
+/* Channel 5 */
+void dma2_ch5_gif_callback(void) __attribute__((weak));
+void dma2_ch5_tc_callback(void)  __attribute__((weak));
+void dma2_ch5_ht_callback(void)  __attribute__((weak));
+void dma2_ch5_te_callback(void)  __attribute__((weak));
+
+/* Channel 6 */
+void dma2_ch6_gif_callback(void) __attribute__((weak));
+void dma2_ch6_tc_callback(void)  __attribute__((weak));
+void dma2_ch6_ht_callback(void)  __attribute__((weak));
+void dma2_ch6_te_callback(void)  __attribute__((weak));
+
+/* Channel 7 */
+void dma2_ch7_gif_callback(void) __attribute__((weak));
+void dma2_ch7_tc_callback(void)  __attribute__((weak));
+void dma2_ch7_ht_callback(void)  __attribute__((weak));
+void dma2_ch7_te_callback(void)  __attribute__((weak));
+
 /*-------------------------------------------------------------
     ADC
 -------------------------------------------------------------*/
@@ -209,6 +648,46 @@ typedef struct
 
 } irq_adc_t;
 
+/******************************************************************************
+ * ADC1
+ ******************************************************************************/
+void adc1_eoc_callback(void)     __attribute__((weak));
+void adc1_eos_callback(void)     __attribute__((weak));
+void adc1_awd_callback(void)     __attribute__((weak));
+void adc1_overrun_callback(void) __attribute__((weak));
+
+/******************************************************************************
+ * ADC2
+ ******************************************************************************/
+void adc2_eoc_callback(void)     __attribute__((weak));
+void adc2_eos_callback(void)     __attribute__((weak));
+void adc2_awd_callback(void)     __attribute__((weak));
+void adc2_overrun_callback(void) __attribute__((weak));
+
+/******************************************************************************
+ * ADC3
+ ******************************************************************************/
+void adc3_eoc_callback(void)     __attribute__((weak));
+void adc3_eos_callback(void)     __attribute__((weak));
+void adc3_awd_callback(void)     __attribute__((weak));
+void adc3_overrun_callback(void) __attribute__((weak));
+
+/******************************************************************************
+ * ADC4
+ ******************************************************************************/
+void adc4_eoc_callback(void)     __attribute__((weak));
+void adc4_eos_callback(void)     __attribute__((weak));
+void adc4_awd_callback(void)     __attribute__((weak));
+void adc4_overrun_callback(void) __attribute__((weak));
+
+/******************************************************************************
+ * ADC5
+ ******************************************************************************/
+void adc5_eoc_callback(void)     __attribute__((weak));
+void adc5_eos_callback(void)     __attribute__((weak));
+void adc5_awd_callback(void)     __attribute__((weak));
+void adc5_overrun_callback(void) __attribute__((weak));
+
 /*-------------------------------------------------------------
     EXTI
 -------------------------------------------------------------*/
@@ -225,6 +704,17 @@ typedef struct
 
 } irq_exti_t;
 
+/******************************************************************************
+ * EXTI
+ ******************************************************************************/
+void exti_line0_callback(void)     __attribute__((weak));
+void exti_line1_callback(void)     __attribute__((weak));
+void exti_line2_callback(void)     __attribute__((weak));
+void exti_line3_callback(void)     __attribute__((weak));
+void exti_line4_callback(void)     __attribute__((weak));
+void exti_line5_9_callback(void)   __attribute__((weak));
+void exti_line10_15_callback(void) __attribute__((weak));
+
 /*-------------------------------------------------------------
     RTC
 -------------------------------------------------------------*/
@@ -237,6 +727,15 @@ typedef struct {
 	callback_t Overrun;
 
 } irq_rtc_t;
+
+/******************************************************************************
+ * RTC
+ ******************************************************************************/
+void rtc_alarm_callback(void)     __attribute__((weak));
+void rtc_wakeup_callback(void)    __attribute__((weak));
+void rtc_timestamp_callback(void) __attribute__((weak));
+void rtc_tamper_callback(void)    __attribute__((weak));
+void rtc_overrun_callback(void)   __attribute__((weak));
 
 /*-------------------------------------------------------------
     ROOT
@@ -251,117 +750,11 @@ typedef struct
     irq_dma_t  *dma;
     irq_adc_t  *adc;
     irq_exti_t *exti;
-    irq_rtc_t *rtc;
+    irq_rtc_t  *rtc;
 
 } irq_t;
 
 irq_t *irq(void);
-
-/*** INTERRUPT DEFINITION ***/
-void Reset_Handler(void);
-void NMI_Handler(void);
-void HardFault_Handler(void);
-void MemManage_Handler(void);
-void BusFault_Handler(void);
-void UsageFault_Handler(void);
-void SVC_Handler(void);
-void DebugMon_Handler(void);
-void PendSV_Handler(void);
-void SysTick_Handler(void);
-void WWDG_IRQHandler(void);
-void PVD_PVM_IRQHandler(void);
-void RTC_TAMP_CSS_LSE_IRQHandler(void);
-void RTC_WKUP_IRQHandler(void);
-void FLASH_IRQHandler(void);
-void RCC_IRQHandler(void);
-void EXTI0_IRQHandler(void);
-void EXTI1_IRQHandler(void);
-void EXTI2_IRQHandler(void);
-void EXTI3_IRQHandler(void);
-void EXTI4_IRQHandler(void);
-void DMA1_CH1_IRQHandler(void);
-void DMA1_CH2_IRQHandler(void);
-void DMA1_CH3_IRQHandler(void);
-void DMA1_CH4_IRQHandler(void);
-void DMA1_CH5_IRQHandler(void);
-void DMA1_CH6_IRQHandler(void);
-void DMA1_CH7_IRQHandler(void);
-void ADC1_2_IRQHandler(void);
-void USB_HP_IRQHandler(void);
-void USB_LP_IRQHandler(void);
-void FDCAN1_IT0_IRQHandler(void);
-void FDCAN1_IT1_IRQHandler(void);
-void EXTI9_5_IRQHandler(void);
-void TIM1_BRK_TIM15_IRQHandler(void);
-void TIM1_UP_TIM16_IRQHandler(void);
-void TIM1_TRG_COM_IRQHandler(void);
-void TIM1_CC_IRQHandler(void);
-void TIM2_IRQHandler(void);
-void TIM3_IRQHandler(void);
-void TIM4_IRQHandler(void);
-void I2C1_EV_IRQHandler(void);
-void I2C1_ER_IRQHandler(void);
-void I2C2_EV_IRQHandler(void);
-void I2C2_ER_IRQHandler(void);
-void SPI1_IRQHandler(void);
-void SPI2_IRQHandler(void);
-void USART1_IRQHandler(void);
-void USART2_IRQHandler(void);
-void USART3_IRQHandler(void);
-void EXTI15_10_IRQHandler(void);
-void RTC_ALARM_IRQHandler(void);
-void USBWakeUP_IRQHandler(void);
-void TIM8_BRK_IRQHandler(void);
-void TIM8_UP_IRQHandler(void);
-void TIM8_TRG_COM_IRQHandler(void);
-void TIM8_CC_IRQHandler(void);
-void ADC3_IRQHandler(void);
-void FMC_IRQHandler(void);
-void LPTIM1_IRQHandler(void);
-void TIM5_IRQHandler(void);
-void SPI3_IRQHandler(void);
-void UART4_IRQHandler(void);
-void UART5_IRQHandler(void);
-void TIM6_DACUNDER_IRQHandler(void);
-void TIM7_IRQHandler(void);
-void DMA2_CH1_IRQHandler(void);
-void DMA2_CH2_IRQHandler(void);
-void DMA2_CH3_IRQHandler(void);
-void DMA2_CH4_IRQHandler(void);
-void DMA2_CH5_IRQHandler(void);
-void ADC4_IRQHandler(void);
-void ADC5_IRQHandler(void);
-void UCPD1_IRQHandler(void);
-void COMP1_2_3_IRQHandler(void);
-void COMP4_5_6_IRQHandler(void);
-void COMP7_IRQHandler(void);
-void CRS_IRQHandler(void);
-void SAI_IRQHandler(void);
-void TIM20_BRK_IRQHandler(void);
-void TIM20_UP_IRQHandler(void);
-void TIM20_TRG_COM_IRQHandler(void);
-void TIM20_CC_IRQHandler(void);
-void FPU_IRQHandler(void);
-void I2C4_EV_IRQHandler(void);
-void I2C4_ER_IRQHandler(void);
-void SPI4_IRQHandler(void);
-void AES_IRQHandler(void);
-void FDCAN2_IT0_IRQHandler(void);
-void FDCAN2_IT1_IRQHandler(void);
-void FDCAN3_IT0_IRQHandler(void);
-void FDCAN3_IT1_IRQHandler(void);
-void RNG_IRQHandler(void);
-void LPUART_IRQHandler(void);
-void I2C3_EV_IRQHandler(void);
-void I2C3_ER_IRQHandler(void);
-void DMAMUX_OVR_IRQHandler(void);
-void QUADSPI_IRQHandler(void);
-void DMA1_CH8_IRQHandler(void);
-void DMA2_CH6_IRQHandler(void);
-void DMA2_CH7_IRQHandler(void);
-void DMA2_CH8_IRQHandler(void);
-void Cordic_IRQHandler(void);
-void FMAC_IRQHandler(void);
 
 #ifdef __cplusplus
 }
@@ -370,4 +763,3 @@ void FMAC_IRQHandler(void);
 #endif
 
 /*** EOF ***/
-

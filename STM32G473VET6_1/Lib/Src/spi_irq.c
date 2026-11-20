@@ -4,53 +4,8 @@ Author:   <sergio.salazar.santos@gmail.com>
 License:  GNU General Public License
 Hardware: STM32GXXX
 *******************************************************************************/
-#include "spi_irq.h"
 #include "stm32x_irq.h"
 #include <stm32g4xx.h>
-
-/******************************************************************************
- * SPI1
- ******************************************************************************/
-void spi1_rxne_callback(void)   {}
-void spi1_txe_callback(void)    {}
-
-void spi1_ovr_callback(void)    {}
-void spi1_modf_callback(void)   {}
-void spi1_crcerr_callback(void) {}
-void spi1_fre_callback(void)    {}
-
-/******************************************************************************
- * SPI2
- ******************************************************************************/
-void spi2_rxne_callback(void)   {}
-void spi2_txe_callback(void)    {}
-
-void spi2_ovr_callback(void)    {}
-void spi2_modf_callback(void)   {}
-void spi2_crcerr_callback(void) {}
-void spi2_fre_callback(void)    {}
-
-/******************************************************************************
- * SPI3
- ******************************************************************************/
-void spi3_rxne_callback(void)   {}
-void spi3_txe_callback(void)    {}
-
-void spi3_ovr_callback(void)    {}
-void spi3_modf_callback(void)   {}
-void spi3_crcerr_callback(void) {}
-void spi3_fre_callback(void)    {}
-
-/******************************************************************************
- * SPI4
- ******************************************************************************/
-void spi4_rxne_callback(void)   {}
-void spi4_txe_callback(void)    {}
-
-void spi4_ovr_callback(void)    {}
-void spi4_modf_callback(void)   {}
-void spi4_crcerr_callback(void) {}
-void spi4_fre_callback(void)    {}
 
 void SPI1_IRQHandler(void)
 {
