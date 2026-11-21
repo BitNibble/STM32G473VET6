@@ -56,9 +56,6 @@ STM32G473VET6_4.list \
 OBJCOPY_HEX += \
 STM32G473VET6_4.hex \
 
-OBJCOPY_BIN += \
-STM32G473VET6_4.bin \
-
 
 # All Target
 all: main-build
@@ -87,17 +84,12 @@ STM32G473VET6_4.hex: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-STM32G473VET6_4.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "STM32G473VET6_4.bin"
-	@echo 'Finished building: $@'
-	@echo ' '
-
 # Other Targets
 clean:
-	-$(RM) STM32G473VET6_4.bin STM32G473VET6_4.elf STM32G473VET6_4.hex STM32G473VET6_4.list STM32G473VET6_4.map default.size.stdout
+	-$(RM) STM32G473VET6_4.elf STM32G473VET6_4.hex STM32G473VET6_4.list STM32G473VET6_4.map default.size.stdout
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX) $(OBJCOPY_BIN)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'

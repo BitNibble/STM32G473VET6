@@ -244,7 +244,7 @@ static void ftdelayTerm(uint8_t ID) {
 }
 
 /*** SINGLETON INSTANTIATION (Marked const to reside safely in Flash memory) ***/
-static const TOOL_Handle tool_setup = {
+static const EXE_Handle tool_setup = {
     ._block_pos = _block_pos,
     ._mask = _mask,
 	._set_bit = _set_bit,
@@ -280,7 +280,7 @@ static const TOOL_Handle tool_setup = {
 };
 
 /*** SINGLETON ACCESSOR FUNCTION ***/
-TOOL_Handle* exe(void) {
+EXE_Handle* exe(void) {
     return &tool_setup;
 }
 

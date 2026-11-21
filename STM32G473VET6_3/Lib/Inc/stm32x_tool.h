@@ -80,10 +80,10 @@ typedef const struct {
     int (*ftdelayCycles)(uint8_t lock_ID, unsigned int n_cycle, void (*init)(void), void (*term)(void));
     void (*ftdelayReset)(uint8_t ID);
     void (*ftdelayTerm)(uint8_t ID);
-} TOOL_Handle;
+} EXE_Handle;
 
 /*** TOOL ACCESSOR FUNCTION ***/
-TOOL_Handle* exe(void);
+EXE_Handle* exe(void);
 
 // ============================================================================
 // WRAPPER MACROS (Cleans up calling syntax completely)
