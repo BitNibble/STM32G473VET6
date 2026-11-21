@@ -52,10 +52,10 @@ typedef const struct {
 	void (*disable_irq)(IRQn_Type IRQn);
 	void (*irq_setpriority)(IRQn_Type IRQn, uint32_t priority);
 	DEV_run* run;
-} STM32_DEVICE;
+} DEV_Handle;
 
 /*** DEV ACCESSOR FUNCTION ***/
-STM32_DEVICE* dev(void);
+DEV_Handle* dev(void);
 
 //void __enable_irq(void);
 //void __disable_irq(void);

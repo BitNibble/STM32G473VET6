@@ -309,7 +309,7 @@ static USART1_run run_setup = {
 };
 
 /*** USART1 HANDLER ***/
-static USARTG4_Handle handle_instance = {
+static USART1_Handle handle_instance = {
 		.par = &par_setup,
 		.get = &get_setup,
 		.set = &set_setup,
@@ -317,7 +317,7 @@ static USARTG4_Handle handle_instance = {
 };
 
 /*** USART1 ACCESSOR FUNCTION ***/
-USARTG4_Handle* usart1(void) { return &handle_instance; }
+USART1_Handle* usart1(void) { return &handle_instance; }
 
 /*** INIT ***/
 static void impl_init(USART1_par* par) {

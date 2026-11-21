@@ -71,7 +71,7 @@ static const char *state_name[] = {
 
 static ui_state_t ui_state = CFG_IDLE;
 static EXPLODE_Handler btn_engine;
-static L293D_Handler drive;
+static L293D_Handle drive;
 static uint16_t speed;
 
 void rtc_ui_init(void);
@@ -102,7 +102,7 @@ int main(void)
     EXPLODE_Handler tr = EXPLODE_enable();
     EXPLODE_Handler dr = EXPLODE_enable();
 
-    ST7789 lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
+    ST7789_Handle lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
     (void) lcd1;
 
     drive = l293d_enable(GPIOE, ZERO);

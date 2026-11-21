@@ -89,9 +89,9 @@ typedef const struct
 	uint32_t (*string_to_uint)(const char* str);
 	void (*int_to_hex_string)(unsigned int value, char* buffer, size_t buffer_size);
 	void (*float_to_string)(float value, char* buffer, size_t buffer_size);
-}FUNC_Handler;
+}FUNC_Handle;
 
-FUNC_Handler* func(void);
+FUNC_Handle* func(void);
 
 #endif
 

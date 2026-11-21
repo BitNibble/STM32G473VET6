@@ -84,10 +84,10 @@ typedef const struct {
 	USART1_get* get;
 	USART1_set* set;
 	USART1_run* run;
-} USARTG4_Handle;
+} USART1_Handle;
 
 /*** USART1 ACCESSOR FUNCTION ***/
-USARTG4_Handle* usart1(void);
+USART1_Handle* usart1(void);
 
 #endif
 

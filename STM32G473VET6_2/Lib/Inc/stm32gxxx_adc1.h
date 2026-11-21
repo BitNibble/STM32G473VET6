@@ -32,10 +32,10 @@ typedef const struct {
 typedef const struct {
 	adc1_par* par;
 	adc1_run* run;
-}adc1_handler;
+}ADC1_Handle;
 
 /*** ADC1 ACCESSOR FUNCTION ***/
-adc1_handler* adc1(void);
+ADC1_Handle* adc1(void);
 
 #endif
 

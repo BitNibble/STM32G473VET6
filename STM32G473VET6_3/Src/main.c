@@ -45,7 +45,7 @@ int main(void)
 	dev()->enable_peripheral(GPIOF);
 	gpio()->hmoder( GPIOF, MODE_OUTPUT, 1 << 2 );
 
-	ST7789 lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
+	ST7789_Handle lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
 	(void) lcd1;
 
 

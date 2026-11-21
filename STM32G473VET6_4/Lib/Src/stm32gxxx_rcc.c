@@ -405,12 +405,12 @@ static STM32GXXX_RCC_run STM32GXXX_rcc_run_setup = {
 	.pll_enable = STM32GXXX_Rcc_PLL_CLK_Enable
 };
 /*** RCC HANDLER ***/
-static STM32GXXX_RCC_HANDLER STM32GXXX_rcc_setup = {
+static RCC_Handle STM32GXXX_rcc_setup = {
 	.run = &STM32GXXX_rcc_run_setup
 };
 
 /*** RCC ACCESSOR FUNCTION ***/
-STM32GXXX_RCC_HANDLER* rcc(void){ return &STM32GXXX_rcc_setup; };
+RCC_Handle* rcc(void){ return &STM32GXXX_rcc_setup; };
 
 /*** INIT ***/
 void rcc_start(void)

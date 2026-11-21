@@ -445,7 +445,7 @@ static DEV_run run_setup = {
 };
 
 /*** DEV HANDLER ***/
-static STM32_DEVICE device = {
+static DEV_Handle device = {
 	.get = &get_setup,
 	.enable_peripheral = enable_dev_peripheral,
 	.disable_peripheral = disable_dev_peripheral,
@@ -456,7 +456,7 @@ static STM32_DEVICE device = {
 };
 
 /*** DEV ACCESSOR FUNCTION ***/
-STM32_DEVICE* dev(void) { return &device; }
+DEV_Handle* dev(void) { return &device; }
 
 /*** EOF ***/
 

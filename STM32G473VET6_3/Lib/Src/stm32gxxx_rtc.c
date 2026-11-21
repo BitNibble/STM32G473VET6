@@ -365,7 +365,7 @@ static RTC_run run_setup = {
 };
 
 /*** RTC HANDLER ***/
-static STM32G473_RTC_Handler rtc_instance =
+static RTC_Handle rtc_instance =
 {
 	.get = &get_setup,
 	.set = &set_setup,
@@ -373,7 +373,7 @@ static STM32G473_RTC_Handler rtc_instance =
 };
 
 /*** RTC ACCESSOR FUNCTION ***/
-STM32G473_RTC_Handler* rtc(void) { return (STM32G473_RTC_Handler*)&rtc_instance; }
+RTC_Handle* rtc(void) { return &rtc_instance; }
 
 /*** INIT ***/
 static void RTC_inic(void) {

@@ -24,10 +24,10 @@ typedef const struct {
 typedef const struct
 {
 	STM32GXXX_RCC_run* run;
-}STM32GXXX_RCC_HANDLER;
+}RCC_Handle;
 
 /*** RCC ACCESSOR FUNCTION ***/
-STM32GXXX_RCC_HANDLER* rcc(void);
+RCC_Handle* rcc(void);
 
 #endif
 

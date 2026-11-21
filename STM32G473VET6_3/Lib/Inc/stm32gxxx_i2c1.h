@@ -131,10 +131,10 @@ typedef const struct {
 	i2c1_get* get;
 	i2c1_set* set;
 	i2c1_run* run;
-} i2c1_handler;
+} I2C1_Handle;
 
 /*** i2c1 ACCESSOR FUNCTION ***/
-i2c1_handler* i2c1(void);
+I2C1_Handle* i2c1(void);
 
 #endif
 

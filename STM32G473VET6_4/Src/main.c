@@ -15,7 +15,7 @@ Hardware: STM32G473VET6 + ST7789 (SPI3) + HC-05 (USART1)
 
 #define BG_colour 0x0000
 
-static const USARTG4_Handle* Serial1;
+static const USART1_Handle* Serial1;
 char* token[4];
 char usart_1[USART1_RX_SIZE];
 char str[32];
@@ -63,7 +63,7 @@ void tim_cc1_callback(void)
     gpio()->clear_hpin(GPIOF, 1 << 2);
 }
 
-static void draw_hud(ST7789 *lcd)
+static void draw_hud(ST7789_Handle *lcd)
 {
     lcd->run->start(&lcd->par);
     lcd->run->drawstring8x12(&lcd->par, "CMD: clr | col | line | f1..f3", 0, 6, ST77XX_WHITE, BG_colour);
@@ -83,7 +83,7 @@ int main(void)
     gpio()->hmoder(GPIOF, MODE_OUTPUT, 1 << 2);
     gpio()->clear_pin(GPIOF, 2);
 
-    ST7789 lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
+    ST7789_Handle lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
 
     Serial1 = usart1();
     Serial1->run->init(Serial1->par);

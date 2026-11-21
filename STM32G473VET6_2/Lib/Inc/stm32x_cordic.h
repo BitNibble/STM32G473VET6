@@ -43,11 +43,11 @@ typedef const struct
     void (*q31)(cordic_operation operation, cordic_arg *arg);
     void (*q15)(cordic_operation operation, cordic_arg *arg);
 
-} cordic_handler;
+} CORDIC_Handle;
 
 /* CORDIC ACCESSOR */
 
-cordic_handler* cordic(void);
+CORDIC_Handle* cordic(void);
 
 #endif
 

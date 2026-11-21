@@ -303,13 +303,13 @@ static tim1_run t1_run = {
 	.get_capture          = t1_get_capture
 };
 
-TIM1_Handler t1_instance = {
+TIM1_Handle t1_instance = {
 	.par = &t1_par,
 	.run = &t1_run,
 };
 
-TIM1_Handler* tim1(void) { 
-    return (TIM1_Handler*)&t1_instance; 
+TIM1_Handle* tim1(void) {
+    return &t1_instance;
 }
 
 /*** EOF ***/

@@ -228,13 +228,13 @@ static adc1_run run_setup = {
 	.temp_read_celsius =adc1_temp_read_celsius
 };
 /*** ADC1 HANDLER ***/
-adc1_handler adc1_setup = {
+ADC1_Handle adc1_setup = {
 	.par = &par_setup,
 	.run = &run_setup
 };
 
 /*** ADC1 ACCESSOR FUNCTION ***/
-adc1_handler* adc1(void){return &adc1_setup;}
+ADC1_Handle* adc1(void){return &adc1_setup;}
 
 /*** INIT ***/
 static void adc1_temp_init(void) {

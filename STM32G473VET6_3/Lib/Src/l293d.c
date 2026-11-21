@@ -83,8 +83,8 @@ static L293D_run run_setup = {
 	.pwm_stop_coast = l293d_pwm_stop_coast
 };
 /*** Instance ***/
-L293D_Handler l293d_enable(GPIO_TypeDef *port, uint8_t en_pin) {
-    L293D_Handler l293d = {
+L293D_Handle l293d_enable(GPIO_TypeDef *port, uint8_t en_pin) {
+    L293D_Handle l293d = {
         .par = {
         	.EN_GPIO = port,
 			.TIM_GPIO = GPIOA,

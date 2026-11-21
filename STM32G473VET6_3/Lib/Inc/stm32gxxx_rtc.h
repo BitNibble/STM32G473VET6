@@ -82,10 +82,10 @@ typedef const struct
 	RTC_get* get;
 	RTC_set* set;
 	RTC_run* run;
-} STM32G473_RTC_Handler;
+} RTC_Handle;
 
 /*** RTC ACCESSOR FUNCTION ***/
-STM32G473_RTC_Handler* rtc(void);
+RTC_Handle* rtc(void);
 
 const char* WeekDay_String(uint8_t weekday_n);
 

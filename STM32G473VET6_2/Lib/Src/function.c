@@ -824,7 +824,7 @@ void function_parse_string(char* raw_input_string, uint8_t n_tokens, char* token
     }
 }
 
-static FUNC_Handler func_setup = {
+static FUNC_Handle func_setup = {
 	.power = function_power,
 	.divide = function_divide,
 	.realnumber = function_realnumber,
@@ -878,7 +878,7 @@ static FUNC_Handler func_setup = {
 	.float_to_string = float_to_string
 };
 
-FUNC_Handler* func(void){ return &func_setup; }
+FUNC_Handle* func(void){ return &func_setup; }
 
 /***EOF***/
 
