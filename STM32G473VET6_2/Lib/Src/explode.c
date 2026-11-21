@@ -25,9 +25,9 @@ static explode_run run_setup = {
 };
 
 /*** EXPLODE Procedure & Function Definition ***/
-EXPLODE_Handler EXPLODE_enable( void )
+EXPLODE_Handle EXPLODE_enable( void )
 {
-	EXPLODE_Handler setup = {
+	EXPLODE_Handle setup = {
 		.par = {
 				.XI = 0,
 				.XF = 0,

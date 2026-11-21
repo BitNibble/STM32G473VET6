@@ -28,7 +28,7 @@ SDA - GPIOB9
 #define BTN_ALL_PINS_MASK    (0x3FU << 8)
 #define BG_colour 0x0000
 
-static EXPLODE_Handler btn_engine;
+static EXPLODE_Handle btn_engine;
 void rtc_ui_init(void);
 
 int main(void)

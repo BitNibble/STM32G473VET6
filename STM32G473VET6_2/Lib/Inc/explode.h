@@ -45,9 +45,9 @@ typedef const struct {
 typedef struct {
 	explode_par par;
 	explode_run* run;
-}EXPLODE_Handler;
+}EXPLODE_Handle;
 
-EXPLODE_Handler EXPLODE_enable(void);
+EXPLODE_Handle EXPLODE_enable(void);
 
 #endif
 

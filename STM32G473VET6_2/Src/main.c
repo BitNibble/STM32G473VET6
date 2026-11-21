@@ -70,13 +70,13 @@ static const char *state_name[] = {
 };
 
 static ui_state_t ui_state = CFG_IDLE;
-static EXPLODE_Handler btn_engine;
+static EXPLODE_Handle btn_engine;
 static L293D_Handle drive;
 static uint16_t speed;
 
 void rtc_ui_init(void);
-void select_mode(EXPLODE_Handler active_press);
-void adjust_active_field(EXPLODE_Handler active_press);
+void select_mode(EXPLODE_Handle active_press);
+void adjust_active_field(EXPLODE_Handle active_press);
 void speed_inc(void);
 void blink(void);
 
@@ -99,8 +99,8 @@ int main(void)
     rtc_ui_init();
     adc1()->run->temp_init();
 
-    EXPLODE_Handler tr = EXPLODE_enable();
-    EXPLODE_Handler dr = EXPLODE_enable();
+    EXPLODE_Handle tr = EXPLODE_enable();
+    EXPLODE_Handle dr = EXPLODE_enable();
 
     ST7789_Handle lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
     (void) lcd1;
@@ -203,14 +203,14 @@ void rtc_ui_init(void)
     btn_engine = EXPLODE_enable();
 }
 
-void select_mode(EXPLODE_Handler active_press)
+void select_mode(EXPLODE_Handle active_press)
 {
     if (active_press.par.HL & BTN_MODE_PIN) {
         ui_state = LIMIT_INC(ui_state, 7, 0);
     }
 }
 
-void adjust_active_field(EXPLODE_Handler active_press)
+void adjust_active_field(EXPLODE_Handle active_press)
 {
     uint8_t current_val; // Re-use single memory register to optimize the switch-case pipeline
 
