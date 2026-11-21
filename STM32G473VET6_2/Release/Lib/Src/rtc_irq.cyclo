@@ -1,3 +1,0 @@
-../Lib/Src/rtc_irq.c:10:6:RTC_Alarm_IRQHandler	3
-../Lib/Src/rtc_irq.c:31:6:RTC_WKUP_IRQHandler	3
-../Lib/Src/rtc_irq.c:49:6:RTC_TAMP_LSECSS_IRQHandler	7

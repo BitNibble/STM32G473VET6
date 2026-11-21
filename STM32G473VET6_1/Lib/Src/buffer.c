@@ -32,9 +32,9 @@ static buffer_run run_setup = {
 	.flush = BUFF_flush
 };
 /*** BUFF Procedure & Function Definition ***/
-BUFF_Handler BUFF_enable( uint8_t size_buff, BUFF_var* buff )
+BUFF_Handle BUFF_enable( uint8_t size_buff, BUFF_var* buff )
 {
-	BUFF_Handler ret = {
+	BUFF_Handle ret = {
 		.par = buff_par_inic( size_buff, buff ),
 		.run = &run_setup
 	};

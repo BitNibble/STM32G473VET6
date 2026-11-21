@@ -1,7 +1,0 @@
-../Lib/Src/znpid.c:59:6:ZNPID_set_kc	1
-../Lib/Src/znpid.c:64:6:ZNPID_set_ki	1
-../Lib/Src/znpid.c:69:6:ZNPID_set_kd	1
-../Lib/Src/znpid.c:74:6:ZNPID_set_SP	1
-../Lib/Src/znpid.c:79:8:ZNPID_OP	8
-../Lib/Src/znpid.c:25:11:znpid_par_init	1
-../Lib/Src/znpid.c:48:15:ZNPID_enable	1

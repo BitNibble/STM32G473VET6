@@ -1,4 +1,0 @@
-../Lib/Src/spi_irq.c:10:6:SPI1_IRQHandler	13
-../Lib/Src/spi_irq.c:116:6:SPI2_IRQHandler	13
-../Lib/Src/spi_irq.c:222:6:SPI3_IRQHandler	13
-../Lib/Src/spi_irq.c:328:6:SPI4_IRQHandler	13

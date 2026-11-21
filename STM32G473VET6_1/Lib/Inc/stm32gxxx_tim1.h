@@ -70,9 +70,9 @@ typedef const struct {
 typedef const struct {
 	tim1_par* par;
 	tim1_run* run;
-} TIM1_Handler;
+} TIM1_Handle;
 
-TIM1_Handler* tim1(void);
+TIM1_Handle* tim1(void);
 
 #endif
 

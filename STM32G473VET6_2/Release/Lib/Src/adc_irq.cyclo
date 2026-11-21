@@ -1,4 +1,0 @@
-../Lib/Src/adc_irq.c:10:6:ADC1_2_IRQHandler	17
-../Lib/Src/adc_irq.c:150:6:ADC3_IRQHandler	9
-../Lib/Src/adc_irq.c:219:6:ADC4_IRQHandler	9
-../Lib/Src/adc_irq.c:288:6:ADC5_IRQHandler	9

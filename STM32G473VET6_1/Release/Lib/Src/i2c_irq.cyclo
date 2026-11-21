@@ -1,8 +1,0 @@
-../Lib/Src/i2c_irq.c:10:6:I2C1_EV_IRQHandler	15
-../Lib/Src/i2c_irq.c:129:6:I2C1_ER_IRQHandler	13
-../Lib/Src/i2c_irq.c:242:6:I2C2_EV_IRQHandler	15
-../Lib/Src/i2c_irq.c:361:6:I2C2_ER_IRQHandler	13
-../Lib/Src/i2c_irq.c:474:6:I2C3_EV_IRQHandler	15
-../Lib/Src/i2c_irq.c:593:6:I2C3_ER_IRQHandler	13
-../Lib/Src/i2c_irq.c:706:6:I2C4_EV_IRQHandler	15
-../Lib/Src/i2c_irq.c:825:6:I2C4_ER_IRQHandler	13

@@ -696,7 +696,7 @@ static i2c1_run run_setup = {
 };
 
 /*** i2c1 HANDLER ***/
-static i2c1_handler i2c1_setup = {
+static I2C1_Handle i2c1_setup = {
 	.par = &par_setup,
 	.get = &get_setup,
 	.set = &set_setup,
@@ -704,7 +704,7 @@ static i2c1_handler i2c1_setup = {
 };
 
 /*** i2c1 ACCESSOR FUNCTION ***/
-i2c1_handler* i2c1(void){return &i2c1_setup;}
+I2C1_Handle* i2c1(void){return &i2c1_setup;}
 
 /*** INIT ***/
 static void init(i2c1_par* par) {

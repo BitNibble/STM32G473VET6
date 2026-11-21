@@ -97,7 +97,7 @@ C_DEPS += \
 
 # Each subdirectory must supply rules for building sources it contributes
 Lib/Src/%.o Lib/Src/%.su Lib/Src/%.cyclo: ../Lib/Src/%.c Lib/Src/subdir.mk
-	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -DSTM32G473VETx -DSTM32 -DSTM32G4 -c -I"C:/Embedded/STM32G473VET6/STM32G473VET6_2/Drivers/CMSIS/Device/ST/STM32G4xx/Include" -I"C:/Embedded/STM32G473VET6/STM32G473VET6_2/Drivers/CMSIS/Include" -I"C:/Embedded/STM32G473VET6/STM32G473VET6_2/Lib/Inc" -I"C:/Embedded/STM32G473VET6/STM32G473VET6_2/Inc" -Os -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
+	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -DSTM32G473VETx -DSTM32 -DSTM32G4 -c -I"C:/Embedded/STM32G473VET6/STM32G473VET6_2/Drivers/CMSIS/Device/ST/STM32G4xx/Include" -I"C:/Embedded/STM32G473VET6/STM32G473VET6_2/Drivers/CMSIS/Include" -I"C:/Embedded/STM32G473VET6/STM32G473VET6_2/Lib/Inc" -Os -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 
 clean: clean-Lib-2f-Src
 

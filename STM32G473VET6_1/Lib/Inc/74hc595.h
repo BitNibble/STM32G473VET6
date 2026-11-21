@@ -40,9 +40,9 @@ typedef struct
 {
 	hc595_par par;
 	hc595_run* run;
-}HC595_Handler;
+}HC595_Handle;
 
-HC595_Handler hc595_enable(volatile IO_var *ddr, volatile IO_var *port, uint8_t datapin, uint8_t clkpin, uint8_t outpin);
+HC595_Handle hc595_enable(volatile IO_var *ddr, volatile IO_var *port, uint8_t datapin, uint8_t clkpin, uint8_t outpin);
 
 #endif
 

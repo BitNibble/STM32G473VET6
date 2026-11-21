@@ -87,14 +87,14 @@ typedef const struct
 	void (*test_pin)( ST7789_par* par, uint8_t pin);
 }ST7789_run;
 /*** ST7789 HANDLER ***/
-typedef struct ST7789
+typedef struct
 {
 	ST7789_par par;
 	ST7789_run* run;
-}ST7789;
+}ST7789_Handle;
 
 /*** ST7789 INITIALIZE ***/
-ST7789 st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t rst_pin, uint16_t *fb);
+ST7789_Handle st7789_enable(SPI_TypeDef* spi, uint8_t cs_pin, uint8_t dc_pin, uint8_t rst_pin, uint16_t *fb);
 
 uint16_t _pad_width8(uint16_t width);
 uint16_t _glyph_size_bytes(uint16_t width, uint16_t height);

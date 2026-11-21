@@ -351,7 +351,7 @@ static void cordic16(cordic_operation operation, cordic_arg *arg)
 
 /*** CORDIC HANDLER *********************************************************/
 
-cordic_handler cordic_setup =
+CORDIC_Handle cordic_setup =
 {
     .q31 = cordic32,
     .q15 = cordic16
@@ -360,7 +360,7 @@ cordic_handler cordic_setup =
 
 /*** CORDIC ACCESSOR ********************************************************/
 
-cordic_handler* cordic(void)
+CORDIC_Handle* cordic(void)
 {
     return &cordic_setup;
 }

@@ -24,7 +24,7 @@ RX - GPIOA10
 #define BG_colour 0x0000
 
 // Retrieve global reference to layout instance
-static const USARTG4_Handle* Serial1;
+static const USART1_Handle* Serial1;
 char* token[4];
 
 char usart_1[USART1_RX_SIZE];
@@ -105,7 +105,7 @@ int main(void)
 
 	gpio()->clear_pin(GPIOF, 2);
 
-	ST7789 lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
+	ST7789_Handle lcd1 = st7789_enable(SPI3, 7, 8, 9, NULL);
 	(void) lcd1;
 
 	Serial1 = usart1();

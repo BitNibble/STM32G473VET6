@@ -43,9 +43,9 @@ typedef const struct {
 typedef struct {
     L293D_par par;
     L293D_run* run;
-} L293D_Handler;
+} L293D_Handle;
 
-L293D_Handler l293d_enable(GPIO_TypeDef *port, uint8_t en_pin);
+L293D_Handle l293d_enable(GPIO_TypeDef *port, uint8_t en_pin);
 
 #endif
 

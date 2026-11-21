@@ -698,7 +698,7 @@ void rtc_overrun_callback(void)   {}
     ROOT
 -------------------------------------------------------------*/
 
-static irq_t irq_root =
+static IRQ_Handle irq_root =
 {
     &tim,
     &uart,
@@ -710,7 +710,7 @@ static irq_t irq_root =
 	&rtc    /* rtc */
 };
 
-irq_t *irq(void)
+IRQ_Handle *irq(void)
 {
     return &irq_root;
 }

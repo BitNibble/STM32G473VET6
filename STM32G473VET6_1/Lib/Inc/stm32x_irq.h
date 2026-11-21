@@ -752,9 +752,9 @@ typedef struct
     irq_exti_t *exti;
     irq_rtc_t  *rtc;
 
-} irq_t;
+} IRQ_Handle;
 
-irq_t *irq(void);
+IRQ_Handle *irq(void);
 
 #ifdef __cplusplus
 }

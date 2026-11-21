@@ -32,9 +32,9 @@ struct buffer
 	buffer_par par;
 	buffer_run* run;
 };
-typedef struct buffer BUFF_Handler;
+typedef struct buffer BUFF_Handle;
 
-BUFF_Handler BUFF_enable(uint8_t size_buff, BUFF_var* buff);
+BUFF_Handle BUFF_enable(uint8_t size_buff, BUFF_var* buff);
 
 #endif
 
