@@ -59,10 +59,10 @@ static inline uint32_t _clear_bit(uint32_t var, uint32_t Msk){
 }
 static inline uint32_t _size_to_block(uint32_t size_block){
     // Pure bitmath trick avoiding conditional branches for max compiler speed
-    return (size_block >= DWORD_BITS) ? 0xFFFFFFFFU : ((1U << (size_block & 31U)) - 1U);
+    return (size_block >= WORD_BITS) ? 0xFFFFFFFFU : ((1U << (size_block & 31U)) - 1U);
 }
 static inline uint32_t _block_to_size(uint32_t block) {
-    return block ? ((unsigned int)DWORD_BITS - (unsigned int)__builtin_clz(block)) : 0U;
+    return block ? ((unsigned int)WORD_BITS - (unsigned int)__builtin_clz(block)) : 0U;
 }
 static inline uint32_t _block_mask(uint32_t size_block, uint32_t Pos){
     return _size_to_block(size_block) << (Pos & 31U);
@@ -104,23 +104,23 @@ static void write_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos,
 // bit_block
 static uint32_t get_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos)
 {
-    uint32_t n = Pos / DWORD_BITS;
-    Pos = Pos % DWORD_BITS;
+    uint32_t n = Pos / WORD_BITS;
+    Pos = Pos % WORD_BITS;
     return get_field(*(reg + n), _block_mask(size_block, Pos), Pos);
 }
 static void write_bit_block(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data) {
-    uint32_t n = Pos / DWORD_BITS;
-    Pos = Pos % DWORD_BITS;
+    uint32_t n = Pos / WORD_BITS;
+    Pos = Pos % WORD_BITS;
 
     write_field((reg + n), _block_mask(size_block, Pos), Pos, data);
 }
 void write_bit_block_v2(volatile uint32_t* reg, uint8_t size_block, uint8_t Pos, uint32_t data) {
-    uint32_t n = Pos / DWORD_BITS;
-    Pos = Pos % DWORD_BITS;
+    uint32_t n = Pos / WORD_BITS;
+    Pos = Pos % WORD_BITS;
 
     // Check if the bit block spills over into the next 32-bit register boundary
-    if ((Pos + size_block) > DWORD_BITS) {
-        uint8_t first_part_size = (uint8_t)(DWORD_BITS - Pos);
+    if ((Pos + size_block) > WORD_BITS) {
+        uint8_t first_part_size = (uint8_t)(WORD_BITS - Pos);
         uint8_t second_part_size = (uint8_t)(size_block - first_part_size);
 
         // 1. Write the lower fragment to the first register

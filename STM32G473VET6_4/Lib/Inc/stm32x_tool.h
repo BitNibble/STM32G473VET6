@@ -16,9 +16,9 @@ Hardware: STM32
 #define TWO 2UL
 #define NIBBLE_BITS 4UL
 #define BYTE_BITS 8UL
-#define WORD_BITS 16UL
-#define DWORD_BITS 32UL
-#define QWORD_BITS 64UL
+#define DBYTE_BITS 16UL
+#define WORD_BITS 32UL
+#define DWORD_BITS 64UL
 
 #ifndef SET_BIT
     #define SET_BIT(REG, BIT)                    ((REG) |= (BIT))
